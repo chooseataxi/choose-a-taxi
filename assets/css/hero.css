@@ -1,12 +1,11 @@
 .hero-section {
     position: relative;
-    padding: 60px 0;
-    min-height: 600px;
-    background-image: url('../frontend-images/hero-new-bg.jpeg');
-    background-size: cover;
-    background-position: center bottom;
+    padding: 20px 0 0 0;
+    min-height: 550px;
+    background-color: #f7faff;
     display: flex;
-    align-items: center;
+    align-items: stretch;
+    overflow: hidden;
 }
 
 .hero-container {
@@ -19,16 +18,42 @@
     align-items: center;
 }
 
+.hero-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+}
+
+.hero-text-area {
+    padding-top: 40px;
+}
+
 .hero-content h1 {
-    font-size: 48px;
-    color: var(--dark-bg);
-    margin-bottom: 10px;
-    line-height: 1.2;
+    font-size: 52px;
+    font-weight: 800;
+    color: #1a1a1a;
+    margin-bottom: 5px;
+    line-height: 1.1;
 }
 
 .hero-content .subtitle {
     font-size: 18px;
-    color: var(--text-muted);
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.hero-image-wrapper {
+    margin-top: auto;
+    width: 110%;
+    margin-left: -5%;
+}
+
+.hero-car-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: contain;
 }
 
 /* Booking Card Styling */

@@ -2,8 +2,13 @@
     <div class="hero-container">
         <!-- Hero Left Content -->
         <div class="hero-content">
-            <h1>All india cab booking services</h1>
-            <p class="subtitle">booking services</p>
+            <div class="hero-text-area">
+                <h1>All india cab booking services</h1>
+                <p class="subtitle">booking services</p>
+            </div>
+            <div class="hero-image-wrapper">
+                <img src="assets/frontend-images/hero-new-bg.jpeg" alt="Hero Car" class="hero-car-img">
+            </div>
         </div>
 
         <!-- Hero Right Booking Card -->
