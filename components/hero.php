@@ -38,7 +38,7 @@
                     <div class="form-group">
                         <label>PICK-UP ADDRESS</label>
                         <div class="form-input-wrapper">
-                            <input type="text" placeholder="City, Airport, Station, etc." required>
+                            <input type="text" id="pickup_address" placeholder="City, Airport, Station, etc." required>
                         </div>
                     </div>
 
@@ -46,7 +46,7 @@
                     <div class="form-group">
                         <label>STOP ADDRESS</label>
                         <div class="form-input-wrapper">
-                            <input type="text" placeholder="NEXT STOP ADDRESS">
+                            <input type="text" id="stop_address" placeholder="NEXT STOP ADDRESS">
                         </div>
                         <button type="button" class="add-stop-btn">+ Add Stop Address</button>
                     </div>
@@ -88,3 +88,28 @@
         </div>
     </div>
 </section>
+
+<!-- Google Places API Integration -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCT5jMYUaHtsT2Z2IzkQgl-8TsIw_946VY&libraries=places"></script>
+<script>
+    function initAutocomplete() {
+        const options = {
+            componentRestrictions: { country: "in" },
+            fields: ["address_components", "geometry", "icon", "name"],
+            strictBounds: false,
+        };
+
+        const pickupInput = document.getElementById("pickup_address");
+        const stopInput = document.getElementById("stop_address");
+
+        if (pickupInput) {
+            new google.maps.places.Autocomplete(pickupInput, options);
+        }
+        if (stopInput) {
+            new google.maps.places.Autocomplete(stopInput, options);
+        }
+    }
+
+    // Initialize once the Google Maps script is loaded
+    google.maps.event.addDomListener(window, 'load', initAutocomplete);
+</script>
