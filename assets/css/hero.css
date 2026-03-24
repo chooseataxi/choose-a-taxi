@@ -1,0 +1,207 @@
+.hero-section {
+    position: relative;
+    padding: 60px 0;
+    min-height: 600px;
+    background-image: url('../frontend-images/hero-background.jpg');
+    background-size: cover;
+    background-position: center bottom;
+    display: flex;
+    align-items: center;
+}
+
+.hero-container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+}
+
+.hero-content h1 {
+    font-size: 48px;
+    color: var(--dark-bg);
+    margin-bottom: 10px;
+    line-height: 1.2;
+}
+
+.hero-content .subtitle {
+    font-size: 18px;
+    color: var(--text-muted);
+}
+
+/* Booking Card Styling */
+.booking-card {
+    background: #fff;
+    border-radius: 12px 12px 0 0;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    border: 3px solid #000;
+    overflow: hidden;
+}
+
+.card-header {
+    background: #000;
+    color: #fff;
+    padding: 10px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.booking-tabs {
+    display: flex;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 15px;
+    border: 1px solid #eee;
+    background: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+}
+
+.tab-btn.active {
+    background: var(--primary-green);
+    color: #fff;
+    border-color: var(--primary-green);
+}
+
+.form-body {
+    padding: 20px;
+}
+
+.trip-type {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.trip-option {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid #d97706; /* Amber border */
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.trip-option.active {
+    background: #d97706;
+    color: #fff;
+}
+
+.trip-option i {
+    font-size: 18px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+
+.form-input-wrapper {
+    position: relative;
+    border: 1px solid #e5e7eb;
+    border-radius: 5px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.form-input-wrapper input {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 14px;
+    color: var(--text-main);
+}
+
+.add-stop-btn {
+    color: #1a365d;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1.5px solid #1a365d;
+    padding: 5px 12px;
+    border-radius: 5px;
+    background: none;
+    float: right;
+    margin-top: -10px;
+    margin-bottom: 15px;
+    cursor: pointer;
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+.search-btn {
+    width: 100%;
+    background: var(--primary-green);
+    color: #fff;
+    padding: 15px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.search-btn:hover {
+    background: #008f36;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 991px) {
+    .hero-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .hero-content {
+        text-align: center;
+    }
+    
+    .hero-content h1 {
+        font-size: 36px;
+    }
+    
+    .hero-section {
+        padding: 40px 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .trip-type {
+        flex-direction: column;
+    }
+    
+    .form-row {
+        flex-direction: column;
+    }
+}
