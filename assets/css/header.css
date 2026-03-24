@@ -1,0 +1,258 @@
+:root {
+    --primary-green: #00a63f;
+    --dark-bg: #1a1a1a;
+    --light-bg: #fdf2f2;
+    --white: #ffffff;
+    --text-main: #333333;
+    --text-muted: #666666;
+    --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family);
+}
+
+header {
+    width: 100%;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+/* Top Bar Styling */
+.top-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 45px;
+    font-size: 14px;
+    position: relative;
+    overflow: hidden;
+}
+
+.top-left {
+    background-color: var(--dark-bg);
+    color: var(--white);
+    padding: 0 40px 0 5%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    flex: 1;
+    clip-path: polygon(0 0, 100% 0, 95% 100%, 0 100%);
+    z-index: 2;
+}
+
+.top-right {
+    background-color: var(--light-bg);
+    color: var(--text-main);
+    padding: 0 5% 0 40px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 1;
+    margin-left: -20px;
+}
+
+.social-links {
+    display: flex;
+    gap: 15px;
+    list-style: none;
+    margin-left: 15px;
+}
+
+.social-links a {
+    color: var(--text-main);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.social-links a:hover {
+    color: var(--primary-green);
+}
+
+/* Main Navbar Styling */
+.main-navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 5%;
+    background: var(--white);
+}
+
+.logo-area {
+    display: flex;
+    flex-direction: column;
+}
+
+.logo-area img {
+    height: 50px;
+    width: auto;
+}
+
+.tagline {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: 5px;
+}
+
+.contact-info {
+    display: flex;
+    gap: 30px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.info-icon {
+    width: 40px;
+    height: 40px;
+    background: #f5f5f5;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-main);
+    font-size: 18px;
+}
+
+.info-text span {
+    display: block;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.info-text strong {
+    font-size: 15px;
+    color: var(--text-main);
+}
+
+.login-btn {
+    background-color: var(--primary-green);
+    color: var(--white);
+    padding: 12px 25px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background 0.3s, transform 0.2s;
+    border: none;
+    cursor: pointer;
+}
+
+.login-btn:hover {
+    background-color: #008f36;
+    transform: translateY(-2px);
+}
+
+/* Mobile Responsiveness */
+.mobile-toggle {
+    display: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-main);
+}
+
+.mobile-menu {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 250px;
+    height: 100vh;
+    background: var(--white);
+    box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    padding: 30px 20px;
+    gap: 20px;
+    transition: right 0.3s ease-in-out;
+}
+
+.mobile-menu.active {
+    right: 0;
+}
+
+.mobile-menu .close-btn {
+    align-self: flex-end;
+    font-size: 24px;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.mobile-menu .info-item {
+    display: flex;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+    display: none;
+}
+
+.overlay.active {
+    display: block;
+}
+
+@media (max-width: 1024px) {
+    .contact-info {
+        display: none;
+    }
+    
+    .top-left {
+       font-size: 11px;
+       padding-right: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    .top-header {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .top-left, .top-right {
+        width: 100%;
+        justify-content: center;
+        padding: 8px;
+        clip-path: none;
+        margin-left: 0;
+    }
+    
+    .top-left {
+        text-align: center;
+        font-size: 11px;
+    }
+
+    .main-navbar {
+        padding: 10px 5%;
+    }
+
+    .logo-area img {
+        height: 35px;
+    }
+
+    .login-btn {
+        display: none; /* Move to mobile menu on very small screens? or keep it? */
+    }
+    
+    .mobile-toggle {
+        display: block;
+    }
+}
