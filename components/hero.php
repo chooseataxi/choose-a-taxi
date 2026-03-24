@@ -90,9 +90,10 @@
 </section>
 
 <!-- Google Places API Integration -->
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCT5jMYUaHtsT2Z2IzkQgl-8TsIw_946VY&libraries=places"></script>
 <script>
     function initAutocomplete() {
+        if (!google || !google.maps || !google.maps.places) return;
+
         const options = {
             componentRestrictions: { country: "in" },
             fields: ["address_components", "geometry", "icon", "name"],
@@ -109,7 +110,5 @@
             new google.maps.places.Autocomplete(stopInput, options);
         }
     }
-
-    // Initialize once the Google Maps script is loaded
-    google.maps.event.addDomListener(window, 'load', initAutocomplete);
 </script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCT5jMYUaHtsT2Z2IzkQgl-8TsIw_946VY&libraries=places&callback=initAutocomplete" async defer></script>
