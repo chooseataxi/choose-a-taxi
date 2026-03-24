@@ -26,17 +26,18 @@
 .info-box.phone-box {
     background: var(--primary-green);
     z-index: 2;
-    clip-path: polygon(0% 0%, 90% 0%, 100% 50%, 90% 100%, 0% 100%, 10% 50%);
-    margin-left: -5%;
-    margin-right: -5%;
-    padding-left: 10%;
-    padding-right: 10%;
+    clip-path: polygon(0% 0%, 95% 0%, 100% 50%, 95% 100%, 0% 100%, 5% 50%);
+    margin-left: -2%;
+    margin-right: -2%;
+    padding-left: 8%;
+    padding-right: 8%;
     justify-content: center;
 }
 
 .info-box.address-box {
     background: #1a1a1a;
     justify-content: flex-start;
+    padding-left: 60px;
 }
 
 .info-icon-circle {
@@ -182,26 +183,37 @@
 
 .contact-details {
     list-style: none;
+    padding: 0;
 }
 
 .contact-details li {
     display: flex;
+    align-items: flex-start;
     gap: 15px;
-    margin-bottom: 20px;
-    font-size: 14px;
+    margin-bottom: 25px;
+    font-size: 15px;
     color: #bbb;
 }
 
-.contact-details i {
-    color: #fff;
+.contact-details li i {
+    color: var(--primary-green);
+    font-size: 18px;
+    width: 20px;
+    text-align: center;
     margin-top: 4px;
+    flex-shrink: 0;
+}
+
+.contact-details div {
+    line-height: 1.5;
 }
 
 .contact-details .addr-label {
     display: block;
     color: var(--primary-green);
-    margin-bottom: 5px;
-    font-weight: 600;
+    margin-bottom: 3px;
+    font-weight: 700;
+    font-size: 16px;
 }
 
 /* Bottom Bar */

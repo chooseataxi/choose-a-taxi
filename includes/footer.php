@@ -97,7 +97,7 @@
                     </div>
                 </li>
                 <li>
-                    <i class="fas fa-phone-alt" style="transform: rotate(90deg);"></i>
+                    <i class="fas fa-phone-alt"></i>
                     <div>
                         8058602516<br>
                         8619144832
