@@ -4,8 +4,10 @@
 <link rel="stylesheet" href="assets/css/hero.css">
 <!-- Custom Footer CSS -->
 <link rel="stylesheet" href="assets/css/footer.css">
+<!-- Custom Stats CSS -->
+<link rel="stylesheet" href="assets/css/stats.css">
 
 <?php include 'components/hero.php'; ?>
-
+<?php include 'components/stats.php'; ?>
 
 <?php include 'includes/footer.php'; ?>
