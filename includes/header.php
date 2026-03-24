@@ -44,7 +44,6 @@
             <a href="index.php">
                 <img src="assets/logo.png" alt="Choose A Taxi Logo">
             </a>
-            <span class="tagline">Make The Memorable Trip</span>
         </div>
 
         <!-- Contact Info - Hidden on smaller tablets/mobile -->
