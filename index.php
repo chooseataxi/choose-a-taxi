@@ -8,9 +8,12 @@
 <link rel="stylesheet" href="assets/css/stats.css">
 <!-- Custom Price List CSS -->
 <link rel="stylesheet" href="assets/css/price-list.css">
+<!-- Custom Why Choose Us CSS -->
+<link rel="stylesheet" href="assets/css/why-choose-us.css">
 
 <?php include 'components/hero.php'; ?>
 <?php include 'components/price-list.php'; ?>
 <?php include 'components/stats.php'; ?>
+<?php include 'components/why-choose-us.php'; ?>
 
 <?php include 'includes/footer.php'; ?>
