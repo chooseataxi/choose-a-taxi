@@ -2,7 +2,7 @@
     position: relative;
     padding: 60px 0;
     min-height: 600px;
-    background-image: url('../frontend-images/hero-background.jpg');
+    background-image: url('../frontend-images/hero-new-bg.jpeg');
     background-size: cover;
     background-position: center bottom;
     display: flex;
@@ -35,7 +35,7 @@
 .booking-card {
     background: #fff;
     border-radius: 12px 12px 0 0;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     border: 3px solid #000;
     overflow: hidden;
 }
@@ -89,7 +89,8 @@
     justify-content: center;
     gap: 10px;
     padding: 12px;
-    border: 1px solid #d97706; /* Amber border */
+    border: 1px solid #d97706;
+    /* Amber border */
     border-radius: 30px;
     cursor: pointer;
     font-weight: 600;
@@ -182,15 +183,15 @@
     .hero-container {
         grid-template-columns: 1fr;
     }
-    
+
     .hero-content {
         text-align: center;
     }
-    
+
     .hero-content h1 {
         font-size: 36px;
     }
-    
+
     .hero-section {
         padding: 40px 0;
     }
@@ -200,7 +201,7 @@
     .trip-type {
         flex-direction: column;
     }
-    
+
     .form-row {
         flex-direction: column;
     }
