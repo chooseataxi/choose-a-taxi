@@ -79,7 +79,7 @@
 
     <div class="error-container animate__animated animate__fadeIn">
         <lottie-player 
-            src="assets/lottie/404 Error.json" 
+            src="/assets/lottie/404 Error.json" 
             background="transparent" 
             speed="1" 
             style="width: 100%; height: 100%;" 
