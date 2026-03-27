@@ -15,6 +15,13 @@ $menuItems = [
         "pages" => [
             ["title" => "Profile", "url" => "profile.php"]
         ],
+    ],
+    [
+        "menuTitle" => "Trips",
+        "icon" => "fas fa-route",
+        "pages" => [
+            ["title" => "Trip Types", "url" => "Trips/index.php"]
+        ],
     ]
 ];
 
