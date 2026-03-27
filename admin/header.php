@@ -29,6 +29,13 @@ $menuItems = [
         "pages" => [
             ["title" => "Car Brands", "url" => "cars/brand-management.php"]
         ],
+    ],
+    [
+        "menuTitle" => "Payment Gateway",
+        "icon" => "fas fa-credit-card",
+        "pages" => [
+            ["title" => "Razorpay Configure", "url" => "payment-gateway/razorpay-configure.php"]
+        ],
     ]
 ];
 
