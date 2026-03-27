@@ -5,9 +5,16 @@ use Firebase\JWT\Key;
 
 function checkAdminAuth() {
     $jwt = $_COOKIE['admin_token'] ?? null;
+    $isApi = strpos($_SERVER['REQUEST_URI'], '/api/') !== false;
 
     if (!$jwt) {
-        header('Location: login.php');
+        if ($isApi) {
+            header('Content-Type: application/json');
+            http_response_code(401);
+            echo json_encode(['success' => false, 'message' => 'Unauthorized access. Please login.']);
+        } else {
+            header('Location: login.php');
+        }
         exit;
     }
 
@@ -18,8 +25,14 @@ function checkAdminAuth() {
     } catch (Exception $e) {
         // Token is invalid, expired, etc.
         setcookie('admin_token', '', time() - 3600, '/'); // Clear the cookie
-        $error = urlencode($e->getMessage());
-        header("Location: login.php?error=$error");
+        if ($isApi) {
+            header('Content-Type: application/json');
+            http_response_code(401);
+            echo json_encode(['success' => false, 'message' => 'Session expired. Please login again.']);
+        } else {
+            $error = urlencode($e->getMessage());
+            header("Location: login.php?error=$error");
+        }
         exit;
     }
 }
