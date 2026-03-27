@@ -6,7 +6,7 @@ $menuItems = [
         "menuTitle" => "Dashboard",
         "icon" => "fas fa-home",
         "pages" => [
-            ["title" => "Home", "url" => "index.php"]
+            ["title" => "Home", "url" => "index.php"] // Relative to admin root
         ],
     ],
     [
@@ -25,10 +25,16 @@ $menuItems = [
     ]
 ];
 
+// Calculate current page correctly for subdirectories
+$current_Full_Url = $_SERVER['PHP_SELF'];
+$admin_root_pos = strpos($current_Full_Url, '/admin/');
+if ($admin_root_pos === false) $admin_root_pos = strpos($current_Full_Url, '/admin');
+$relative_Page = substr($current_Full_Url, $admin_root_pos + 7); // e.g. "Trips/index.php" or "index.php"
+
 $active_pageInfo = null;
 foreach ($menuItems as $menuItem) {
     foreach ($menuItem['pages'] as $page) {
-        if ($currentPage === $page['url']) {
+        if ($relative_Page === $page['url']) {
             $active_pageInfo = [
                 "breadcrumb_Items" => [
                     ["title" => $menuItem['menuTitle'], "url" => "#"],
@@ -48,11 +54,29 @@ $page_title = $active_pageInfo['page_title'] ?? '';
 $active_menu = $active_pageInfo['active_menu'] ?? null;
 $active_page = $active_pageInfo['active_page'] ?? null;
 
+// Calculate the base URL for admin assets dynamically
+$protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+$host = $_SERVER['HTTP_HOST'];
+$script_name = $_SERVER['SCRIPT_NAME'];
+$admin_pos = strpos($script_name, '/admin/');
+if ($admin_pos === false) $admin_pos = strpos($script_name, '/admin');
+$admin_path = substr($script_name, 0, $admin_pos + 7); // Should be something like /project/admin/
+$adminUrl = $protocol . "://" . $host . $admin_path;
+
 // Fetch full admin data for dynamic header elements
 $headerAdminStmt = $pdo->prepare("SELECT * FROM admins WHERE id = ?");
 $headerAdminStmt->execute([$adminData['sub']]);
 $headerAdmin = $headerAdminStmt->fetch();
-$profilePic = !empty($headerAdmin['profile_picture']) ? $headerAdmin['profile_picture'] : './src/images/user-avtar.png';
+
+// Determine profile picture path dynamically
+if (!empty($headerAdmin['profile_picture'])) {
+    // If it starts with './', strip it and prepend adminUrl
+    $rawPath = $headerAdmin['profile_picture'];
+    $cleanPath = (strpos($rawPath, './') === 0) ? substr($rawPath, 2) : $rawPath;
+    $profilePic = $adminUrl . $cleanPath;
+} else {
+    $profilePic = $adminUrl . 'src/images/user-avtar.png';
+}
 ?>
 
 <!DOCTYPE html>
@@ -63,7 +87,7 @@ $profilePic = !empty($headerAdmin['profile_picture']) ? $headerAdmin['profile_pi
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
     <title><?= htmlspecialchars($page_title) ?></title>
-    <link rel="icon" href="../favicon.ico" type="image/x-icon">
+    <link rel="icon" href="<?= $adminUrl ?>../favicon.ico" type="image/x-icon">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css" rel="stylesheet">
@@ -74,6 +98,24 @@ $profilePic = !empty($headerAdmin['profile_picture']) ? $headerAdmin['profile_pi
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+
+    <script>
+    function logout() {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You will be logged out of the session!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, logout!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '<?= $adminUrl ?>logout.php';
+            }
+        })
+    }
+    </script>
     <style>
         :root {
             --sidebar-bg: #ffffff;
@@ -426,12 +468,12 @@ $profilePic = !empty($headerAdmin['profile_picture']) ? $headerAdmin['profile_pi
                         <span><?= htmlspecialchars($headerAdmin['name'] ?? 'Admin') ?></span>
                     </a>
                     <div class="dropdown-menu dropdown-menu-md dropdown-menu-end">
-                        <a href="profile.php" class="dropdown-item">
+                        <a href="<?= $adminUrl ?>profile.php" class="dropdown-item">
                             <i class="fas fa-user-circle mr-2"></i> My Profile
                         </a>
                         <div class="dropdown-divider"></div>
-                        <a href="logout.php" class="dropdown-item text-danger">
-                            <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                        <a href="javascript:void(0);" onclick="logout()" class="dropdown-item dropdown-footer text-danger">
+                            <i class="fas fa-power-off mr-2"></i> Logout
                         </a>
                     </div>
                 </li>
@@ -457,9 +499,9 @@ $profilePic = !empty($headerAdmin['profile_picture']) ? $headerAdmin['profile_pi
             </div>
         </div>
 
-        <aside class="main-sidebar sidebar-light-primary elevation-4">
-            <a href="./" class="brand-link">
-                <img src="../assets/logo.png" alt="Logo" class="brand-image">
+        <aside class="main-sidebar elevation-4" style="background-color: var(--sidebar-bg); color: var(--sidebar-color);">
+            <a href="<?= $adminUrl ?>index.php" class="brand-link" style="border-bottom: 1px solid #eee; padding: 15px 20px;">
+                <img src="<?= $adminUrl ?>../assets/logo.png" alt="Logo" class="brand-image" style="opacity: .8; max-height: 40px; float: none;">
             </a>
             <div class="sidebar">
                 <div class="user-panel mt-3 pb-3 mb-3">
@@ -487,8 +529,8 @@ $profilePic = !empty($headerAdmin['profile_picture']) ? $headerAdmin['profile_pi
                                     <ul class="nav nav-treeview">
                                         <?php foreach ($menuItem['pages'] as $page): ?>
                                             <li class="nav-item">
-                                                <a href="<?= $page['url'] ?>"
-                                                    class="nav-link <?= $page === $active_page ? 'active' : '' ?>">
+                                                <a href="<?= $adminUrl . $page['url'] ?>"
+                                                    class="nav-link <?= $page['url'] === $relative_Page ? 'active' : '' ?>">
                                                     <i class="fas fa-minus nav-icon submenu-icon"></i>
                                                     <p><?= $page['title'] ?></p>
                                                 </a>
