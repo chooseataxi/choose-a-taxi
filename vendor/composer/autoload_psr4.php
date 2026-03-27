@@ -7,7 +7,16 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'WpOrg\\Requests\\' => array($vendorDir . '/rmccue/requests/src'),
+    'Symfony\\Polyfill\\Php80\\' => array($vendorDir . '/symfony/polyfill-php80'),
+    'Symfony\\Polyfill\\Mbstring\\' => array($vendorDir . '/symfony/polyfill-mbstring'),
+    'Symfony\\Polyfill\\Ctype\\' => array($vendorDir . '/symfony/polyfill-ctype'),
+    'Symfony\\Component\\Process\\' => array($vendorDir . '/symfony/process'),
+    'Spatie\\ImageOptimizer\\' => array($vendorDir . '/spatie/image-optimizer/src'),
     'Razorpay\\Tests\\' => array($vendorDir . '/razorpay/razorpay/tests'),
     'Razorpay\\Api\\' => array($vendorDir . '/razorpay/razorpay/src'),
+    'Psr\\Log\\' => array($vendorDir . '/psr/log/src'),
+    'PhpOption\\' => array($vendorDir . '/phpoption/phpoption/src/PhpOption'),
+    'GrahamCampbell\\ResultType\\' => array($vendorDir . '/graham-campbell/result-type/src'),
     'Firebase\\JWT\\' => array($vendorDir . '/firebase/php-jwt/src'),
+    'Dotenv\\' => array($vendorDir . '/vlucas/phpdotenv/src'),
 );

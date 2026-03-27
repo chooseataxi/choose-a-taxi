@@ -2,6 +2,8 @@
     "require": {
         "bramus/router": "^1.6",
         "firebase/php-jwt": "^7.0",
-        "razorpay/razorpay": "^2.9"
+        "razorpay/razorpay": "^2.9",
+        "spatie/image-optimizer": "^1.8",
+        "vlucas/phpdotenv": "^5.6"
     }
 }

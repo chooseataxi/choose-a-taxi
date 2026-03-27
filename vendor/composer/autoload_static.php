@@ -8,6 +8,9 @@ class ComposerStaticInit34c36c05260b7e8e8b2fbced22e7ef39
 {
     public static $files = array (
         '941748b3c8cae4466c827dfb5ca9602a' => __DIR__ . '/..' . '/rmccue/requests/library/Deprecated.php',
+        '320cde22f66dd4f5d3fd621d3e88b98f' => __DIR__ . '/..' . '/symfony/polyfill-ctype/bootstrap.php',
+        '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
+        'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
         '13906c19e3d8fcd1341b24ed4d51cf72' => __DIR__ . '/..' . '/razorpay/razorpay/Deprecated.php',
     );
 
@@ -16,14 +19,35 @@ class ComposerStaticInit34c36c05260b7e8e8b2fbced22e7ef39
         array (
             'WpOrg\\Requests\\' => 15,
         ),
+        'S' => 
+        array (
+            'Symfony\\Polyfill\\Php80\\' => 23,
+            'Symfony\\Polyfill\\Mbstring\\' => 26,
+            'Symfony\\Polyfill\\Ctype\\' => 23,
+            'Symfony\\Component\\Process\\' => 26,
+            'Spatie\\ImageOptimizer\\' => 22,
+        ),
         'R' => 
         array (
             'Razorpay\\Tests\\' => 15,
             'Razorpay\\Api\\' => 13,
         ),
+        'P' => 
+        array (
+            'Psr\\Log\\' => 8,
+            'PhpOption\\' => 10,
+        ),
+        'G' => 
+        array (
+            'GrahamCampbell\\ResultType\\' => 26,
+        ),
         'F' => 
         array (
             'Firebase\\JWT\\' => 13,
+        ),
+        'D' => 
+        array (
+            'Dotenv\\' => 7,
         ),
     );
 
@@ -31,6 +55,26 @@ class ComposerStaticInit34c36c05260b7e8e8b2fbced22e7ef39
         'WpOrg\\Requests\\' => 
         array (
             0 => __DIR__ . '/..' . '/rmccue/requests/src',
+        ),
+        'Symfony\\Polyfill\\Php80\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/symfony/polyfill-php80',
+        ),
+        'Symfony\\Polyfill\\Mbstring\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/symfony/polyfill-mbstring',
+        ),
+        'Symfony\\Polyfill\\Ctype\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/symfony/polyfill-ctype',
+        ),
+        'Symfony\\Component\\Process\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/symfony/process',
+        ),
+        'Spatie\\ImageOptimizer\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/spatie/image-optimizer/src',
         ),
         'Razorpay\\Tests\\' => 
         array (
@@ -40,9 +84,25 @@ class ComposerStaticInit34c36c05260b7e8e8b2fbced22e7ef39
         array (
             0 => __DIR__ . '/..' . '/razorpay/razorpay/src',
         ),
+        'Psr\\Log\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/log/src',
+        ),
+        'PhpOption\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phpoption/phpoption/src/PhpOption',
+        ),
+        'GrahamCampbell\\ResultType\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/graham-campbell/result-type/src',
+        ),
         'Firebase\\JWT\\' => 
         array (
             0 => __DIR__ . '/..' . '/firebase/php-jwt/src',
+        ),
+        'Dotenv\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/vlucas/phpdotenv/src',
         ),
     );
 
@@ -57,8 +117,13 @@ class ComposerStaticInit34c36c05260b7e8e8b2fbced22e7ef39
     );
 
     public static $classMap = array (
+        'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'PhpToken' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/PhpToken.php',
         'Requests' => __DIR__ . '/..' . '/rmccue/requests/library/Requests.php',
+        'Stringable' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Stringable.php',
+        'UnhandledMatchError' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/UnhandledMatchError.php',
+        'ValueError' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/ValueError.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
