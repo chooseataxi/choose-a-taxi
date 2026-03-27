@@ -1,4 +1,5 @@
 <?php 
+require_once __DIR__ . '/auth_check.php';
 require_once __DIR__ . '/header.php'; 
 
 // Fetch the latest admin data from the database
