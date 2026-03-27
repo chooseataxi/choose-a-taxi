@@ -380,13 +380,6 @@ $active_page = $active_pageInfo['active_page'] ?? null;
         <!-- Wrapper started -->
 
         <nav class="main-header navbar navbar-expand navbar-white navbar-light">
-            <!-- Left navbar links -->
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
-                </li>
-            </ul>
-
             <!-- Blinking Welcome Message -->
             <div class="navbar-nav mx-auto">
                 <span class="blinking-text">Welcome to Choose a Taxi Admin Dashboard</span>
@@ -396,7 +389,7 @@ $active_page = $active_pageInfo['active_page'] ?? null;
             <ul class="navbar-nav ml-auto">
                 <!-- Quick Actions Dropdown -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link" data-toggle="dropdown" href="#" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" aria-expanded="false">
                         <i class="fas fa-bolt mr-1"></i> Quick Actions
                     </a>
                     <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
@@ -415,7 +408,7 @@ $active_page = $active_pageInfo['active_page'] ?? null;
 
                 <!-- Profile Dropdown -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link" data-toggle="dropdown" href="#" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" aria-expanded="false">
                         <img src="./src/images/user-avtar.png" class="img-circle elevation-1 mr-2" style="width: 25px; height: 25px; object-fit: cover;" alt="User">
                         <span>Admin</span>
                     </a>
