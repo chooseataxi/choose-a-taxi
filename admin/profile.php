@@ -13,8 +13,7 @@ if (!$user) {
 }
 ?>
 
-<div class="container-fluid py-4">
-    <div class="row">
+<div class="row pt-4">
         <!-- Profile Sidebar -->
         <div class="col-md-4">
             <div class="card card-primary card-outline shadow-sm">
@@ -147,7 +146,6 @@ if (!$user) {
             </div>
         </div>
     </div>
-</div>
 
 <script>
 $(document).ready(function() {
