@@ -164,7 +164,7 @@
 
         <div id="message"></div>
     </div>
-
+    <script>
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('error')) {
             const msg = document.getElementById('message');
