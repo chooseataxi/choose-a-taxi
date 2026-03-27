@@ -7,9 +7,9 @@ require_once __DIR__ . '/../header.php';
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card shadow border-0">
-                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 font-weight-bold">Add New Trip Type</h5>
-                    <a href="index.php" class="btn btn-sm btn-secondary shadow-sm">
+                <div class="card-header bg-white py-3 d-flex align-items-center">
+                    <h5 class="mb-0 font-weight-bold text-dark">Add New Trip Type</h5>
+                    <a href="index.php" class="btn btn-yellow-black btn-sm shadow-sm px-3 ms-auto">
                         <i class="fas fa-arrow-left fa-sm mr-1"></i> Back to List
                     </a>
                 </div>

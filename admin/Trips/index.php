@@ -8,14 +8,13 @@ $tripTypes = $stmt->fetchAll();
 ?>
 
 <div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Trip Type Management</h1>
-        <a href="add-trip-type.php" class="btn btn-primary shadow-sm">
-            <i class="fas fa-plus fa-sm text-white-50 mr-1"></i> Add New Trip Type
-        </a>
-    </div>
-
     <div class="card shadow mb-4 border-0">
+        <div class="card-header bg-white py-3 d-flex align-items-center">
+            <h5 class="mb-0 font-weight-bold text-dark">Trip Type Management</h5>
+            <a href="add-trip-type.php" class="btn btn-yellow-black shadow-sm px-4 ms-auto">
+                <i class="fas fa-plus mr-1"></i> Add Trip Type
+            </a>
+        </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover mb-0" id="tripTypesTable">
