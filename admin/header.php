@@ -433,6 +433,21 @@ if (!empty($headerAdmin['profile_picture'])) {
             letter-spacing: 0.5px;
             text-transform: uppercase;
         }
+        .btn-yellow-black {
+            background-color: #ffc107;
+            color: #000;
+            font-weight: 600;
+            border: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(255, 193, 7, 0.2);
+        }
+
+        .btn-yellow-black:hover {
+            background-color: #e0ac08;
+            color: #000;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(255, 193, 7, 0.3);
+        }
     </style>
 </head>
 

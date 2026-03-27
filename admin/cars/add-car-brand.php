@@ -8,8 +8,8 @@ require_once __DIR__ . '/../header.php';
         <div class="col-xl-10">
             <div class="card shadow border-0 mb-4">
                 <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 font-weight-bold">Add New Car Brand</h5>
-                    <a href="brand-management.php" class="btn btn-sm btn-secondary shadow-sm">
+                    <h5 class="mb-0 font-weight-bold text-dark">Add New Car Brand</h5>
+                    <a href="brand-management.php" class="btn btn-yellow-black btn-sm shadow-sm px-3">
                         <i class="fas fa-arrow-left fa-sm mr-1"></i> Back to List
                     </a>
                 </div>
