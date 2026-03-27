@@ -40,6 +40,12 @@ $breadcrumb_Items = $active_pageInfo['breadcrumb_Items'] ?? [];
 $page_title = $active_pageInfo['page_title'] ?? '';
 $active_menu = $active_pageInfo['active_menu'] ?? null;
 $active_page = $active_pageInfo['active_page'] ?? null;
+
+// Fetch full admin data for dynamic header elements
+$headerAdminStmt = $pdo->prepare("SELECT * FROM admins WHERE id = ?");
+$headerAdminStmt->execute([$adminData['sub']]);
+$headerAdmin = $headerAdminStmt->fetch();
+$profilePic = !empty($headerAdmin['profile_picture']) ? $headerAdmin['profile_picture'] : './src/images/user-avtar.png';
 ?>
 
 <!DOCTYPE html>
@@ -409,8 +415,8 @@ $active_page = $active_pageInfo['active_page'] ?? null;
                 <!-- Profile Dropdown -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" aria-expanded="false">
-                        <img src="./src/images/user-avtar.png" class="img-circle elevation-1 mr-2" style="width: 25px; height: 25px; object-fit: cover;" alt="User">
-                        <span>Admin</span>
+                        <img src="<?= $profilePic ?>" class="img-circle elevation-1 mr-2" style="width: 25px; height: 25px; object-fit: cover;" alt="User">
+                        <span><?= htmlspecialchars($headerAdmin['name'] ?? 'Admin') ?></span>
                     </a>
                     <div class="dropdown-menu dropdown-menu-md dropdown-menu-end">
                         <a href="profile.php" class="dropdown-item">
@@ -450,12 +456,12 @@ $active_page = $active_pageInfo['active_page'] ?? null;
             </a>
             <div class="sidebar">
                 <div class="user-panel mt-3 pb-3 mb-3">
-                    <a href="./profile.php" class="d-flex">
+                    <a href="./profile.php" class="d-flex align-items-center">
                         <div class="image">
-                            <img src="./src/images/user-avtar.png" class="img-circle elevation-2 bg-white" alt="User Image">
+                            <img src="<?= $profilePic ?>" class="img-circle elevation-2 bg-white" style="width: 35px; height: 35px; object-fit: cover;" alt="User Image">
                         </div>
                         <div class="info">
-                            Rahul
+                            <?= htmlspecialchars($adminData['name'] ?? 'Admin') ?>
                         </div>
                     </a>
                 </div>
