@@ -22,6 +22,13 @@ $menuItems = [
         "pages" => [
             ["title" => "Trip Types", "url" => "Trips/index.php"]
         ],
+    ],
+    [
+        "menuTitle" => "Cars",
+        "icon" => "fas fa-car",
+        "pages" => [
+            ["title" => "Car Brands", "url" => "cars/brand-management.php"]
+        ],
     ]
 ];
 
