@@ -195,7 +195,7 @@
                     msg.innerHTML = 'Login successful! Redirecting...';
                     msg.style.display = 'block';
                     setTimeout(() => {
-                        window.location.href = 'dashboard.php';
+                        window.location.href = 'index.php';
                     }, 1500);
                 } else {
                     msg.className = 'error';
