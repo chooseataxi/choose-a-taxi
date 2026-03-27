@@ -70,16 +70,22 @@
 <body>
 
     <?php
+    // Determine the base URL for assets
+    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+    $host = $_SERVER['HTTP_HOST'];
+    $scriptDir = str_replace(basename($_SERVER['SCRIPT_NAME']), "", $_SERVER['SCRIPT_NAME']);
+    $baseUrl = $protocol . "://" . $host . $scriptDir;
+
     // Determine the redirection link based on the context
     $requestUri = $_SERVER['REQUEST_URI'];
     $is_admin = strpos($requestUri, '/admin') !== false;
-    $back_link = $is_admin ? '/admin/index.php' : '/index.php';
+    $back_link = $is_admin ? $baseUrl . 'admin/index.php' : $baseUrl . 'index.php';
     $back_text = $is_admin ? 'Back to Dashboard' : 'Return to Home';
     ?>
 
     <div class="error-container animate__animated animate__fadeIn">
         <lottie-player 
-            src="/assets/lottie/404 Error.json" 
+            src="<?= $baseUrl ?>assets/lottie/404 Error.json" 
             background="transparent" 
             speed="1" 
             style="width: 100%; height: 100%;" 
