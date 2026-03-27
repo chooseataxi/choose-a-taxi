@@ -165,7 +165,14 @@
         <div id="message"></div>
     </div>
 
-    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('error')) {
+            const msg = document.getElementById('message');
+            msg.className = 'error';
+            msg.innerHTML = decodeURIComponent(urlParams.get('error'));
+            msg.style.display = 'block';
+        }
+
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const btn = document.querySelector('.login-btn');

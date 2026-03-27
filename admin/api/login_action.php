@@ -36,11 +36,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $jwt = JWT::encode($payload, $secretKey, 'HS256');
 
             // Set JWT in HttpOnly cookie
+            $isSecure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on';
             setcookie('admin_token', $jwt, [
                 'expires' => $expire,
                 'path' => '/',
-                'domain' => '', // Replace with actual domain in production
-                'secure' => true,
+                'domain' => '', 
+                'secure' => $isSecure,
                 'httponly' => true,
                 'samesite' => 'Strict',
             ]);

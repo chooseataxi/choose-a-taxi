@@ -18,7 +18,8 @@ function checkAdminAuth() {
     } catch (Exception $e) {
         // Token is invalid, expired, etc.
         setcookie('admin_token', '', time() - 3600, '/'); // Clear the cookie
-        header('Location: login.php?error=expired');
+        $error = urlencode($e->getMessage());
+        header("Location: login.php?error=$error");
         exit;
     }
 }
