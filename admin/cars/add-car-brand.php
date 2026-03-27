@@ -106,7 +106,8 @@ $(document).ready(function() {
     if (typeof CKEDITOR !== 'undefined') {
         CKEDITOR.replace('editor', {
             height: 300,
-            removeButtons: 'PasteFromWord' // Common in free version
+            removeButtons: 'PasteFromWord',
+            versionCheck: false // Suppress version/license nag in some builds
         });
     }
 

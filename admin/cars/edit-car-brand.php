@@ -122,7 +122,10 @@ if (!$brand) {
 <script>
 $(document).ready(function() {
     if (typeof CKEDITOR !== 'undefined') {
-        CKEDITOR.replace('editor', { height: 300 });
+        CKEDITOR.replace('editor', { 
+            height: 300,
+            versionCheck: false 
+        });
     }
 
     $('#logoInput').on('change', function() {
