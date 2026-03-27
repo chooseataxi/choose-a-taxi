@@ -392,7 +392,7 @@ $active_page = $active_pageInfo['active_page'] ?? null;
                     <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" aria-expanded="false">
                         <i class="fas fa-bolt mr-1"></i> Quick Actions
                     </a>
-                    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+                    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
                         <span class="dropdown-item dropdown-header">Administrative Tasks</span>
                         <div class="dropdown-divider"></div>
                         <a href="#" class="dropdown-item">
@@ -412,7 +412,7 @@ $active_page = $active_pageInfo['active_page'] ?? null;
                         <img src="./src/images/user-avtar.png" class="img-circle elevation-1 mr-2" style="width: 25px; height: 25px; object-fit: cover;" alt="User">
                         <span>Admin</span>
                     </a>
-                    <div class="dropdown-menu dropdown-menu-md dropdown-menu-right">
+                    <div class="dropdown-menu dropdown-menu-md dropdown-menu-end">
                         <a href="profile.php" class="dropdown-item">
                             <i class="fas fa-user-circle mr-2"></i> My Profile
                         </a>
