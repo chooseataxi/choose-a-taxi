@@ -27,7 +27,8 @@ $menuItems = [
         "menuTitle" => "Cars",
         "icon" => "fas fa-car",
         "pages" => [
-            ["title" => "Car Brands", "url" => "cars/brand-management.php"]
+            ["title" => "Car Brands", "url" => "cars/brand-management.php"],
+            ["title" => "Car Types", "url" => "cars/type-management.php"]
         ],
     ],
     [
