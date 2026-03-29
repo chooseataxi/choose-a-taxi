@@ -2,7 +2,7 @@
 <?php include './header.php'; ?>
 
 <div class="row">
-    <div class="col-lg-3 col-6">
+    <div class="col-lg-3 col-sm-6 col-12 mb-3">
         <div class="small-box bg-info">
             <div class="inner">
                 <h3>150</h3>
@@ -17,7 +17,7 @@
         </div>
     </div>
 
-    <div class="col-lg-3 col-6">
+    <div class="col-lg-3 col-sm-6 col-12 mb-3">
         <div class="small-box bg-success">
             <div class="inner">
                 <h3>53<sup style="font-size: 20px">%</sup></h3>
@@ -32,7 +32,7 @@
         </div>
     </div>
 
-    <div class="col-lg-3 col-6">
+    <div class="col-lg-3 col-sm-6 col-12 mb-3">
         <div class="small-box bg-warning">
             <div class="inner">
                 <h3>44</h3>

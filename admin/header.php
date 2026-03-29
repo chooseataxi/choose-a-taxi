@@ -455,6 +455,34 @@ if (!empty($headerAdmin['profile_picture'])) {
             transform: translateY(-2px);
             box-shadow: 0 6px 15px rgba(255, 193, 7, 0.3);
         }
+
+        /* Responsive Branding & Header */
+        @media (max-width: 768px) {
+            .blinking-text {
+                display: none !important;
+            }
+            .content-header h1 {
+                font-size: 1.5rem;
+                text-align: center;
+                margin-bottom: 10px !important;
+            }
+            .breadcrumb {
+                justify-content: center;
+                float: none !important;
+            }
+            .small-box h3 {
+                font-size: 1.6rem !important;
+            }
+            .small-box p {
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .navbar-nav .nav-link span {
+                display: none; /* Hide admin name beside avatar on tiny screens */
+            }
+        }
     </style>
 </head>
 
@@ -464,8 +492,15 @@ if (!empty($headerAdmin['profile_picture'])) {
         <!-- Wrapper started -->
 
         <nav class="main-header navbar navbar-expand navbar-white navbar-light">
-            <!-- Blinking Welcome Message -->
-            <div class="navbar-nav mx-auto">
+            <!-- Left navbar links -->
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+                </li>
+            </ul>
+
+            <!-- Blinking Welcome Message (Desktop Only) -->
+            <div class="navbar-nav mx-auto d-none d-md-block">
                 <span class="blinking-text">Welcome to Choose a Taxi Admin Dashboard</span>
             </div>
 
