@@ -22,7 +22,6 @@ $types = $stmt->fetchAll();
                             <th width="80">Image</th>
                             <th>Type Name</th>
                             <th>Capacity</th>
-                            <th>Base Price</th>
                             <th>Status</th>
                             <th width="150" class="text-center">Actions</th>
                         </tr>
@@ -33,7 +32,7 @@ $types = $stmt->fetchAll();
                             <td>
                                 <div class="bg-light d-flex align-items-center justify-content-center border rounded" style="width: 60px; height: 60px; overflow: hidden;">
                                     <?php if ($type['image']): ?>
-                                        <img src="<?= $adminUrl . substr($type['image'], 2) ?>" alt="Type" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                        <img src="<?= $adminUrl ?>../admin/<?= ltrim($type['image'], './') ?>" alt="Type" style="max-width: 100%; max-height: 100%; object-fit: contain;">
                                     <?php else: ?>
                                         <i class="fas fa-car text-muted fa-lg"></i>
                                     <?php endif; ?>
@@ -47,10 +46,6 @@ $types = $stmt->fetchAll();
                                     <span class="me-3 text-muted"><i class="fas fa-users me-1"></i> <?= $type['passengers'] ?> Pax</span>
                                     <span class="text-muted"><i class="fas fa-suitcase me-1"></i> <?= $type['luggage'] ?> bags</span>
                                 </div>
-                            </td>
-                            <td>
-                                <span class="fw-bold text-success">₹<?= number_format($type['base_price'], 2) ?></span>
-                                <small class="text-muted">/km</small>
                             </td>
                             <td>
                                 <div class="form-check form-switch">

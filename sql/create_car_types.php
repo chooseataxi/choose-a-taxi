@@ -8,7 +8,6 @@ try {
         name VARCHAR(100) NOT NULL UNIQUE,
         passengers INT DEFAULT 4,
         luggage INT DEFAULT 2,
-        base_price DECIMAL(10,2) DEFAULT 0.00,
         image VARCHAR(255),
         status ENUM('Active', 'Inactive') DEFAULT 'Active',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -17,13 +16,13 @@ try {
 
     // 2. Insert default types
     $defaultTypes = [
-        ['Sedan', 4, 3, 12.00],
-        ['Mini / Hatchback', 4, 1, 9.00],
-        ['SUV / MUV', 7, 5, 18.00],
-        ['Luxary / Premium', 4, 4, 25.00]
+        ['Sedan', 4, 3],
+        ['Mini / Hatchback', 4, 1],
+        ['SUV / MUV', 7, 5],
+        ['Luxary / Premium', 4, 4]
     ];
 
-    $stmt = $pdo->prepare("INSERT IGNORE INTO car_types (name, passengers, luggage, base_price) VALUES (?, ?, ?, ?)");
+    $stmt = $pdo->prepare("INSERT IGNORE INTO car_types (name, passengers, luggage) VALUES (?, ?, ?)");
     foreach ($defaultTypes as $type) {
         $stmt->execute($type);
     }

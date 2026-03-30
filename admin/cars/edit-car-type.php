@@ -34,18 +34,12 @@ if (!$type) {
                         <input type="hidden" name="id" value="<?= $type['id'] ?>">
                         
                         <div class="row mb-4">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-12 mb-3">
                                 <label class="font-weight-bold text-dark mb-2">Car Type Name *</label>
                                 <input type="text" name="name" class="form-control" value="<?= htmlspecialchars($type['name']) ?>" required>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="font-weight-bold text-dark mb-2">Base Minimum Price (per KM) *</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">₹</span>
-                                    <input type="number" step="0.01" name="base_price" class="form-control" value="<?= $type['base_price'] ?>" required>
-                                </div>
-                            </div>
                         </div>
+ Westchester
 
                         <div class="row mb-4">
                             <div class="col-md-6 mb-3">
@@ -69,9 +63,9 @@ if (!$type) {
                             <div class="d-flex align-items-center">
                                 <div id="image-preview" class="border rounded bg-light d-flex align-items-center justify-content-center me-3" style="width: 120px; height: 120px; overflow: hidden;">
                                     <?php if ($type['image']): ?>
-                                        <img src="<?= $adminUrl . substr($type['image'], 2) ?>" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                        <img src="<?= $adminUrl ?>../admin/<?= ltrim($type['image'], './') ?>" style="max-width: 100%; max-height: 100%; object-fit: contain;">
                                     <?php else: ?>
-                                        <i class="fas fa-image text-muted fa-3x"></i>
+                                       <i class="fas fa-image text-muted fa-3x"></i>
                                     <?php endif; ?>
                                 </div>
                                 <div class="flex-grow-1">

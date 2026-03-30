@@ -15,7 +15,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'GET
                 $name = $_POST['name'] ?? '';
                 $passengers = $_POST['passengers'] ?? 4;
                 $luggage = $_POST['luggage'] ?? 2;
-                $base_price = $_POST['base_price'] ?? 0.00;
                 
                 if (empty($name)) throw new Exception("Car type name is required.");
 
@@ -31,8 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'GET
                     }
                 }
 
-                $stmt = $pdo->prepare("INSERT INTO car_types (name, passengers, luggage, base_price, image) VALUES (?, ?, ?, ?, ?)");
-                $stmt->execute([$name, $passengers, $luggage, $base_price, $imagePath]);
+                $stmt = $pdo->prepare("INSERT INTO car_types (name, passengers, luggage, image) VALUES (?, ?, ?, ?)");
+                $stmt->execute([$name, $passengers, $luggage, $imagePath]);
                 
                 echo json_encode(['success' => true, 'message' => 'Car type added successfully!']);
                 break;
@@ -42,13 +41,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'GET
                 $name = $_POST['name'] ?? '';
                 $passengers = $_POST['passengers'] ?? 4;
                 $luggage = $_POST['luggage'] ?? 2;
-                $base_price = $_POST['base_price'] ?? 0.00;
                 
                 if (empty($id) || empty($name)) throw new Exception("ID and name are required.");
 
                 // Image Update
                 $imageUpdateSql = "";
-                $params = [$name, $passengers, $luggage, $base_price];
+                $params = [$name, $passengers, $luggage];
                 
                 if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
                     $ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
@@ -62,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'GET
                 }
                 
                 $params[] = $id;
-                $stmt = $pdo->prepare("UPDATE car_types SET name = ?, passengers = ?, luggage = ?, base_price = ? $imageUpdateSql WHERE id = ?");
+                $stmt = $pdo->prepare("UPDATE car_types SET name = ?, passengers = ?, luggage = ? $imageUpdateSql WHERE id = ?");
                 $stmt->execute($params);
                 
                 echo json_encode(['success' => true, 'message' => 'Car type updated successfully!']);

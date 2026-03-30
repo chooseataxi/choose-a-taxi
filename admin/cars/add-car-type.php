@@ -18,16 +18,9 @@ require_once __DIR__ . '/../header.php';
                         <input type="hidden" name="action" value="add">
                         
                         <div class="row mb-4">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-12 mb-3">
                                 <label class="font-weight-bold text-dark mb-2">Car Type Name *</label>
                                 <input type="text" name="name" class="form-control" placeholder="e.g. Sedan, SUV, Minivan" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="font-weight-bold text-dark mb-2">Base Minimum Price (per KM) *</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">₹</span>
-                                    <input type="number" step="0.01" name="base_price" class="form-control" placeholder="0.00" required>
-                                </div>
                             </div>
                         </div>
 
