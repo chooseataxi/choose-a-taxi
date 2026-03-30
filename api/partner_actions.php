@@ -12,6 +12,7 @@ define('BULK_SMS_API_URL', $_ENV['SMS_API_URL'] ?? 'http://sms.bulksmsservicepro
 define('BULK_SMS_AUTH_KEY', $_ENV['SMS_KEY'] ?? 'fa233ee27ba952ccb7f416e13d7cf532');
 define('BULK_SMS_SENDER_ID', $_ENV['SENDER_ID'] ?? 'CHSTXI');
 define('BULK_SMS_ROUTE_TR', $_ENV['SMS_ROUTE_TR'] ?? 'B');
+define('BULK_SMS_ENTITY_ID', $_ENV['DLT_ENTITY_ID'] ?? '');
 define('SUREPASS_BEARER_TOKEN', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDg3NzAwMywianRpIjoiZGUxNGRmYmUtMmE3NC00NGQ5LWIxMzEtZGZhMWNlODBhMTc2IiwidHlwZSI6ImFjY2VzcyIsImlkZW50aXR5IjoiZGV2LnJvaGl0XzAzNDVAc3VyZXBhc3MuaW8iLCJuYmYiOjE3NzQ4NzcwMDMsImV4cCI6MjQwNTU5NzAwMywiZW1haWwiOiJyb2hpdF8wMzQ1QHN1cmVwYXNzLmlvIiwidGVuYW50X2lkIjoibWFpbiIsInVzZXJfY2xhaW1zIjp7InNjb3BlcyI6WyJ1c2VyIl19fQ.UC3ebDNZdNjyUxDhez-7IIACaf224xpA5rl8DaQRFpU');
 
 function sendSms($mobile, $message, $templateId = '')
@@ -25,38 +26,41 @@ function sendSms($mobile, $message, $templateId = '')
     $templateId = !empty($templateId) ? $templateId : '1407171048438404191';
     $curl = curl_init();
     
-    // Using the EXACT structure from your Bulk24SMS/BulkSMSServiceProviders manual
-    $postData = [
-        "campaign_name" => "OTP Verification",
-        "auth_key" => BULK_SMS_AUTH_KEY,
-        "receivers" => $mobile,
+    // Comprehensive DLT parameters to ensure gateway compatibility
+    $params = [
+        "authkey" => BULK_SMS_AUTH_KEY,
+        "mobiles" => $mobile,
+        "message" => $message,
         "sender" => BULK_SMS_SENDER_ID,
         "route" => BULK_SMS_ROUTE_TR,
-        "message" => [
-            'msgdata' => $message,
-            'Template_ID' => $templateId,
-            'coding' => "1",
-        ],
-        "scheduleTime" => "",
+        "campaign_name" => "OTP Verification",
+        
+        // Multi-parameter mapping for DLT Template ID
+        "DLT_TE_ID" => $templateId,
+        "template_id" => $templateId,
+        "Template_ID" => $templateId,
+        "tid" => $templateId,
+        
+        // DLT Entity ID / PE ID
+        "PE_ID" => BULK_SMS_ENTITY_ID,
+        "DLT_ENT_ID" => BULK_SMS_ENTITY_ID,
+        "entity_id" => BULK_SMS_ENTITY_ID
     ];
 
+    $apiUrl = BULK_SMS_API_URL . "?" . http_build_query($params);
     $log_file = __DIR__ . '/../tmp/sms_log.txt';
     $log_dir = dirname($log_file);
     if (!is_dir($log_dir))
         mkdir($log_dir, 0777, true);
     
     // Log outgoing request for debugging
-    $log_entry = "[" . date('Y-m-d H:i:s') . "]\n"
-               . "URL: " . BULK_SMS_API_URL . "\n"
-               . "Payload: " . json_encode($postData) . "\n";
+    $log_entry = "[" . date('Y-m-d H:i:s') . "] API URL: $apiUrl\n";
 
     curl_setopt_array($curl, [
-        CURLOPT_URL => BULK_SMS_API_URL,
+        CURLOPT_URL => $apiUrl,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT => 30,
-        CURLOPT_CUSTOMREQUEST => 'POST',
-        CURLOPT_POSTFIELDS => json_encode($postData),
-        CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+        CURLOPT_CUSTOMREQUEST => 'GET',
     ]);
 
     $response = curl_exec($curl);
