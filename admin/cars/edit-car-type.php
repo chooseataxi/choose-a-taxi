@@ -63,7 +63,7 @@ if (!$type) {
                             <div class="d-flex align-items-center">
                                 <div id="image-preview" class="border rounded bg-light d-flex align-items-center justify-content-center me-3" style="width: 120px; height: 120px; overflow: hidden;">
                                     <?php if ($type['image']): ?>
-                                        <img src="<?= $adminUrl ?>../admin/<?= ltrim($type['image'], './') ?>" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                        <img src="<?= $adminUrl ?>../<?= $type['image'] ?>" style="max-width: 100%; max-height: 100%; object-fit: contain;">
                                     <?php else: ?>
                                        <i class="fas fa-image text-muted fa-3x"></i>
                                     <?php endif; ?>

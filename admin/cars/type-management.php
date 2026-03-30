@@ -32,7 +32,7 @@ $types = $stmt->fetchAll();
                             <td>
                                 <div class="bg-light d-flex align-items-center justify-content-center border rounded" style="width: 60px; height: 60px; overflow: hidden;">
                                     <?php if ($type['image']): ?>
-                                        <img src="<?= $adminUrl ?>../admin/<?= ltrim($type['image'], './') ?>" alt="Type" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                        <img src="<?= $adminUrl ?>../<?= $type['image'] ?>" alt="Type" style="max-width: 100%; max-height: 100%; object-fit: contain;">
                                     <?php else: ?>
                                         <i class="fas fa-car text-muted fa-lg"></i>
                                     <?php endif; ?>

@@ -23,10 +23,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'GET
                 if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
                     $ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
                     $fileName = 'car_type_' . time() . '.' . $ext;
-                    $uploadDir = __DIR__ . '/../../assets/car_types/';
+                    $uploadDir = __DIR__ . '/../../../assets/car_types/';
                     if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
                     if (move_uploaded_file($_FILES['image']['tmp_name'], $uploadDir . $fileName)) {
-                        $imagePath = './assets/car_types/' . $fileName;
+                        $imagePath = 'assets/car_types/' . $fileName;
                     }
                 }
 
