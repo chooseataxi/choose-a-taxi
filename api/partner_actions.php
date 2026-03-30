@@ -30,14 +30,21 @@ function sendSms($mobile, $message, $templateId = '') {
     curl_setopt_array($curl, [
         CURLOPT_URL => 'http://bulk24sms.com/api/send/sms', // Corrected hostname
         CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 30,
         CURLOPT_CUSTOMREQUEST => 'POST',
         CURLOPT_POSTFIELDS => json_encode($postData),
         CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
     ]);
 
     $response = curl_exec($curl);
+    $err = curl_error($curl);
     curl_close($curl);
-    return json_decode($response, true);
+    
+    if ($err) {
+        return ['success' => false, 'error' => "CURL Error: $err"];
+    }
+    
+    return json_decode($response, true) ?: ['raw_response' => $response];
 }
 
 try {
@@ -51,8 +58,9 @@ try {
             $_SESSION['reg_mobile_otp'] = $otp;
 
             // Updated message to match EXACT DLT Template (ID: 1407171048438404190)
+            // Using \r\n for standard CRLF
             $templateId = "1407171048438404190";
-            $message = "Dear Partner\n\nYour OTP for login to Choose A Taxi Partner app is $otp.\nDon't Share OTP with Anyone.\n\nRegard's-\nChoose A Taxi Team";
+            $message = "Dear Partner\r\n\r\nYour OTP for login to Choose A Taxi Partner app is $otp.\r\nDon't Share OTP with Anyone.\r\n\r\nRegard's-\r\nChoose A Taxi Team";
             
             $res = sendSms($mobile, $message, $templateId);
             
