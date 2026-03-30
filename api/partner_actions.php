@@ -14,41 +14,56 @@ define('BULK_SMS_SENDER_ID', $_ENV['SENDER_ID'] ?? 'CHSTXI');
 define('SUREPASS_BEARER_TOKEN', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDg3NzAwMywianRpIjoiZGUxNGRmYmUtMmE3NC00NGQ5LWIxMzEtZGZhMWNlODBhMTc2IiwidHlwZSI6ImFjY2VzcyIsImlkZW50aXR5IjoiZGV2LnJvaGl0XzAzNDVAc3VyZXBhc3MuaW8iLCJuYmYiOjE3NzQ4NzcwMDMsImV4cCI6MjQwNTU5NzAwMywiZW1haWwiOiJyb2hpdF8wMzQ1QHN1cmVwYXNzLmlvIiwidGVuYW50X2lkIjoibWFpbiIsInVzZXJfY2xhaW1zIjp7InNjb3BlcyI6WyJ1c2VyIl19fQ.UC3ebDNZdNjyUxDhez-7IIACaf224xpA5rl8DaQRFpU');
 
 function sendSms($mobile, $message, $templateId = '') {
+    // 1. Mobile validation/normalization (10 numeric digits only)
+    $mobile = preg_replace('/[^0-9]/', '', $mobile);
+    if (strlen($mobile) !== 10) {
+        return ['success' => false, 'error' => "Invalid mobile number. Must be 10 digits."];
+    }
+
+    $templateId = !empty($templateId) ? $templateId : '1407171048438404190';
     $curl = curl_init();
     
-    // Standard parameters for send_http.php APIs
     $params = [
         "authkey" => BULK_SMS_AUTH_KEY,
         "mobiles" => $mobile,
         "message" => urlencode($message),
         "sender" => BULK_SMS_SENDER_ID,
-        "route" => "2", // Typically 2 for Transactional
-        "DLT_TE_ID" => $templateId
+        "route" => "2", // 2. route=2 transactional
+        "Template_ID" => $templateId // 3. Template_ID parameter
     ];
 
     $apiUrl = BULK_SMS_API_URL . "?" . http_build_query($params);
-    
-    // Log outgoing request for debugging
     $log_file = __DIR__ . '/../tmp/sms_log.txt';
-    $log_entry = "[" . date('Y-m-d H:i:s') . "] API URL: $apiUrl\n";
+    $log_dir = dirname($log_file);
+    if (!is_dir($log_dir)) mkdir($log_dir, 0777, true);
 
+    // 4. Proper curl settings
     curl_setopt_array($curl, [
         CURLOPT_URL => $apiUrl,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT => 30,
-        CURLOPT_CUSTOMREQUEST => 'GET', // Most of these use GET or standard POST
+        CURLOPT_CUSTOMREQUEST => 'GET',
     ]);
 
     $response = curl_exec($curl);
+    $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
     $err = curl_error($curl);
     curl_close($curl);
     
-    file_put_contents($log_file, $log_entry . "Response: $response\nError: $err\n\n", FILE_APPEND);
+    // 5. Clear debug log
+    $log_entry = "[" . date('Y-m-d H:i:s') . "]\n"
+               . "URL: $apiUrl\n"
+               . "HTTP Code: $http_code\n"
+               . "Response: $response\n"
+               . "CURL Error: $err\n"
+               . "-----------------------------------\n";
+    file_put_contents($log_file, $log_entry, FILE_APPEND);
     
-    if ($err) {
-        return ['success' => false, 'error' => "CURL Error: $err"];
+    if ($err || $http_code !== 200) {
+        return ['success' => false, 'error' => "SMS Gateway Error: " . ($err ?: "HTTP $http_code"), 'api_response' => $response];
     }
     
+    // 6. Return standard array
     return ['success' => true, 'api_response' => $response];
 }
 
@@ -56,19 +71,30 @@ try {
     switch ($action) {
         case 'send_mobile_otp':
             $mobile = $_POST['mobile'] ?? '';
-            if (empty($mobile)) throw new Exception("Mobile number is required.");
+            // 1. Validate number
+            $clean_mobile = preg_replace('/[^0-9]/', '', $mobile);
+            if (strlen($clean_mobile) !== 10) {
+                throw new Exception("Please enter a valid 10-digit mobile number.");
+            }
 
+            // 2. Generate and store OTP
             $otp = rand(1000, 9999);
-            $_SESSION['reg_mobile'] = $mobile;
+            $_SESSION['reg_mobile'] = $clean_mobile;
             $_SESSION['reg_mobile_otp'] = $otp;
 
-            // EXACT string that worked in screenshot (matches DLT mapping)
-            $templateId = "1407171048438404190";
+            // Updated message template
             $message = "Dear Partner Your OTP for login to Choose A Taxi Partner app is $otp. Don't Share OTP with Anyone.";
             
-            $res = sendSms($mobile, $message, $templateId);
+            // 3. Call sendSms
+            $res = sendSms($clean_mobile, $message);
             
-            echo json_encode(['success' => true, 'message' => "OTP sent to $mobile.", 'otp' => $otp, 'api_response' => $res]);
+            // 4. Detailed error if failure
+            if (!$res['success']) {
+                throw new Exception("OTP failed: " . ($res['error'] ?? 'Unknown Error') . " (Resp: " . ($res['api_response'] ?? 'None') . ")");
+            }
+            
+            // 5. Success
+            echo json_encode(['success' => true, 'message' => "OTP sent successfully to $clean_mobile."]);
             break;
 
         case 'verify_mobile_otp':
