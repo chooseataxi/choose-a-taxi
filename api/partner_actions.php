@@ -31,7 +31,11 @@ function sendSms($mobile, $message, $templateId = '')
         "message" => $message,
         "sender" => BULK_SMS_SENDER_ID,
         "route" => BULK_SMS_ROUTE_TR,
-        "Template_ID" => $templateId
+        "DLT_TE_ID" => $templateId,
+        "template_id" => $templateId,
+        "Template_ID" => $templateId,
+        "tid" => $templateId,
+        "campaign_name" => "OTP Verification"
     ];
 
     $apiUrl = BULK_SMS_API_URL . "?" . http_build_query($params);
