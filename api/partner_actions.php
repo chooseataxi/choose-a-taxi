@@ -24,53 +24,52 @@ function sendSms($mobile, $message, $templateId = '')
 
     $templateId = !empty($templateId) ? $templateId : '1407171048438404191';
     $curl = curl_init();
-
-    $params = [
-        "authkey" => BULK_SMS_AUTH_KEY,
-        "mobiles" => $mobile,
-        "message" => $message,
+    
+    // Using the EXACT structure from your Bulk24SMS/BulkSMSServiceProviders manual
+    $postData = [
+        "campaign_name" => "OTP Verification",
+        "auth_key" => BULK_SMS_AUTH_KEY,
+        "receivers" => $mobile,
         "sender" => BULK_SMS_SENDER_ID,
         "route" => BULK_SMS_ROUTE_TR,
-        "DLT_TE_ID" => $templateId,
-        "template_id" => $templateId,
-        "Template_ID" => $templateId,
-        "tid" => $templateId,
-        "campaign_name" => "OTP Verification"
+        "message" => [
+            'msgdata' => $message,
+            'Template_ID' => $templateId,
+            'coding' => "1",
+        ],
+        "scheduleTime" => "",
     ];
 
-    $apiUrl = BULK_SMS_API_URL . "?" . http_build_query($params);
     $log_file = __DIR__ . '/../tmp/sms_log.txt';
     $log_dir = dirname($log_file);
     if (!is_dir($log_dir))
         mkdir($log_dir, 0777, true);
+    
+    // Log outgoing request for debugging
+    $log_entry = "[" . date('Y-m-d H:i:s') . "]\n"
+               . "URL: " . BULK_SMS_API_URL . "\n"
+               . "Payload: " . json_encode($postData) . "\n";
 
-    // 4. Proper curl settings
     curl_setopt_array($curl, [
-        CURLOPT_URL => $apiUrl,
+        CURLOPT_URL => BULK_SMS_API_URL,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT => 30,
-        CURLOPT_CUSTOMREQUEST => 'GET',
+        CURLOPT_CUSTOMREQUEST => 'POST',
+        CURLOPT_POSTFIELDS => json_encode($postData),
+        CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
     ]);
 
     $response = curl_exec($curl);
     $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
     $err = curl_error($curl);
     curl_close($curl);
-
-    // 5. Clear debug log
-    $log_entry = "[" . date('Y-m-d H:i:s') . "]\n"
-        . "URL: $apiUrl\n"
-        . "HTTP Code: $http_code\n"
-        . "Response: $response\n"
-        . "CURL Error: $err\n"
-        . "-----------------------------------\n";
-    file_put_contents($log_file, $log_entry, FILE_APPEND);
-
+    
+    file_put_contents($log_file, $log_entry . "HTTP Code: $http_code\nResponse: $response\nError: $err\n-------------------\n", FILE_APPEND);
+    
     if ($err || $http_code !== 200) {
         return ['success' => false, 'error' => "SMS Gateway Error: " . ($err ?: "HTTP $http_code"), 'api_response' => $response];
     }
-
-    // 6. Return standard array
+    
     return ['success' => true, 'api_response' => $response];
 }
 
