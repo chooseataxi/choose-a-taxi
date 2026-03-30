@@ -200,7 +200,10 @@
                                     <p class="mt-3 text-muted">A 4-digit code has been sent to <span id="display-mobile"></span></p>
                                 </div>
                                 <button class="btn btn-primary w-100 mb-3" id="verify-mobile-btn">Verify Mobile</button>
-                                <button class="btn btn-link w-100 text-decoration-none" id="resend-otp">Resend OTP</button>
+                                <div class="text-center mt-2">
+                                    <button class="btn btn-link p-0 text-decoration-none" id="resend-otp" disabled>Resend OTP</button>
+                                    <span id="resend-timer-text" class="text-muted d-block small mt-1">Wait 60s to resend</span>
+                                </div>
                             </div>
                         </div>
 
@@ -267,6 +270,25 @@
                 }
             });
 
+            // OTP Timer Logic
+            let resendTimer;
+            function startResendTimer() {
+                let timeLeft = 60;
+                $('#resend-otp').prop('disabled', true);
+                $('#resend-timer-text').show();
+                
+                clearInterval(resendTimer);
+                resendTimer = setInterval(function() {
+                    timeLeft--;
+                    $('#resend-timer-text').text('Wait ' + timeLeft + 's to resend');
+                    if (timeLeft <= 0) {
+                        clearInterval(resendTimer);
+                        $('#resend-otp').prop('disabled', false);
+                        $('#resend-timer-text').hide();
+                    }
+                }, 1000);
+            }
+
             // STEP 1: Mobile Verification
             $('#send-otp-btn').click(function() {
                 const mobile = $('#mobile').val();
@@ -280,7 +302,20 @@
                         $('#display-mobile').text(mobile);
                         $('#mobile-input-section').hide();
                         $('#otp-verify-section').fadeIn();
-                        Swal.fire('OTP Sent', res.message, 'success');
+                        startResendTimer();
+                        Swal.fire('OTP Sent', 'A verification code has been sent to your mobile.', 'success');
+                    } else {
+                        Swal.fire('Error', res.message, 'error');
+                    }
+                });
+            });
+
+            $('#resend-otp').click(function() {
+                const mobile = $('#mobile').val();
+                $.post('api/partner_actions.php', { action: 'send_mobile_otp', mobile: mobile }, function(res) {
+                    if (res.success) {
+                        startResendTimer();
+                        Swal.fire('OTP Resent', 'New verification code has been sent.', 'success');
                     } else {
                         Swal.fire('Error', res.message, 'error');
                     }

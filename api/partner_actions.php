@@ -7,8 +7,10 @@ header('Content-Type: application/json');
 
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
 
-// API Credentials
-define('BULK_SMS_AUTH_KEY', 'fa233ee27ba952ccb7f416e13d7cf532');
+// API Credentials from .env
+define('BULK_SMS_API_URL', $_ENV['SMS_API_URL'] ?? 'http://sms.bulksmsserviceproviders.com/api/send_http.php');
+define('BULK_SMS_AUTH_KEY', $_ENV['SMS_KEY'] ?? 'fa233ee27ba952ccb7f416e13d7cf532');
+define('BULK_SMS_SENDER_ID', $_ENV['SENDER_ID'] ?? 'CHSTXI');
 define('SUREPASS_BEARER_TOKEN', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDg3NzAwMywianRpIjoiZGUxNGRmYmUtMmE3NC00NGQ5LWIxMzEtZGZhMWNlODBhMTc2IiwidHlwZSI6ImFjY2VzcyIsImlkZW50aXR5IjoiZGV2LnJvaGl0XzAzNDVAc3VyZXBhc3MuaW8iLCJuYmYiOjE3NzQ4NzcwMDMsImV4cCI6MjQwNTU5NzAwMywiZW1haWwiOiJyb2hpdF8wMzQ1QHN1cmVwYXNzLmlvIiwidGVuYW50X2lkIjoibWFpbiIsInVzZXJfY2xhaW1zIjp7InNjb3BlcyI6WyJ1c2VyIl19fQ.UC3ebDNZdNjyUxDhez-7IIACaf224xpA5rl8DaQRFpU');
 
 function sendSms($mobile, $message, $templateId = '') {
@@ -17,7 +19,7 @@ function sendSms($mobile, $message, $templateId = '') {
         "campaign_name" => "OTP Verification",
         "auth_key" => BULK_SMS_AUTH_KEY,
         "receivers" => $mobile,
-        "sender" => "CHTAXI", // Approved Sender ID
+        "sender" => BULK_SMS_SENDER_ID,
         "route" => "TR",
         "message" => [
             'msgdata' => $message,
@@ -28,7 +30,7 @@ function sendSms($mobile, $message, $templateId = '') {
     ];
 
     curl_setopt_array($curl, [
-        CURLOPT_URL => 'http://bulk24sms.com/api/send/sms', // Corrected hostname
+        CURLOPT_URL => BULK_SMS_API_URL,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT => 30,
         CURLOPT_CUSTOMREQUEST => 'POST',
