@@ -11,6 +11,7 @@ $action = $_POST['action'] ?? $_GET['action'] ?? '';
 define('BULK_SMS_API_URL', $_ENV['SMS_API_URL'] ?? 'http://sms.bulksmsserviceproviders.com/api/send_http.php');
 define('BULK_SMS_AUTH_KEY', $_ENV['SMS_KEY'] ?? 'fa233ee27ba952ccb7f416e13d7cf532');
 define('BULK_SMS_SENDER_ID', $_ENV['SENDER_ID'] ?? 'CHSTXI');
+define('BULK_SMS_ROUTE_TR', $_ENV['SMS_ROUTE_TR'] ?? 'B');
 define('SUREPASS_BEARER_TOKEN', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDg3NzAwMywianRpIjoiZGUxNGRmYmUtMmE3NC00NGQ5LWIxMzEtZGZhMWNlODBhMTc2IiwidHlwZSI6ImFjY2VzcyIsImlkZW50aXR5IjoiZGV2LnJvaGl0XzAzNDVAc3VyZXBhc3MuaW8iLCJuYmYiOjE3NzQ4NzcwMDMsImV4cCI6MjQwNTU5NzAwMywiZW1haWwiOiJyb2hpdF8wMzQ1QHN1cmVwYXNzLmlvIiwidGVuYW50X2lkIjoibWFpbiIsInVzZXJfY2xhaW1zIjp7InNjb3BlcyI6WyJ1c2VyIl19fQ.UC3ebDNZdNjyUxDhez-7IIACaf224xpA5rl8DaQRFpU');
 
 function sendSms($mobile, $message, $templateId = '')
@@ -27,10 +28,10 @@ function sendSms($mobile, $message, $templateId = '')
     $params = [
         "authkey" => BULK_SMS_AUTH_KEY,
         "mobiles" => $mobile,
-        "message" => urlencode($message),
+        "message" => $message,
         "sender" => BULK_SMS_SENDER_ID,
-        "route" => "2", // 2. route=2 transactional
-        "Template_ID" => $templateId // 3. Template_ID parameter
+        "route" => BULK_SMS_ROUTE_TR,
+        "Template_ID" => $templateId
     ];
 
     $apiUrl = BULK_SMS_API_URL . "?" . http_build_query($params);
