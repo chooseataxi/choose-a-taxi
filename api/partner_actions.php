@@ -84,9 +84,8 @@ try {
             $_SESSION['reg_mobile'] = $clean_mobile;
             $_SESSION['reg_mobile_otp'] = $otp;
 
-            // Updated message template
-            $message = "Dear Partner Your OTP for login to Choose A Taxi Partner app is $otp. Don't Share OTP with Anyone.";
-
+            // Updated message to match EXACT DLT Template (ID: 1407171048438404191)
+            $message = "Dear Partner Your OTP for login to Choose A Taxi Partner app is $otp. Don't Share OTP with Anyone. Regard's- Choose A Taxi Team";
             // 3. Call sendSms
             $res = sendSms($clean_mobile, $message);
 
