@@ -23,9 +23,9 @@ function sendSms($mobile, $message, $templateId = '')
         return ['success' => false, 'error' => "Invalid mobile number. Must be 10 digits."];
     }
 
-    $templateId = !empty($templateId) ? $templateId : '1407171048438404191';
+    $templateId = !empty($templateId) ? $templateId : '1407171048438404190';
     $curl = curl_init();
-    
+
     // Comprehensive DLT parameters to ensure gateway compatibility
     $params = [
         "authkey" => BULK_SMS_AUTH_KEY,
@@ -34,13 +34,13 @@ function sendSms($mobile, $message, $templateId = '')
         "sender" => BULK_SMS_SENDER_ID,
         "route" => BULK_SMS_ROUTE_TR,
         "campaign_name" => "OTP Verification",
-        
+
         // Multi-parameter mapping for DLT Template ID
         "DLT_TE_ID" => $templateId,
         "template_id" => $templateId,
         "Template_ID" => $templateId,
         "tid" => $templateId,
-        
+
         // DLT Entity ID / PE ID
         "PE_ID" => BULK_SMS_ENTITY_ID,
         "DLT_ENT_ID" => BULK_SMS_ENTITY_ID,
@@ -52,7 +52,7 @@ function sendSms($mobile, $message, $templateId = '')
     $log_dir = dirname($log_file);
     if (!is_dir($log_dir))
         mkdir($log_dir, 0777, true);
-    
+
     // Log outgoing request for debugging
     $log_entry = "[" . date('Y-m-d H:i:s') . "] API URL: $apiUrl\n";
 
@@ -67,13 +67,13 @@ function sendSms($mobile, $message, $templateId = '')
     $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
     $err = curl_error($curl);
     curl_close($curl);
-    
+
     file_put_contents($log_file, $log_entry . "HTTP Code: $http_code\nResponse: $response\nError: $err\n-------------------\n", FILE_APPEND);
-    
+
     if ($err || $http_code !== 200) {
         return ['success' => false, 'error' => "SMS Gateway Error: " . ($err ?: "HTTP $http_code"), 'api_response' => $response];
     }
-    
+
     return ['success' => true, 'api_response' => $response];
 }
 
