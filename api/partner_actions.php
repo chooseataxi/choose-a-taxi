@@ -15,38 +15,41 @@ define('SUREPASS_BEARER_TOKEN', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaC
 
 function sendSms($mobile, $message, $templateId = '') {
     $curl = curl_init();
-    $postData = [
-        "campaign_name" => "OTP Verification",
-        "auth_key" => BULK_SMS_AUTH_KEY,
-        "receivers" => $mobile,
+    
+    // Standard parameters for send_http.php APIs
+    $params = [
+        "authkey" => BULK_SMS_AUTH_KEY,
+        "mobiles" => $mobile,
+        "message" => urlencode($message),
         "sender" => BULK_SMS_SENDER_ID,
-        "route" => "TR",
-        "message" => [
-            'msgdata' => $message,
-            'Template_ID' => $templateId,
-            'coding' => "1",
-        ],
-        "scheduleTime" => "",
+        "route" => "2", // Typically 2 for Transactional
+        "DLT_TE_ID" => $templateId
     ];
 
+    $apiUrl = BULK_SMS_API_URL . "?" . http_build_query($params);
+    
+    // Log outgoing request for debugging
+    $log_file = __DIR__ . '/../tmp/sms_log.txt';
+    $log_entry = "[" . date('Y-m-d H:i:s') . "] API URL: $apiUrl\n";
+
     curl_setopt_array($curl, [
-        CURLOPT_URL => BULK_SMS_API_URL,
+        CURLOPT_URL => $apiUrl,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT => 30,
-        CURLOPT_CUSTOMREQUEST => 'POST',
-        CURLOPT_POSTFIELDS => json_encode($postData),
-        CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+        CURLOPT_CUSTOMREQUEST => 'GET', // Most of these use GET or standard POST
     ]);
 
     $response = curl_exec($curl);
     $err = curl_error($curl);
     curl_close($curl);
     
+    file_put_contents($log_file, $log_entry . "Response: $response\nError: $err\n\n", FILE_APPEND);
+    
     if ($err) {
         return ['success' => false, 'error' => "CURL Error: $err"];
     }
     
-    return json_decode($response, true) ?: ['raw_response' => $response];
+    return ['success' => true, 'api_response' => $response];
 }
 
 try {
@@ -59,10 +62,9 @@ try {
             $_SESSION['reg_mobile'] = $mobile;
             $_SESSION['reg_mobile_otp'] = $otp;
 
-            // Updated message to match EXACT DLT Template (ID: 1407171048438404190)
-            // Using \r\n for standard CRLF
+            // EXACT string that worked in screenshot (matches DLT mapping)
             $templateId = "1407171048438404190";
-            $message = "Dear Partner\r\n\r\nYour OTP for login to Choose A Taxi Partner app is $otp.\r\nDon't Share OTP with Anyone.\r\n\r\nRegard's-\r\nChoose A Taxi Team";
+            $message = "Dear Partner Your OTP for login to Choose A Taxi Partner app is $otp. Don't Share OTP with Anyone.";
             
             $res = sendSms($mobile, $message, $templateId);
             
