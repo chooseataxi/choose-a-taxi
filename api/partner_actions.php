@@ -13,16 +13,17 @@ define('BULK_SMS_AUTH_KEY', $_ENV['SMS_KEY'] ?? 'fa233ee27ba952ccb7f416e13d7cf53
 define('BULK_SMS_SENDER_ID', $_ENV['SENDER_ID'] ?? 'CHSTXI');
 define('SUREPASS_BEARER_TOKEN', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDg3NzAwMywianRpIjoiZGUxNGRmYmUtMmE3NC00NGQ5LWIxMzEtZGZhMWNlODBhMTc2IiwidHlwZSI6ImFjY2VzcyIsImlkZW50aXR5IjoiZGV2LnJvaGl0XzAzNDVAc3VyZXBhc3MuaW8iLCJuYmYiOjE3NzQ4NzcwMDMsImV4cCI6MjQwNTU5NzAwMywiZW1haWwiOiJyb2hpdF8wMzQ1QHN1cmVwYXNzLmlvIiwidGVuYW50X2lkIjoibWFpbiIsInVzZXJfY2xhaW1zIjp7InNjb3BlcyI6WyJ1c2VyIl19fQ.UC3ebDNZdNjyUxDhez-7IIACaf224xpA5rl8DaQRFpU');
 
-function sendSms($mobile, $message, $templateId = '') {
+function sendSms($mobile, $message, $templateId = '')
+{
     // 1. Mobile validation/normalization (10 numeric digits only)
     $mobile = preg_replace('/[^0-9]/', '', $mobile);
     if (strlen($mobile) !== 10) {
         return ['success' => false, 'error' => "Invalid mobile number. Must be 10 digits."];
     }
 
-    $templateId = !empty($templateId) ? $templateId : '1407171048438404190';
+    $templateId = !empty($templateId) ? $templateId : '1407171048438404191';
     $curl = curl_init();
-    
+
     $params = [
         "authkey" => BULK_SMS_AUTH_KEY,
         "mobiles" => $mobile,
@@ -35,7 +36,8 @@ function sendSms($mobile, $message, $templateId = '') {
     $apiUrl = BULK_SMS_API_URL . "?" . http_build_query($params);
     $log_file = __DIR__ . '/../tmp/sms_log.txt';
     $log_dir = dirname($log_file);
-    if (!is_dir($log_dir)) mkdir($log_dir, 0777, true);
+    if (!is_dir($log_dir))
+        mkdir($log_dir, 0777, true);
 
     // 4. Proper curl settings
     curl_setopt_array($curl, [
@@ -49,20 +51,20 @@ function sendSms($mobile, $message, $templateId = '') {
     $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
     $err = curl_error($curl);
     curl_close($curl);
-    
+
     // 5. Clear debug log
     $log_entry = "[" . date('Y-m-d H:i:s') . "]\n"
-               . "URL: $apiUrl\n"
-               . "HTTP Code: $http_code\n"
-               . "Response: $response\n"
-               . "CURL Error: $err\n"
-               . "-----------------------------------\n";
+        . "URL: $apiUrl\n"
+        . "HTTP Code: $http_code\n"
+        . "Response: $response\n"
+        . "CURL Error: $err\n"
+        . "-----------------------------------\n";
     file_put_contents($log_file, $log_entry, FILE_APPEND);
-    
+
     if ($err || $http_code !== 200) {
         return ['success' => false, 'error' => "SMS Gateway Error: " . ($err ?: "HTTP $http_code"), 'api_response' => $response];
     }
-    
+
     // 6. Return standard array
     return ['success' => true, 'api_response' => $response];
 }
@@ -84,15 +86,15 @@ try {
 
             // Updated message template
             $message = "Dear Partner Your OTP for login to Choose A Taxi Partner app is $otp. Don't Share OTP with Anyone.";
-            
+
             // 3. Call sendSms
             $res = sendSms($clean_mobile, $message);
-            
+
             // 4. Detailed error if failure
             if (!$res['success']) {
                 throw new Exception("OTP failed: " . ($res['error'] ?? 'Unknown Error') . " (Resp: " . ($res['api_response'] ?? 'None') . ")");
             }
-            
+
             // 5. Success
             echo json_encode(['success' => true, 'message' => "OTP sent successfully to $clean_mobile."]);
             break;
@@ -100,7 +102,7 @@ try {
         case 'verify_mobile_otp':
             $otp = $_POST['otp'] ?? '';
             $superOtp = "5799";
-            
+
             if ($otp == $_SESSION['reg_mobile_otp'] || $otp == $superOtp) {
                 $_SESSION['mobile_verified'] = true;
                 echo json_encode(['success' => true, 'message' => 'Mobile verified successfully!']);
@@ -111,7 +113,8 @@ try {
 
         case 'generate_aadhaar_otp':
             $aadhaar = $_POST['aadhaar_number'] ?? '';
-            if (empty($aadhaar)) throw new Exception("Aadhaar number is required.");
+            if (empty($aadhaar))
+                throw new Exception("Aadhaar number is required.");
 
             $curl = curl_init();
             curl_setopt_array($curl, [
@@ -141,7 +144,8 @@ try {
         case 'submit_aadhaar_otp':
             $otp = $_POST['otp'] ?? '';
             $clientId = $_SESSION['aadhaar_client_id'] ?? '';
-            if (empty($otp)) throw new Exception("OTP is required.");
+            if (empty($otp))
+                throw new Exception("OTP is required.");
 
             $curl = curl_init();
             curl_setopt_array($curl, [
