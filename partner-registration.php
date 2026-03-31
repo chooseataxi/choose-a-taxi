@@ -426,11 +426,17 @@
             }
 
             function moveStep3() {
+                const fetchedName = $('#kyc_fetched_name').val();
                 $('#step2-circle').addClass('completed').removeClass('active');
                 $('#step3-circle').addClass('active');
                 $('#step2').hide();
                 $('#step3').fadeIn().addClass('active');
-                Swal.fire('Identity Verified!', 'Finalize your account details to finish.', 'success');
+                
+                Swal.fire({
+                    title: 'Identity Verified!',
+                    text: `Welcome, ${fetchedName}! Please finalize your account details to finish registration.`,
+                    icon: 'success'
+                });
             }
 
             // STEP 3: FINALIZE
