@@ -13,9 +13,9 @@ define('BULK_SMS_SENDER_ID', $_ENV['SENDER_ID'] ?? 'CHSTXI');
 define('BULK_SMS_ROUTE_TR', $_ENV['SMS_ROUTE_TR'] ?? 'B');
 define('BULK_SMS_ENTITY_ID', $_ENV['DLT_ENTITY_ID'] ?? '1407171048438404190');
 
-// Surepass Config (Updated for Digiboost SDK)
+// Surepass Config (Hardcoded fallback if .env fails to load token)
 define('SUREPASS_BASE_URL', rtrim($_ENV['SUREPASS_BASE_URL'] ?? 'https://kyc-api.surepass.app/api/v1/', '/'));
-define('SUREPASS_BEARER_TOKEN', $_ENV['SUREPASS_TOKEN'] ?? '');
+define('SUREPASS_BEARER_TOKEN', !empty($_ENV['SUREPASS_TOKEN']) ? $_ENV['SUREPASS_TOKEN'] : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDg3NzAwMywianRpIjoiZGUxNGRmYmUtMmE3NC00NGQ5LWIxMzEtZGZhMWNlODBhMTc2IiwidHlwZSI6ImFjY2VzcyIsImlkZW50aXR5IjoiZGV2LnJvaGl0XzAzNDVAc3VyZXBhc3MuaW8iLCJuYmYiOjE3NzQ4NzcwMDMsImV4cCI6MjQwNTU5NzAwMywiZW1haWwiOiJyb2hpdF8wMzQ1QHN1cmVwYXNzLmlvIiwidGVuYW50X2lkIjoibWFpbiIsInVzZXJfY2xhaW1zIjp7InNjb3BlcyI6WyJ1c2VyIl19fQ.UC3ebDNZdNjyUxDhez-7IIACaf224xpA5rl8DaQRFpU');
 
 function sendSms($mobile, $message, $templateId = '')
 {
