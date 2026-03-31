@@ -338,10 +338,10 @@
                     Swal.fire('Error', 'Please enter a 10-digit mobile number', 'error');
                     return;
                 }
-                $(this).prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Sending...');
+                const $btn = $(this);
+                $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Sending...');
                 
                 $.post('api/partner_actions.php', { action: 'send_mobile_otp', mobile: mobile }, (res) => {
-                    $(this).prop('disabled', false).text('Send OTP');
                     if (res.success) {
                         $('#display-mobile').text(mobile);
                         $('#mobile-input-section').hide();
@@ -351,6 +351,10 @@
                     } else {
                         Swal.fire('Error', res.message, 'error');
                     }
+                }).fail((err) => {
+                    Swal.fire('Server Error', 'Failed to reach verification server. Please try again later.', 'error');
+                }).always(() => {
+                    $btn.prop('disabled', false).text('Send OTP');
                 });
             });
 
@@ -404,6 +408,9 @@
                                     } else {
                                         Swal.fire('Error', kycRes.message, 'error');
                                     }
+                                }).fail(() => {
+                                    Swal.close();
+                                    Swal.fire('Error', 'Failed to finalize KYC status. Please try again.', 'error');
                                 });
                             },
                             onFailure: function(err) {
@@ -413,6 +420,8 @@
                     } else {
                         Swal.fire('SDK Error', res.message, 'error');
                     }
+                }).fail(() => {
+                    Swal.fire('Server Error', 'Failed to initialize KYC. Please refresh the page.', 'error');
                 });
             }
 
