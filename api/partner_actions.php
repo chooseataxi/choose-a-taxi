@@ -7,13 +7,17 @@ header('Content-Type: application/json');
 
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
 
-// API Credentials from .env
+// SMS API Credentials from .env
 define('BULK_SMS_API_URL', $_ENV['SMS_API_URL'] ?? 'http://sms.bulksmsserviceproviders.com/api/send_http.php');
 define('BULK_SMS_AUTH_KEY', $_ENV['SMS_KEY'] ?? 'fa233ee27ba952ccb7f416e13d7cf532');
 define('BULK_SMS_SENDER_ID', $_ENV['SENDER_ID'] ?? 'CHSTXI');
 define('BULK_SMS_ROUTE_TR', $_ENV['SMS_ROUTE_TR'] ?? 'B');
 define('BULK_SMS_ENTITY_ID', $_ENV['DLT_ENTITY_ID'] ?? '');
-define('SUREPASS_BEARER_TOKEN', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDg3NzAwMywianRpIjoiZGUxNGRmYmUtMmE3NC00NGQ5LWIxMzEtZGZhMWNlODBhMTc2IiwidHlwZSI6ImFjY2VzcyIsImlkZW50aXR5IjoiZGV2LnJvaGl0XzAzNDVAc3VyZXBhc3MuaW8iLCJuYmYiOjE3NzQ4NzcwMDMsImV4cCI6MjQwNTU5NzAwMywiZW1haWwiOiJyb2hpdF8wMzQ1QHN1cmVwYXNzLmlvIiwidGVuYW50X2lkIjoibWFpbiIsInVzZXJfY2xhaW1zIjp7InNjb3BlcyI6WyJ1c2VyIl19fQ.UC3ebDNZdNjyUxDhez-7IIACaf224xpA5rl8DaQRFpU');
+
+// Surepass Config
+define('SUREPASS_BASE_URL', rtrim($_ENV['SUREPASS_BASE_URL'] ?? 'https://kyc-api.surepass.io/api/v1/', '/'));
+define('SUREPASS_API_TYPE', $_ENV['SUREPASS_API_TYPE'] ?? 'aadhaar-v2/v2');
+define('SUREPASS_BEARER_TOKEN', $_ENV['SUREPASS_TOKEN'] ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDg3NzAwMywianRpIjoiZGUxNGRmYmUtMmE3NC00NGQ5LWIxMzEtZGZhMWNlODBhMTc2IiwidHlwZSI6ImFjY2VzcyIsImlkZW50aXR5IjoiZGV2LnJvaGl0XzAzNDVAc3VyZXBhc3MuaW8iLCJuYmYiOjE3NzQ4NzcwMDMsImV4cCI6MjQwNTU5NzAwMywiZW1haWwiOiJyb2hpdF8wMzQ1QHN1cmVwYXNzLmlvIiwidGVuYW50X2lkIjoibWFpbiIsInVzZXJfY2xhaW1zIjp7InNjb3BlcyI6WyJ1c2VyIl19fQ.UC3ebDNZdNjyUxDhez-7IIACaf224xpA5rl8DaQRFpU');
 
 function sendSms($mobile, $message, $templateId = '')
 {
@@ -123,9 +127,10 @@ try {
             if (empty($aadhaar))
                 throw new Exception("Aadhaar number is required.");
 
+            $apiUrl = SUREPASS_BASE_URL . '/' . SUREPASS_API_TYPE . '/generate-otp';
             $curl = curl_init();
             curl_setopt_array($curl, [
-                CURLOPT_URL => 'https://kyc-api.surepass.io/api/v1/aadhaar/eaadhaar/generate-otp',
+                CURLOPT_URL => $apiUrl,
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_CUSTOMREQUEST => 'POST',
                 CURLOPT_POSTFIELDS => json_encode(["id_number" => $aadhaar]),
@@ -136,15 +141,24 @@ try {
             ]);
 
             $response = curl_exec($curl);
+            $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             curl_close($curl);
+            
+            // Log for debugging
+            $log_dir = __DIR__ . '/../tmp';
+            if (!is_dir($log_dir)) mkdir($log_dir, 0777, true);
+            file_put_contents($log_dir . '/kyc_log.txt', "[".date('Y-m-d H:i:s')."] Action: generate_aadhaar_otp\nURL: $apiUrl\nHTTP: $http_code\nResp: $response\n\n", FILE_APPEND);
+            
             $res = json_decode($response, true);
 
-            if ($res['success']) {
+            if (isset($res['success']) && $res['success']) {
                 $_SESSION['aadhaar_client_id'] = $res['data']['client_id'];
                 $_SESSION['aadhaar_number'] = $aadhaar;
                 echo json_encode(['success' => true, 'message' => 'Aadhaar OTP sent!']);
             } else {
-                throw new Exception($res['message'] ?? 'Failed to send Aadhaar OTP');
+                $errorMsg = $res['message'] ?? 'Failed to send Aadhaar OTP';
+                if ($http_code == 403) $errorMsg .= " (Permission Error: Check Token Scope)";
+                throw new Exception($errorMsg);
             }
             break;
 
@@ -154,9 +168,10 @@ try {
             if (empty($otp))
                 throw new Exception("OTP is required.");
 
+            $apiUrl = SUREPASS_BASE_URL . '/' . SUREPASS_API_TYPE . '/submit-otp';
             $curl = curl_init();
             curl_setopt_array($curl, [
-                CURLOPT_URL => 'https://kyc-api.surepass.io/api/v1/aadhaar/eaadhaar/submit-otp',
+                CURLOPT_URL => $apiUrl,
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_CUSTOMREQUEST => 'POST',
                 CURLOPT_POSTFIELDS => json_encode(["client_id" => $clientId, "otp" => $otp]),
@@ -167,10 +182,17 @@ try {
             ]);
 
             $response = curl_exec($curl);
+            $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             curl_close($curl);
+
+            // Log for debugging
+            $log_dir = __DIR__ . '/../tmp';
+            if (!is_dir($log_dir)) mkdir($log_dir, 0777, true);
+            file_put_contents($log_dir . '/kyc_log.txt', "[".date('Y-m-d H:i:s')."] Action: submit_aadhaar_otp\nURL: $apiUrl\nHTTP: $http_code\nResp: $response\n\n", FILE_APPEND);
+
             $res = json_decode($response, true);
 
-            if ($res['success']) {
+            if (isset($res['success']) && $res['success']) {
                 $_SESSION['aadhaar_verified'] = true;
                 $_SESSION['aadhaar_pdf'] = $res['data']['aadhaar_pdf'] ?? '';
                 echo json_encode(['success' => true, 'message' => 'eKYC Verified Successfully!']);
@@ -180,7 +202,7 @@ try {
             break;
 
         case 'finalize_registration':
-            if (!$_SESSION['mobile_verified'] || !$_SESSION['aadhaar_verified']) {
+            if (!($_SESSION['mobile_verified'] ?? false) || !($_SESSION['aadhaar_verified'] ?? false)) {
                 throw new Exception("Please verify mobile and Aadhaar first.");
             }
 
@@ -189,7 +211,7 @@ try {
             $password = password_hash($_POST['password'] ?? '', PASSWORD_BCRYPT);
             $mobile = $_SESSION['reg_mobile'];
             $aadhaar = $_SESSION['aadhaar_number'];
-            $aadhaar_pdf = $_SESSION['aadhaar_pdf'];
+            $aadhaar_pdf = $_SESSION['aadhaar_pdf'] ?? '';
 
             $stmt = $pdo->prepare("INSERT INTO partners (full_name, email, mobile, password, mobile_verified, aadhaar_verified, aadhaar_number, aadhaar_pdf_link, roles, status) VALUES (?, ?, ?, ?, 1, 1, ?, ?, 'user,partner', 'Active')");
             $stmt->execute([$name, $email, $mobile, $password, $aadhaar, $aadhaar_pdf]);
