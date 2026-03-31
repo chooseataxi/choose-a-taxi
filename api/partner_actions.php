@@ -1,24 +1,17 @@
 <?php
 session_start();
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../includes/db.php';
-
-// Re-ensure Dotenv is loaded for define() statements
-if (class_exists('Dotenv\Dotenv')) {
-    $dotenv = Dotenv\Dotenv::createImmutable(dirname(__DIR__));
-    $dotenv->safeLoad();
-}
 
 header('Content-Type: application/json');
 
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
 
-// SMS API Credentials from .env
+// SMS API Credentials (using $_ENV from db.php or fallbacks)
 define('BULK_SMS_API_URL', $_ENV['SMS_API_URL'] ?? 'http://sms.bulksmsserviceproviders.com/api/send_http.php');
 define('BULK_SMS_AUTH_KEY', $_ENV['SMS_KEY'] ?? 'fa233ee27ba952ccb7f416e13d7cf532');
 define('BULK_SMS_SENDER_ID', $_ENV['SENDER_ID'] ?? 'CHSTXI');
 define('BULK_SMS_ROUTE_TR', $_ENV['SMS_ROUTE_TR'] ?? 'B');
-define('BULK_SMS_ENTITY_ID', $_ENV['DLT_ENTITY_ID'] ?? '');
+define('BULK_SMS_ENTITY_ID', $_ENV['DLT_ENTITY_ID'] ?? '1407171048438404190');
 
 // Surepass Config (Updated for Digiboost SDK)
 define('SUREPASS_BASE_URL', rtrim($_ENV['SUREPASS_BASE_URL'] ?? 'https://kyc-api.surepass.app/api/v1/', '/'));

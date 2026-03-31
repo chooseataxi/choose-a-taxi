@@ -1,14 +1,23 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
 
-$dotenv = Dotenv\Dotenv::createImmutable(dirname(__DIR__));
-$dotenv->safeLoad();
+// USE ABSOLUTE PATH TO PREVENT FAILURE
+$rootPath = realpath(__DIR__ . '/../');
 
-// Database connection parameters from .env
-$host = $_ENV['DB_HOST'];
-$db   = $_ENV['DB_NAME'];
-$user = $_ENV['DB_USER'];
-$pass = $_ENV['DB_PASS'];
+if (class_exists('Dotenv\Dotenv')) {
+    try {
+        $dotenv = Dotenv\Dotenv::createImmutable($rootPath);
+        $dotenv->safeLoad();
+    } catch (Exception $e) {
+        // Silent fail for Dotenv if file missing, we rely on server vars
+    }
+}
+
+// Database connection parameters (fallback to defaults if .env fails)
+$host = $_ENV['DB_HOST'] ?? 'localhost';
+$db   = $_ENV['DB_NAME'] ?? 'u885872058_chooseataxi';
+$user = $_ENV['DB_USER'] ?? 'u885872058_chooseataxi';
+$pass = $_ENV['DB_PASS'] ?? 'Nknehra@7432';
 $port = $_ENV['DB_PORT'] ?? 3306;
 $charset = 'utf8mb4';
 
@@ -22,5 +31,7 @@ $options = [
 try {
      $pdo = new PDO($dsn, $user, $pass, $options);
 } catch (\PDOException $e) {
+     // Log DB error for debugging
+     error_log("Database Connection Failed: " . $e->getMessage());
      throw new \PDOException($e->getMessage(), (int)$e->getCode());
 }
