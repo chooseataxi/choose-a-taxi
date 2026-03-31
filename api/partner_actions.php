@@ -80,6 +80,13 @@ try {
             $clean_mobile = preg_replace('/[^0-9]/', '', $mobile);
             if (strlen($clean_mobile) !== 10) throw new Exception("Invalid mobile number.");
 
+            // DUPLICATE CHECK
+            $check = $pdo->prepare("SELECT id FROM partners WHERE mobile = ? LIMIT 1");
+            $check->execute([$clean_mobile]);
+            if ($check->fetch()) {
+                throw new Exception("Already a account is registered with this mobile number");
+            }
+
             $otp = rand(1000, 9999);
             $_SESSION['reg_mobile'] = $clean_mobile;
             $_SESSION['reg_mobile_otp'] = $otp;
@@ -161,7 +168,11 @@ try {
                 $_SESSION['aadhaar_number'] = $res['data']['aadhaar_xml_data']['masked_aadhaar'] ?? '';
                 $_SESSION['full_name'] = $res['data']['aadhaar_xml_data']['full_name'] ?? '';
                 $_SESSION['aadhaar_pdf'] = $res['data']['xml_url'] ?? '';
-                echo json_encode(['success' => true, 'message' => 'eKYC Verified!']);
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'eKYC Verified!',
+                    'full_name' => $_SESSION['full_name']
+                ]);
             } else {
                 // If download fails but SDK said success, we might still accept it as verified
                 $_SESSION['aadhaar_verified'] = true;
@@ -182,7 +193,14 @@ try {
             $aadhaar_pdf = $_SESSION['aadhaar_pdf'] ?? '';
 
             $stmt = $pdo->prepare("INSERT INTO partners (full_name, email, mobile, password, mobile_verified, aadhaar_verified, aadhaar_number, aadhaar_pdf_link, roles, status) VALUES (?, ?, ?, ?, 1, 1, ?, ?, 'user,partner', 'Active')");
-            $stmt->execute([$name, $email, $mobile, $password, $aadhaar, $aadhaar_pdf]);
+            try {
+                $stmt->execute([$name, $email, $mobile, $password, $aadhaar, $aadhaar_pdf]);
+            } catch (PDOException $e) {
+                if ($e->getCode() == 23000) {
+                    throw new Exception("Already a account is registered with this mobile number");
+                }
+                throw $e;
+            }
 
             session_destroy();
             echo json_encode(['success' => true, 'message' => 'Registration successful!']);
