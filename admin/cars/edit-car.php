@@ -310,7 +310,10 @@ $(document).ready(function() {
         $(`.wizard-step-tab`).removeClass('active').filter(`[data-step="${stepId}"]`).addClass('active');
     });
 
-    $('#image-dropzone').click(function() { $('#car_image').click(); });
+    $('#image-dropzone').on('click', function(e) { 
+        e.preventDefault();
+        $('#car_image').trigger('click'); 
+    });
     $('#car_image').change(function() {
         const file = this.files[0];
         if (file) {

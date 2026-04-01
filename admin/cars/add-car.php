@@ -279,7 +279,10 @@ $(document).ready(function() {
     });
 
     // 3. Multimedia Handlers
-    $('#image-dropzone').click(function() { $('#car_image').click(); });
+    $('#image-dropzone').on('click', function(e) { 
+        e.preventDefault();
+        $('#car_image').trigger('click'); 
+    });
     $('#car_image').change(function() {
         const file = this.files[0];
         if (file) {
