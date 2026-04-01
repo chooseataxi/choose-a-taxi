@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($admin && password_verify($password, $admin['password'])) {
             // Generate JWT
-            $secretKey = $_ENV['JWT_SECRET'] ?? 'default_secret_key_if_not_set';
+            $secretKey = $_ENV['JWT_SECRET'] ?? 'b7e2c9f4a1d8e5b6c3a0f7d4e1b8c5a2d7f4e1b8c5a2d7f4e1b8c5a2d7f4e1b8';
             $issuedAt = time();
             $expire = $issuedAt + (int)($_ENV['JWT_EXPIRE_MIN'] ?? 43200) * 60;
 

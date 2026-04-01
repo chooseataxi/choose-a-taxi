@@ -19,7 +19,7 @@ function checkAdminAuth() {
     }
 
     try {
-        $secretKey = $_ENV['JWT_SECRET'] ?? 'default_secret_key_if_not_set';
+        $secretKey = $_ENV['JWT_SECRET'] ?? 'b7e2c9f4a1d8e5b6c3a0f7d4e1b8c5a2d7f4e1b8c5a2d7f4e1b8c5a2d7f4e1b8';
         $decoded = JWT::decode($jwt, new Key($secretKey, 'HS256'));
         return (array)$decoded;
     } catch (Exception $e) {
