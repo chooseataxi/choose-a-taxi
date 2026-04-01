@@ -67,7 +67,7 @@ try {
                                                     <?php 
                                                         $imagePath = '';
                                                         if (!empty($car['image'])) {
-                                                            $physicalPath = realpath(__DIR__ . '/../../../') . '/uploads/cars/' . $car['image'];
+                                                            $physicalPath = realpath(__DIR__ . '/../../') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'cars' . DIRECTORY_SEPARATOR . $car['image'];
                                                             if (file_exists($physicalPath)) {
                                                                 $imagePath = '../../uploads/cars/' . $car['image'];
                                                             }
