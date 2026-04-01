@@ -25,21 +25,27 @@ try {
             
             // Image Upload
             $image = '';
-            if (isset($_FILES['car_image']) && $_FILES['car_image']['error'] == 0) {
-                $targetDir = "../../../uploads/cars/";
+            
+            // Debugging
+            file_put_contents(__DIR__ . '/upload_debug.log', "POST: " . print_r($_POST, true) . "\nFILES: " . print_r($_FILES, true) . "\n", FILE_APPEND);
+
+            if (isset($_FILES['car_image']) && $_FILES['car_image']['error'] == UPLOAD_ERR_OK) {
+                // Determine absolute path from the root directory
+                $targetDir = realpath(__DIR__ . '/../../../') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'cars' . DIRECTORY_SEPARATOR;
                 if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
                 
-                $fileExtension = pathinfo($_FILES['car_image']['name'], PATHINFO_EXTENSION);
+                $fileExtension = strtolower(pathinfo($_FILES['car_image']['name'], PATHINFO_EXTENSION));
                 $fileName = time() . '_' . uniqid() . '.' . $fileExtension;
                 $targetFile = $targetDir . $fileName;
                 
                 if (move_uploaded_file($_FILES['car_image']['tmp_name'], $targetFile)) {
                     $image = $fileName;
                 } else {
-                    throw new Exception("Unable to move uploaded file. Check directory permissions.");
+                    file_put_contents(__DIR__ . '/upload_debug.log', "Upload failed. TMP: " . $_FILES['car_image']['tmp_name'] . " Target: " . $targetFile . "\n", FILE_APPEND);
+                    throw new Exception("Unable to physically move the uploaded file. Check directory permissions at: " . $targetDir);
                 }
-            } else if (isset($_FILES['car_image']['error']) && $_FILES['car_image']['error'] != 4) {
-                 throw new Exception("File upload failed with error code: " . $_FILES['car_image']['error']);
+            } else if (isset($_FILES['car_image']) && $_FILES['car_image']['error'] != UPLOAD_ERR_NO_FILE) {
+                 throw new Exception("File upload failed with error code: " . $_FILES['car_image']['error'] . ". Check php.ini upload_max_filesize limit.");
             }
 
             $stmt = $pdo->prepare("INSERT INTO cars (brand_id, type_id, trip_type_id, name, model, base_fare, min_km, extra_km_price, description, youtube_url, image, seo_title, seo_description, meta_keywords) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -67,25 +73,35 @@ try {
             // Handle image update correctly
             $imageColumn = "";
             $imageParams = [];
-            if (isset($_FILES['car_image']) && $_FILES['car_image']['error'] == 0) {
+            
+            // Debugging
+            file_put_contents(__DIR__ . '/upload_debug.log', "UPDATE POST: " . print_r($_POST, true) . "\nFILES: " . print_r($_FILES, true) . "\n", FILE_APPEND);
+
+            if (isset($_FILES['car_image']) && $_FILES['car_image']['error'] == UPLOAD_ERR_OK) {
+                $targetDir = realpath(__DIR__ . '/../../../') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'cars' . DIRECTORY_SEPARATOR;
+                if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
+
                 // Delete old image if it exists
                 $stmt_old = $pdo->prepare("SELECT image FROM cars WHERE id = ?");
                 $stmt_old->execute([$id]);
                 $old_car = $stmt_old->fetch();
                 if ($old_car && !empty($old_car['image'])) {
-                     $oldFile = "../../../uploads/cars/" . $old_car['image'];
+                     $oldFile = $targetDir . $old_car['image'];
                      if (file_exists($oldFile)) unlink($oldFile);
                 }
 
-                $targetDir = "../../../uploads/cars/";
-                $fileExtension = pathinfo($_FILES['car_image']['name'], PATHINFO_EXTENSION);
+                $fileExtension = strtolower(pathinfo($_FILES['car_image']['name'], PATHINFO_EXTENSION));
                 $fileName = time() . '_' . uniqid() . '.' . $fileExtension;
                 $targetFile = $targetDir . $fileName;
                 
                 if (move_uploaded_file($_FILES['car_image']['tmp_name'], $targetFile)) {
                     $imageColumn = ", image = ?";
                     $imageParams[] = $fileName;
+                } else {
+                    throw new Exception("Unable to physically move the uploaded file. Check directory permissions at: " . $targetDir);
                 }
+            } else if (isset($_FILES['car_image']) && $_FILES['car_image']['error'] != UPLOAD_ERR_NO_FILE) {
+                 throw new Exception("Image replacement failed with error code: " . $_FILES['car_image']['error'] . ". Check php.ini upload_max_filesize limit.");
             }
 
             $sql = "UPDATE cars SET brand_id = ?, type_id = ?, trip_type_id = ?, name = ?, model = ?, base_fare = ?, min_km = ?, extra_km_price = ?, description = ?, youtube_url = ?, seo_title = ?, seo_description = ?, meta_keywords = ? $imageColumn WHERE id = ?";

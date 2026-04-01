@@ -64,8 +64,17 @@ try {
                                         <td>
                                             <div class="d-flex align-items-center">
                                                 <div class="car-thumb me-3">
-                                                    <?php if (!empty($car['image'])): ?>
-                                                        <img src="../../uploads/cars/<?= $car['image'] ?>" class="rounded shadow-sm" style="width:70px; height:50px; object-fit:cover;">
+                                                    <?php 
+                                                        $imagePath = '';
+                                                        if (!empty($car['image'])) {
+                                                            $physicalPath = realpath(__DIR__ . '/../../../') . '/uploads/cars/' . $car['image'];
+                                                            if (file_exists($physicalPath)) {
+                                                                $imagePath = '../../uploads/cars/' . $car['image'];
+                                                            }
+                                                        }
+                                                    ?>
+                                                    <?php if (!empty($imagePath)): ?>
+                                                        <img src="<?= $imagePath ?>" class="rounded shadow-sm" style="width:70px; height:50px; object-fit:cover;" onerror="this.onerror=null; this.src='../../assets/img/placeholder-car.jpg';">
                                                     <?php else: ?>
                                                         <div class="bg-light rounded shadow-sm text-center" style="width:70px; height:50px; padding-top:12px;">
                                                              <i class="fas fa-car text-muted opacity-50"></i>
