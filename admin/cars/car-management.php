@@ -93,7 +93,7 @@ try {
                                         <td>
                                             <div class="form-check form-switch p-0" style="min-height: auto;">
                                                 <input class="form-check-input ms-0 status-toggle" type="checkbox" role="switch" <?= $car['status'] === 'Active' ? 'checked' : '' ?> data-id="<?= $car['id'] ?>">
-                                                <label class="form-check-label ms-2 small fw-semibold"><?= $car['status'] ?></label>
+                                                <label class="form-check-label ms-2 small fw-semibold status-label"><?= $car['status'] ?></label>
                                             </div>
                                         </td>
                                         <td class="text-center">
@@ -141,6 +141,21 @@ $(document).ready(function() {
         pageLength: 10,
         ordering: true,
         responsive: true
+    });
+
+    // Toggle Status Action
+    $('.status-toggle').change(function() {
+        const id = $(this).data('id');
+        const label = $(this).closest('td').find('.status-label');
+        
+        $.post('api/car_actions.php', { action: 'toggle_status', id: id }, function(res) {
+            if (res.success) {
+                label.text(res.new_status);
+                // toast notification maybe?
+            } else {
+                Swal.fire('Error', res.message, 'error');
+            }
+        });
     });
 
     // Delete Action

@@ -35,7 +35,11 @@ try {
                 
                 if (move_uploaded_file($_FILES['car_image']['tmp_name'], $targetFile)) {
                     $image = $fileName;
+                } else {
+                    throw new Exception("Unable to move uploaded file. Check directory permissions.");
                 }
+            } else if (isset($_FILES['car_image']['error']) && $_FILES['car_image']['error'] != 4) {
+                 throw new Exception("File upload failed with error code: " . $_FILES['car_image']['error']);
             }
 
             $stmt = $pdo->prepare("INSERT INTO cars (brand_id, type_id, trip_type_id, name, model, base_fare, min_km, extra_km_price, description, youtube_url, image, seo_title, seo_description, meta_keywords) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -44,10 +48,58 @@ try {
             echo json_encode(['success' => true, 'message' => 'Car added successfully!']);
             break;
 
+        case 'update':
+            $id = $_POST['id'] ?? 0;
+            $brand_id = $_POST['brand_id'] ?? 0;
+            $type_id = $_POST['type_id'] ?? 0;
+            $trip_type_id = $_POST['trip_type_id'] ?? 0;
+            $name = $_POST['name'] ?? '';
+            $model = $_POST['model'] ?? '';
+            $base_fare = $_POST['base_fare'] ?? 0;
+            $min_km = $_POST['min_km'] ?? 0;
+            $extra_km_price = $_POST['extra_km_price'] ?? 0;
+            $description = $_POST['description'] ?? '';
+            $youtube_url = $_POST['youtube_url'] ?? '';
+            $seo_title = $_POST['seo_title'] ?? '';
+            $seo_description = $_POST['seo_description'] ?? '';
+            $meta_keywords = $_POST['meta_keywords'] ?? '';
+            
+            // Handle image update correctly
+            $imageColumn = "";
+            $imageParams = [];
+            if (isset($_FILES['car_image']) && $_FILES['car_image']['error'] == 0) {
+                // Delete old image if it exists
+                $stmt_old = $pdo->prepare("SELECT image FROM cars WHERE id = ?");
+                $stmt_old->execute([$id]);
+                $old_car = $stmt_old->fetch();
+                if ($old_car && !empty($old_car['image'])) {
+                     $oldFile = "../../../uploads/cars/" . $old_car['image'];
+                     if (file_exists($oldFile)) unlink($oldFile);
+                }
+
+                $targetDir = "../../../uploads/cars/";
+                $fileExtension = pathinfo($_FILES['car_image']['name'], PATHINFO_EXTENSION);
+                $fileName = time() . '_' . uniqid() . '.' . $fileExtension;
+                $targetFile = $targetDir . $fileName;
+                
+                if (move_uploaded_file($_FILES['car_image']['tmp_name'], $targetFile)) {
+                    $imageColumn = ", image = ?";
+                    $imageParams[] = $fileName;
+                }
+            }
+
+            $sql = "UPDATE cars SET brand_id = ?, type_id = ?, trip_type_id = ?, name = ?, model = ?, base_fare = ?, min_km = ?, extra_km_price = ?, description = ?, youtube_url = ?, seo_title = ?, seo_description = ?, meta_keywords = ? $imageColumn WHERE id = ?";
+            $params = array_merge([$brand_id, $type_id, $trip_type_id, $name, $model, $base_fare, $min_km, $extra_km_price, $description, $youtube_url, $seo_title, $seo_description, $meta_keywords], $imageParams, [$id]);
+            
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+
+            echo json_encode(['success' => true, 'message' => 'Car updated successfully!']);
+            break;
+
         case 'delete':
             $id = $_POST['id'] ?? 0;
             
-            // Delete image if exists
             $stmt = $pdo->prepare("SELECT image FROM cars WHERE id = ?");
             $stmt->execute([$id]);
             $car = $stmt->fetch();
@@ -59,6 +111,30 @@ try {
             $stmt = $pdo->prepare("DELETE FROM cars WHERE id = ?");
             $stmt->execute([$id]);
             echo json_encode(['success' => true, 'message' => 'Car deleted successfully!']);
+            break;
+
+        case 'get':
+            $id = $_GET['id'] ?? 0;
+            $stmt = $pdo->prepare("SELECT * FROM cars WHERE id = ?");
+            $stmt->execute([$id]);
+            $car = $stmt->fetch();
+            if ($car) {
+                 echo json_encode(['success' => true, 'data' => $car]);
+            } else {
+                 echo json_encode(['success' => false, 'message' => 'Car not found.']);
+            }
+            break;
+
+        case 'toggle_status':
+            $id = $_POST['id'] ?? 0;
+            $stmt = $pdo->prepare("UPDATE cars SET status = IF(status = 'Active', 'Inactive', 'Active') WHERE id = ?");
+            $stmt->execute([$id]);
+            
+            $stmt_new = $pdo->prepare("SELECT status FROM cars WHERE id = ?");
+            $stmt_new->execute([$id]);
+            $newStatus = $stmt_new->fetchColumn();
+            
+            echo json_encode(['success' => true, 'new_status' => $newStatus]);
             break;
 
         case 'get_dropdown_data':
@@ -94,7 +170,7 @@ try {
             break;
 
         default:
-            throw new Exception("Invalid action.");
+            throw new Exception("Invalid action: $action");
     }
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
