@@ -125,13 +125,13 @@ $page_title = "Add Professional Car";
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label class="form-label fw-bold">Vehicle Image (Main Preview)</label>
-                                                <div class="dropzone-lite border-2 border-dashed rounded-4 p-4 text-center bg-light mb-3" id="image-dropzone">
+                                                <div class="dropzone-lite border-2 border-dashed rounded-4 p-4 text-center bg-light mb-3" id="image-dropzone" style="cursor: pointer;">
                                                     <div id="image-preview" class="mb-2">
                                                         <i class="fas fa-cloud-upload-alt fa-3x text-muted"></i>
                                                     </div>
-                                                    <p class="text-muted small">Click to upload or drag & drop high-quality PNG/JPG</p>
-                                                    <input type="file" name="car_image" id="car_image" class="d-none" accept="image/*">
+                                                    <p class="text-muted small mb-0">Click to upload or drag & drop high-quality PNG/JPG</p>
                                                 </div>
+                                                <input type="file" name="car_image" id="car_image" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;" accept="image/*">
                                             </div>
                                         </div>
                                         <div class="col-md-6">
