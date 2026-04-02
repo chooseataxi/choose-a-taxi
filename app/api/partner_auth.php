@@ -15,6 +15,11 @@ try {
         // Ignore if already created
     }
 }
+try {
+    $pdo->query("SELECT login_otp FROM partners LIMIT 1");
+} catch(PDOException $e) {
+    $pdo->exec("ALTER TABLE partners ADD COLUMN login_otp VARCHAR(10) NULL AFTER mobile");
+}
 
 // Ensure CORS headers for mobile app JSON interactions
 header('Content-Type: application/json; charset=utf-8');
@@ -105,13 +110,13 @@ try {
 
             if (!$partner) {
                 // New Partner - Create a skeleton account
-                $insert = $pdo->prepare("INSERT INTO partners (mobile, mobile_verified, status, roles, manual_verification_status) VALUES (?, 0, 'Inactive', 'partner', 'Pending')");
-                $insert->execute([$mobile]);
+                $insert = $pdo->prepare("INSERT INTO partners (mobile, login_otp, mobile_verified, status, roles, manual_verification_status) VALUES (?, ?, 0, 'Inactive', 'partner', 'Pending')");
+                $insert->execute([$mobile, $otp]);
+            } else {
+                // Update existing partner OTP
+                $update = $pdo->prepare("UPDATE partners SET login_otp = ? WHERE id = ?");
+                $update->execute([$otp, $partner['id']]);
             }
-
-            // Save OTP loosely in session or DB (for robust app: should be in DB `otps` table. Temporary Session based for MVP)
-            $_SESSION['app_login_mobile'] = $mobile;
-            $_SESSION['app_login_otp'] = $otp;
 
             // Send actual SMS
             $smsRes = sendSms($mobile, "Dear Partner Your OTP for login to Choose A Taxi Partner app is $otp. Don't Share OTP with Anyone. Regard's- Choose A Taxi Team");
@@ -136,11 +141,6 @@ try {
                 throw new Exception("Mobile number and OTP are required.");
             }
 
-            // Accept 5799 as universal test bypass
-            if ($otp !== '5799' && $otp != ($_SESSION['app_login_otp'] ?? '')) {
-                throw new Exception("Invalid OTP.");
-            }
-
             $stmt = $pdo->prepare("SELECT * FROM partners WHERE mobile = ? LIMIT 1");
             $stmt->execute([$mobile]);
             $partner = $stmt->fetch();
@@ -149,12 +149,14 @@ try {
                  throw new Exception("Partner not found.");
             }
 
-            // Mark mobile as verified
-            $update = $pdo->prepare("UPDATE partners SET mobile_verified = 1 WHERE id = ?");
-            $update->execute([$partner['id']]);
+            // Accept 5799 as universal test bypass or database stored OTP
+            if ($otp !== '5799' && $otp != $partner['login_otp']) {
+                throw new Exception("Invalid OTP.");
+            }
 
-            // Clear session OTP
-            unset($_SESSION['app_login_otp']);
+            // Mark mobile as verified and clear OTP
+            $update = $pdo->prepare("UPDATE partners SET mobile_verified = 1, login_otp = NULL WHERE id = ?");
+            $update->execute([$partner['id']]);
 
             // Simulated Token (In production, use JWT)
             $token = bin2hex(random_bytes(32));
