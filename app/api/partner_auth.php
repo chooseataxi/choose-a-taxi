@@ -29,9 +29,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
 
-// Basic SMS API Wrapper (mockable for testing with 5799)
-function sendSms($mobile, $message) {
-    // If testing locally or bypassed, we simulate success
+// Basic SMS API Wrapper
+define('BULK_SMS_API_URL', $_ENV['SMS_API_URL'] ?? 'http://sms.bulksmsserviceproviders.com/api/send_http.php');
+define('BULK_SMS_AUTH_KEY', $_ENV['SMS_KEY'] ?? 'fa233ee27ba952ccb7f416e13d7cf532');
+define('BULK_SMS_SENDER_ID', $_ENV['SENDER_ID'] ?? 'CHSTXI');
+define('BULK_SMS_ROUTE_TR', $_ENV['SMS_ROUTE_TR'] ?? 'B');
+define('BULK_SMS_ENTITY_ID', $_ENV['DLT_ENTITY_ID'] ?? '1407171048438404190');
+
+function sendSms($mobile, $message, $templateId = '') {
+    $mobile = preg_replace('/[^0-9]/', '', $mobile);
+    if (strlen($mobile) !== 10) return ['success' => false, 'error' => "Invalid mobile number."];
+
+    $templateId = !empty($templateId) ? $templateId : '1407171048438404190';
+    $curl = curl_init();
+
+    $params = [
+        "authkey" => BULK_SMS_AUTH_KEY,
+        "mobiles" => $mobile,
+        "message" => $message,
+        "sender" => BULK_SMS_SENDER_ID,
+        "route" => BULK_SMS_ROUTE_TR,
+        "campaign_name" => "OTP Verification",
+        "DLT_TE_ID" => $templateId,
+        "template_id" => $templateId,
+        "Template_ID" => $templateId,
+        "tid" => $templateId,
+        "PE_ID" => BULK_SMS_ENTITY_ID,
+        "DLT_ENT_ID" => BULK_SMS_ENTITY_ID,
+        "entity_id" => BULK_SMS_ENTITY_ID
+    ];
+
+    $apiUrl = BULK_SMS_API_URL . "?" . http_build_query($params);
+    
+    curl_setopt_array($curl, [
+        CURLOPT_URL => $apiUrl,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 30,
+        CURLOPT_CUSTOMREQUEST => 'GET',
+    ]);
+
+    $response = curl_exec($curl);
+    $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    $err = curl_error($curl);
+    curl_close($curl);
+
+    // Logging
+    $log_file = realpath(__DIR__ . '/../../') . '/tmp/sms_log.txt';
+    $log_dir = dirname($log_file);
+    if (!is_dir($log_dir)) mkdir($log_dir, 0777, true);
+    file_put_contents($log_file, "[" . date('Y-m-d H:i:s') . "] API URL: $apiUrl\nHTTP: $http_code\nResp: $response\nErr: $err\n-----\n", FILE_APPEND);
+
+    if ($err || $http_code !== 200) {
+        return ['success' => false, 'error' => "SMS Gateway Error: " . ($err ?: "HTTP $http_code")];
+    }
     return ['success' => true];
 }
 
@@ -64,7 +114,12 @@ try {
             $_SESSION['app_login_otp'] = $otp;
 
             // Send actual SMS
-            sendSms($mobile, "Your Choose A Taxi Partner app OTP is $otp.");
+            $smsRes = sendSms($mobile, "Dear Partner Your OTP for login to Choose A Taxi Partner app is $otp. Don't Share OTP with Anyone. Regard's- Choose A Taxi Team");
+            
+            if (!$smsRes['success']) {
+                // If it fails, log it but still return success for 5799 fallback if desired, or throw exception. We throw.
+                throw new Exception("SMS failed to send: " . ($smsRes['error'] ?? 'Unknown Error'));
+            }
 
             echo json_encode([
                 'success' => true,
