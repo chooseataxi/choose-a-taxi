@@ -48,10 +48,18 @@ if ($action === 'get_cars') {
 }
 
 if ($action === 'create_booking') {
-    $data = json_decode(file_get_contents("php://input"), true) ?? $_POST;
+    $raw = file_get_contents("php://input");
+    $data = json_decode($raw, true);
+    if (!is_array($data)) { 
+        $data = $_POST; 
+    }
     
     $partner_id = $data['partner_id'] ?? 1; // Simulated Auth token link
+    
     $booking_type = $data['booking_type'] ?? '';
+    if ($booking_type === 'One Way Trip') {
+        $booking_type = 'One Way';
+    }
     $pickup = $data['pickup_location'] ?? '';
     $drop = $data['drop_location'] ?? '';
     $stops = json_encode($data['stops'] ?? []);
