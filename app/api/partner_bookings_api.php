@@ -63,7 +63,6 @@ if ($action === 'create_booking') {
     $pricing_option = $data['pricing_option'] ?? 'quote';
     $total_amount = !empty($data['total_amount']) ? $data['total_amount'] : null;
     $commission = !empty($data['commission']) ? $data['commission'] : null;
-    $distance = !empty($data['distance']) ? $data['distance'] : null;
     $toll = $data['toll_tax'] ?? 'Included';
     $parking = $data['parking'] ?? 'Included';
     $note = $data['note'] ?? '';
@@ -73,17 +72,17 @@ if ($action === 'create_booking') {
         $sql = "INSERT INTO partner_bookings (
             partner_id, booking_type, pickup_location, drop_location, stops, 
             car_type, start_date, start_time, end_date, end_time, 
-            pricing_option, total_amount, commission, distance_km, toll_tax, parking, note, preferences
+            pricing_option, total_amount, commission, toll_tax, parking, note, preferences
         ) VALUES (
             ?, ?, ?, ?, ?, 
             ?, ?, ?, ?, ?, 
-            ?, ?, ?, ?, ?, ?, ?, ?
+            ?, ?, ?, ?, ?, ?, ?
         )";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
             $partner_id, $booking_type, $pickup, $drop, $stops,
             $car_type, $start_date, $start_time, $end_date, $end_time,
-            $pricing_option, $total_amount, $commission, $distance, $toll, $parking, $note, $preferences
+            $pricing_option, $total_amount, $commission, $toll, $parking, $note, $preferences
         ]);
         echo json_encode(["status" => "success", "message" => "Booking created successfully!"]);
     } catch (PDOException $e) {
