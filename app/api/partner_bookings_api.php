@@ -58,12 +58,12 @@ if ($action === 'create_booking') {
     $car_type = $data['car_type'] ?? '';
     $start_date = $data['start_date'] ?? null;
     $start_time = $data['start_time'] ?? null;
-    $end_date = $data['end_date'] ?? null;
-    $end_time = $data['end_time'] ?? null;
+    $end_date = !empty($data['end_date']) ? $data['end_date'] : null;
+    $end_time = !empty($data['end_time']) ? $data['end_time'] : null;
     $pricing_option = $data['pricing_option'] ?? 'quote';
-    $total_amount = $data['total_amount'] ?? null;
-    $commission = $data['commission'] ?? null;
-    $distance = $data['distance'] ?? null;
+    $total_amount = !empty($data['total_amount']) ? $data['total_amount'] : null;
+    $commission = !empty($data['commission']) ? $data['commission'] : null;
+    $distance = !empty($data['distance']) ? $data['distance'] : null;
     $toll = $data['toll_tax'] ?? 'Included';
     $parking = $data['parking'] ?? 'Included';
     $note = $data['note'] ?? '';
