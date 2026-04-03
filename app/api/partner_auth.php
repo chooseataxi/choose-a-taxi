@@ -235,6 +235,19 @@ try {
             }
             break;
 
+        case 'digilocker_verify':
+            $partner_id = $_POST['partner_id'] ?? 0;
+            if (empty($partner_id)) throw new Exception("Partner ID required.");
+
+            // Directly approve the driver as DigiLocker verification natively implies full KYC compliance
+            $update = $pdo->prepare("UPDATE partners SET manual_verification_status = 'Approved' WHERE id = ?");
+            if ($update->execute([$partner_id])) {
+                echo json_encode(['success' => true, 'message' => 'Successfully verified via DigiLocker.']);
+            } else {
+                throw new Exception("Failed to sync DigiLocker status down to database.");
+            }
+            break;
+
         default:
             throw new Exception("Invalid API action.");
     }
