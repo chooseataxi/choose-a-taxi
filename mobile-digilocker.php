@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, height=device-height, viewport-fit=cover">
     <title>Instant Verification</title>
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -11,14 +11,20 @@
     <!-- Surepass Digiboost SDK -->
     <script src="https://cdn.jsdelivr.net/gh/surepassio/surepass-digiboost-web-sdk@latest/index.min.js"></script>
     <style>
-        body { 
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
-            background: #f8f9fa; 
-            padding: 20px; 
-            margin: 0;
-            color: #333;
+        html, body { 
+            margin: 0; padding: 0;
+            height: 100vh;
+            width: 100vw;
+            background: #f8f9fa;
         }
-        .header { text-align: center; margin-bottom: 20px; }
+        #digilocker-wrap {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
+            padding: env(safe-area-inset-top, 50px) 20px 20px; 
+            color: #333;
+            box-sizing: border-box;
+            min-height: 100vh;
+        }
+        .header { text-align: center; margin-bottom: 30px; }
         .header h3 { font-size: 22px; margin: 10px 0; color: #111; }
         .header p { font-size: 14px; color: #666; margin: 0; }
         .success-box { text-align: center; margin-top: 40px; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
