@@ -58,6 +58,19 @@
                 return;
             }
 
+            // aggressive DOM intervention to restrict 3rd party SDK modals from overlapping UI edge boundaries
+            setInterval(function() {
+                var safeHeight = window.innerHeight;
+                $('iframe, #surepass-digiboost-container, [style*="z-index: 999"]').each(function() {
+                    $(this).css({
+                        'max-height': (safeHeight - 40) + 'px',
+                        'height': (safeHeight - 40) + 'px',
+                        'top': '40px',
+                        'position': 'fixed'
+                    });
+                });
+            }, 500);
+
             // 1. Fetch Surepass SDK dynamic tokens explicitly from backend
             $.get('api/partner_actions.php', { action: 'initialize_digiboost' }, (res) => {
                 if (res.success) {
@@ -79,29 +92,38 @@
                             fontSize: "17px"
                         },
                         onSuccess: function(data) {
+                            // Eradicate the massive iframe blocking the screen so the user can see validation prompts
+                            $('iframe').remove();
+                            $('[id^="surepass"]').hide();
+
                             Swal.fire({ title: 'Securing Profile...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
                             
-                            // 3. Immediately relay success natively dropping right into the App's API
-                            $.post('app/api/partner_auth.php', { action: 'digilocker_verify', partner_id: partnerId }, (approveRes) => {
-                                Swal.close();
-                                if(approveRes.success) {
-                                    $('#digilocker-wrap').html(`
-                                        <div class="success-box">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                                <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" />
-                                            </svg>
-                                            <h2>Verification Complete!</h2>
-                                            <p style="margin-bottom: 20px;">Your Aadhaar identity has been flawlessly approved by the Government gateway.</p>
-                                            <p style="font-weight:bold; color:#00a63f;">Please close this browser window at the top to return to the app.</p>
-                                        </div>
-                                    `);
-                                } else {
-                                    Swal.fire('API Lock', approveRes.message || 'Auto-approval sync failed', 'error');
-                                }
-                            }).fail(function() {
-                                 Swal.close();
-                                 Swal.fire('Network Issue', 'Failed to hit the approval database securely.', 'error');
-                            });
+                                // 3. Address the Absolute URL to strictly guarantee the webhook payload executes updating the DB
+                                $.post('https://chooseataxi.com/app/api/partner_auth.php', { action: 'digilocker_verify', partner_id: partnerId }, (approveRes) => {
+                                    Swal.close();
+                                    if(approveRes.success) {
+                                        $('#digilocker-wrap').html(`
+                                            <div class="success-box">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" />
+                                                </svg>
+                                                <h2>Verification Complete!</h2>
+                                                <p style="margin-bottom: 20px;">Your Aadhaar identity has been flawlessly approved.</p>
+                                                <p style="font-weight:bold; color:#00a63f;">Redirecting back to app...</p>
+                                            </div>
+                                        `);
+
+                                        // Execute Native Flutter Bridge callback
+                                        if (window.SurepassBridge) {
+                                            window.SurepassBridge.postMessage('Approved');
+                                        }
+                                    } else {
+                                        Swal.fire('API Lock', approveRes.message || 'Auto-approval sync failed', 'error');
+                                    }
+                                }).fail(function() {
+                                     Swal.close();
+                                     Swal.fire('Network Issue', 'Failed to hit the approval database securely.', 'error');
+                                });
                         },
                         onFailure: function(err) {
                             // Driver backed out of Aadhaar verification voluntarily
