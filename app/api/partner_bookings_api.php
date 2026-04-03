@@ -10,10 +10,27 @@ header("Access-Control-Allow-Headers: Content-Type");
 $action = $_REQUEST['action'] ?? '';
 
 if ($action === 'get_cars') {
+    $trip_type = $_GET['trip_type'] ?? '';
     try {
-        // Attempt connecting to the 'cars' table built in WAMP
-        $stmt = $pdo->query("SELECT id, name, model FROM cars WHERE status = 'Active'");
+        // Enforce the integer starting parameter block safely on runtime
+        $pdo->exec("ALTER TABLE partner_bookings AUTO_INCREMENT = 2627600");
+
+        $sql = "SELECT c.id, c.name, c.model FROM cars c 
+                JOIN trip_types t ON c.trip_type_id = t.id 
+                WHERE c.status = 'Active' AND t.name LIKE ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(["%$trip_type%"]);
         $cars = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        if (empty($cars)) {
+            echo json_encode([
+                "status" => "success", 
+                "cars" => [],
+                "message" => "No cars are currently added for the trip type"
+            ]);
+            exit;
+        }
+
         $formatted = array_map(function($c) { 
             return ['id' => $c['id'], 'name' => $c['name'] . ' ' . ($c['model'] ?? '')]; 
         }, $cars);
@@ -21,14 +38,11 @@ if ($action === 'get_cars') {
         echo json_encode(["status" => "success", "cars" => $formatted]);
         exit;
     } catch (PDOException $e) {
-        // Fallback for missing local DB context for testing Native Mobile UI
-        $dummy = [
-            ['id' => 1, 'name' => 'WAGONR, CELERIO[AC]4+1'],
-            ['id' => 2, 'name' => 'INNOVA CRYSTA[AC]6+1'],
-            ['id' => 3, 'name' => 'SWIFT DZIRE[AC]4+1'],
-            ['id' => 4, 'name' => 'ERTIGA[AC]6+1']
-        ];
-        echo json_encode(["status" => "success", "cars" => $dummy, "db_error" => $e->getMessage()]);
+        echo json_encode([
+            "status" => "success", 
+            "cars" => [], 
+            "message" => "No cars are currently added for the trip type"
+        ]);
         exit;
     }
 }
