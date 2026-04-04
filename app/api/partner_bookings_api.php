@@ -3,19 +3,22 @@ error_reporting(0);
 ini_set('display_errors', 0);
 require_once __DIR__ . '/../../includes/db.php';
 header("Content-Type: application/json");
-
-// Define CORS
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 
 $action = $_REQUEST['action'] ?? '';
 
+// ──────────────────────────────────────────────────────────────────────────────
+// ACTION: get_cars  — for create booking dropdown
+// ──────────────────────────────────────────────────────────────────────────────
 if ($action === 'get_cars') {
     $trip_type = $_GET['trip_type'] ?? '';
     try {
-        $sql = "SELECT c.id, c.name, c.model FROM cars c 
+        $sql = "SELECT c.id, c.name, c.model, ct.name AS type_name, ct.image AS type_image
+                FROM cars c 
                 JOIN trip_types t ON c.trip_type_id = t.id 
+                LEFT JOIN car_types ct ON c.type_id = ct.id
                 WHERE c.status = 'Active' AND t.name LIKE ?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute(["%$trip_type%"]);
@@ -31,7 +34,12 @@ if ($action === 'get_cars') {
         }
 
         $formatted = array_map(function($c) { 
-            return ['id' => $c['id'], 'name' => $c['name'] . ' ' . ($c['model'] ?? '')]; 
+            return [
+                'id'         => $c['id'],
+                'name'       => trim($c['name'] . ' ' . ($c['model'] ?? '')),
+                'type_name'  => $c['type_name'] ?? '',
+                'type_image' => $c['type_image'] ?? '',
+            ];
         }, $cars);
         
         echo json_encode(["status" => "success", "cars" => $formatted]);
@@ -46,6 +54,9 @@ if ($action === 'get_cars') {
     }
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// ACTION: create_booking
+// ──────────────────────────────────────────────────────────────────────────────
 if ($action === 'create_booking') {
     $raw = file_get_contents("php://input");
     $data = json_decode($raw, true);
@@ -53,7 +64,7 @@ if ($action === 'create_booking') {
         $data = $_POST; 
     }
     
-    $partner_id = $data['partner_id'] ?? 1; // Simulated Auth token link
+    $partner_id = $data['partner_id'] ?? 1;
     
     $booking_type = $data['booking_type'] ?? '';
     if ($booking_type === 'One Way Trip') {
@@ -93,12 +104,14 @@ if ($action === 'create_booking') {
         ]);
         echo json_encode(["status" => "success", "message" => "Booking created successfully!"]);
     } catch (PDOException $e) {
-        // Expose underlying database constraints to Flutter resolving fake success bugs securely
         echo json_encode(["status" => "error", "message" => "SQL Error: " . $e->getMessage()]);
     }
     exit;
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// ACTION: get_bookings  — partner's own bookings (My Bookings tab)
+// ──────────────────────────────────────────────────────────────────────────────
 if ($action === 'get_bookings') {
     $partner_id = $_GET['partner_id'] ?? $_POST['partner_id'] ?? '';
     if (empty($partner_id)) {
@@ -106,10 +119,14 @@ if ($action === 'get_bookings') {
         exit;
     }
     try {
-        $sql = "SELECT pb.*, 
-                    COALESCE(CONCAT(c.name, ' ', COALESCE(c.model, '')), pb.car_type) AS car_name
+        $sql = "SELECT pb.*,
+                    c.name  AS car_name,
+                    c.model AS car_model,
+                    ct.name  AS car_type_name,
+                    ct.image AS car_type_image
                 FROM partner_bookings pb
-                LEFT JOIN cars c ON c.id = pb.car_type
+                LEFT JOIN cars c  ON c.id = pb.car_type
+                LEFT JOIN car_types ct ON ct.id = c.type_id
                 WHERE pb.partner_id = ?
                 ORDER BY pb.id DESC";
         $stmt = $pdo->prepare($sql);
@@ -122,4 +139,33 @@ if ($action === 'get_bookings') {
     exit;
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// ACTION: get_market_bookings  — all open bookings for main dashboard
+// ──────────────────────────────────────────────────────────────────────────────
+if ($action === 'get_market_bookings') {
+    try {
+        $sql = "SELECT pb.*,
+                    c.name   AS car_name,
+                    c.model  AS car_model,
+                    ct.name  AS car_type_name,
+                    ct.image AS car_type_image,
+                    p.full_name AS partner_name
+                FROM partner_bookings pb
+                LEFT JOIN cars c       ON c.id = pb.car_type
+                LEFT JOIN car_types ct ON ct.id = c.type_id
+                LEFT JOIN partners p   ON p.id = pb.partner_id
+                ORDER BY pb.id DESC
+                LIMIT 50";
+        $stmt = $pdo->query($sql);
+        $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        echo json_encode(["status" => "success", "bookings" => $bookings]);
+    } catch (PDOException $e) {
+        echo json_encode(["status" => "error", "message" => "DB Error: " . $e->getMessage()]);
+    }
+    exit;
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// ACTION: delete_vehicle (kept for partner vehicles)
+// ──────────────────────────────────────────────────────────────────────────────
 echo json_encode(["status" => "error", "message" => "Invalid action requested"]);
