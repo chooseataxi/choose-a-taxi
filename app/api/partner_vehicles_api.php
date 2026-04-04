@@ -57,7 +57,9 @@ if ($action === 'lookup_rc') {
     }
 
     // ── Call Surepass RC Full API ──
-    $surepassToken = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc0MzY5OTQ3MiwianRpIjoiNTFlYzliNDMtZDQ3My00NTliLThlNTAtMjRhMmRmNDRjM2RmIiwidHlwZSI6ImFjY2VzcyIsImlkZW50aXR5IjoiZGV2LmNob29zZWF0YXhpQHN1cmVwYXNzLmlvIiwibmJmIjoxNzQzNjk5NDcyLCJleHAiOjE3NjY0NTk0NzIsInVzZXJfY2xhaW1zIjp7InNjb3BlcyI6WyJ3YWxsZXQiXX19.WlXlTQWmqdF9nvV0oIRE8dI3tOxSwdPqJLSa4THQVMM'; // Replace with your token
+require_once __DIR__ . '/../../includes/api_config.php';
+
+    $surepassToken = SUREPASS_TOKEN;
 
     $ch = curl_init('https://kyc-api.surepass.io/api/v1/rc/rc-full');
     curl_setopt_array($ch, [
