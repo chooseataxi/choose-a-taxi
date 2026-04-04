@@ -165,11 +165,14 @@ try {
             $amount = $_POST['amount'] ?? 0;
             if ($amount <= 0) throw new Exception("Invalid withdrawal amount");
 
-            // Check balance
             $stmt = $pdo->prepare("SELECT balance FROM partner_wallet WHERE partner_id = ?");
             $stmt->execute([$partner_id]);
             $wallet = $stmt->fetch(PDO::FETCH_ASSOC);
-            if (!$wallet || $wallet['balance'] < $amount) throw new Exception("Insufficient balance");
+            $current_balance = $wallet ? (float)$wallet['balance'] : 0.0;
+            
+            if ($current_balance - $amount < 300) {
+                throw new Exception("Withdrawal not allowed. A minimum maintenance balance of ₹300 must remain in your wallet.");
+            }
 
             // Check if bank details exist
             $stmt = $pdo->prepare("SELECT id FROM partner_bank_details WHERE partner_id = ?");
