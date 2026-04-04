@@ -14,9 +14,6 @@ $action = $_REQUEST['action'] ?? '';
 if ($action === 'get_cars') {
     $trip_type = $_GET['trip_type'] ?? '';
     try {
-        // Enforce the integer starting parameter block safely on runtime
-        $pdo->exec("ALTER TABLE partner_bookings AUTO_INCREMENT = 2627600");
-
         $sql = "SELECT c.id, c.name, c.model FROM cars c 
                 JOIN trip_types t ON c.trip_type_id = t.id 
                 WHERE c.status = 'Active' AND t.name LIKE ?";
