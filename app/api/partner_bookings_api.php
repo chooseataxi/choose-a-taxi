@@ -62,10 +62,10 @@ if ($action === 'create_booking') {
     }
     $pickup = $data['pickup_location'] ?? '';
     $drop = $data['drop_location'] ?? '';
-    $stops = json_encode($data['stops'] ?? []);
+    $stops = isset($data['stops']) && is_string($data['stops']) ? $data['stops'] : json_encode($data['stops'] ?? []);
     $car_type = $data['car_type'] ?? '';
-    $start_date = $data['start_date'] ?? null;
-    $start_time = $data['start_time'] ?? null;
+    $start_date = !empty($data['start_date']) ? $data['start_date'] : null;
+    $start_time = !empty($data['start_time']) ? $data['start_time'] : null;
     $end_date = !empty($data['end_date']) ? $data['end_date'] : null;
     $end_time = !empty($data['end_time']) ? $data['end_time'] : null;
     $pricing_option = $data['pricing_option'] ?? 'quote';
@@ -74,7 +74,7 @@ if ($action === 'create_booking') {
     $toll = $data['toll_tax'] ?? 'Included';
     $parking = $data['parking'] ?? 'Included';
     $note = $data['note'] ?? '';
-    $preferences = json_encode($data['preferences'] ?? []);
+    $preferences = isset($data['preferences']) && is_string($data['preferences']) ? $data['preferences'] : json_encode($data['preferences'] ?? []);
 
     try {
         $sql = "INSERT INTO partner_bookings (
