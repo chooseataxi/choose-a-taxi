@@ -1,6 +1,4 @@
 <?php
-error_reporting(0);
-ini_set('display_errors', 0);
 
 require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../../includes/db.php';
@@ -34,7 +32,8 @@ try {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
-} catch (PDOException $e) {}
+} catch (PDOException $e) {
+}
 
 $action = $_REQUEST['action'] ?? '';
 $partner_id = $_REQUEST['partner_id'] ?? '';
@@ -47,10 +46,12 @@ if (empty($partner_id) && $action !== 'options') {
 // ──────────────────────────────────────────────────────────────────────────────
 // Helper: Surepass DL API call
 // ──────────────────────────────────────────────────────────────────────────────
-function verifyDrivingLicense($license_number, $dob) {
+function verifyDrivingLicense($license_number, $dob)
+{
     // ── Token retrieval with fallback (same as partner_vehicles_api.php) ──
     $token = $_ENV['SUREPASS_TOKEN'] ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDg3NzAwMywianRpIjoiZGUxNGRmYmUtMmE3NC00NGQ5LWIxMzEtZGZhMWNlODBhMTc2IiwidHlwZSI6ImFjY2VzcyIsImlkZW50aXR5IjoiZGV2LnJvaGl0XzAzNDVAc3VyZXBhc3MuaW8iLCJuYmYiOjE3NzQ4NzcwMDMsImV4cCI6MjQwNTU5NzAwMywiZW1haWwiOiJyb2hpdF8wMzQ1QHN1cmVwYXNzLmlvIiwidGVuYW50X2lkIjoibWFpbiIsInVzZXJfY2xhaW1zIjp7InNjb3BlcyI6WyJ1c2VyIl19fQ.UC3ebDNZdNjyUxDhez-7IIACaf224xpA5rl8DaQRFpU';
-    if (!$token) return ["status" => "error", "message" => "SUREPASS_TOKEN missing"];
+    if (!$token)
+        return ["status" => "error", "message" => "SUREPASS_TOKEN missing"];
 
     $url = "https://kyc-api.surepass.io/api/v1/driving-license/driving-license";
     $body = json_encode([
@@ -95,10 +96,12 @@ try {
             $dob = $_POST['dob'] ?? ''; // YYYY-MM-DD
             $is_self = $_POST['is_self'] ?? 0;
 
-            if (empty($license_number) || empty($dob)) throw new Exception("License number and DOB are required");
+            if (empty($license_number) || empty($dob))
+                throw new Exception("License number and DOB are required");
 
             $verification = verifyDrivingLicense($license_number, $dob);
-            if ($verification['status'] !== 'success') throw new Exception($verification['message']);
+            if ($verification['status'] !== 'success')
+                throw new Exception($verification['message']);
 
             $data = $verification['data'];
 
@@ -108,7 +111,8 @@ try {
                 $imgData = base64_decode($data['profile_image']);
                 $fileName = "driver_" . $partner_id . "_" . time() . ".jpg";
                 $targetDir = __DIR__ . '/../../uploads/drivers/';
-                if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
+                if (!is_dir($targetDir))
+                    mkdir($targetDir, 0777, true);
                 file_put_contents($targetDir . $fileName, $imgData);
                 $imgPath = "https://chooseataxi.com/uploads/drivers/" . $fileName;
             }
@@ -117,7 +121,7 @@ try {
             $stmt = $pdo->prepare("INSERT INTO drivers 
                 (partner_id, full_name, license_number, dob, doe, doi, gender, father_or_husband_name, state, permanent_address, profile_image_path, vehicle_classes, is_partner_self) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            
+
             $stmt->execute([
                 $partner_id,
                 $data['name'],
@@ -140,7 +144,8 @@ try {
         case 'update_status':
             $driver_id = $_POST['driver_id'] ?? '';
             $status = $_POST['status'] ?? '';
-            if (!$driver_id || !$status) throw new Exception("Missing parameters");
+            if (!$driver_id || !$status)
+                throw new Exception("Missing parameters");
 
             $stmt = $pdo->prepare("UPDATE drivers SET status = ? WHERE id = ? AND partner_id = ?");
             $stmt->execute([$status, $driver_id, $partner_id]);
@@ -149,7 +154,8 @@ try {
 
         case 'delete_driver':
             $driver_id = $_POST['driver_id'] ?? '';
-            if (!$driver_id) throw new Exception("Driver ID required");
+            if (!$driver_id)
+                throw new Exception("Driver ID required");
 
             $stmt = $pdo->prepare("DELETE FROM drivers WHERE id = ? AND partner_id = ?");
             $stmt->execute([$driver_id, $partner_id]);
