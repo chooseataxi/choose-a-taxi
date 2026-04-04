@@ -1,6 +1,6 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+error_reporting(0);
+ini_set('display_errors', 0);
 
 require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../../includes/db.php';
@@ -9,6 +9,32 @@ header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Create drivers table if not exists
+// ──────────────────────────────────────────────────────────────────────────────
+try {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS drivers (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        partner_id INT NOT NULL,
+        full_name VARCHAR(100) NOT NULL,
+        license_number VARCHAR(50) UNIQUE NOT NULL,
+        dob DATE NOT NULL,
+        doe DATE, 
+        doi DATE, 
+        gender ENUM('M', 'F', 'X'),
+        father_or_husband_name VARCHAR(100),
+        state VARCHAR(100),
+        permanent_address TEXT,
+        profile_image_path TEXT,
+        blood_group VARCHAR(10),
+        vehicle_classes JSON, 
+        status ENUM('Active', 'Inactive', 'Suspended') DEFAULT 'Active',
+        is_partner_self TINYINT(1) DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+} catch (PDOException $e) {}
 
 $action = $_REQUEST['action'] ?? '';
 $partner_id = $_REQUEST['partner_id'] ?? '';
@@ -22,7 +48,8 @@ if (empty($partner_id) && $action !== 'options') {
 // Helper: Surepass DL API call
 // ──────────────────────────────────────────────────────────────────────────────
 function verifyDrivingLicense($license_number, $dob) {
-    $token = $_ENV['SUREPASS_TOKEN'] ?? '';
+    // ── Token retrieval with fallback (same as partner_vehicles_api.php) ──
+    $token = $_ENV['SUREPASS_TOKEN'] ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDg3NzAwMywianRpIjoiZGUxNGRmYmUtMmE3NC00NGQ5LWIxMzEtZGZhMWNlODBhMTc2IiwidHlwZSI6ImFjY2VzcyIsImlkZW50aXR5IjoiZGV2LnJvaGl0XzAzNDVAc3VyZXBhc3MuaW8iLCJuYmYiOjE3NzQ4NzcwMDMsImV4cCI6MjQwNTU5NzAwMywiZW1haWwiOiJyb2hpdF8wMzQ1QHN1cmVwYXNzLmlvIiwidGVuYW50X2lkIjoibWFpbiIsInVzZXJfY2xhaW1zIjp7InNjb3BlcyI6WyJ1c2VyIl19fQ.UC3ebDNZdNjyUxDhez-7IIACaf224xpA5rl8DaQRFpU';
     if (!$token) return ["status" => "error", "message" => "SUREPASS_TOKEN missing"];
 
     $url = "https://kyc-api.surepass.io/api/v1/driving-license/driving-license";
