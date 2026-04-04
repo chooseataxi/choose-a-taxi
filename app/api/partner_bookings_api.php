@@ -94,8 +94,8 @@ if ($action === 'create_booking') {
         ]);
         echo json_encode(["status" => "success", "message" => "Booking created successfully!"]);
     } catch (PDOException $e) {
-        // Provide graceful fallback ensuring UI does not deadlock
-        echo json_encode(["status" => "success", "message" => "Booking processed over fallback.", "db_error" => $e->getMessage()]);
+        // Expose underlying database constraints to Flutter resolving fake success bugs securely
+        echo json_encode(["status" => "error", "message" => "SQL Error: " . $e->getMessage()]);
     }
     exit;
 }
