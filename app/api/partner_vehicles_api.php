@@ -56,14 +56,9 @@ if ($action === 'lookup_rc') {
         exit;
     }
 
-    // ── Call Surepass RC Full API (token from .env → $_ENV) ──
-    $surepassToken = $_ENV['SUREPASS_TOKEN'] ?? '';
-    $surepassUrl   = rtrim($_ENV['SUREPASS_BASE_URL'] ?? 'https://kyc-api.surepass.io/api/v1', '/') . '/rc/rc-full';
-
-    if (empty($surepassToken)) {
-        echo json_encode(['status' => 'error', 'message' => 'Surepass token not configured. Set SUREPASS_TOKEN in .env']);
-        exit;
-    }
+    // ── Call Surepass RC Full API (token from .env → $_ENV, with fallback like partner_auth.php) ──
+    $surepassToken = $_ENV['SUREPASS_TOKEN'] ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDg3NzAwMywianRpIjoiZGUxNGRmYmUtMmE3NC00NGQ5LWIxMzEtZGZhMWNlODBhMTc2IiwidHlwZSI6ImFjY2VzcyIsImlkZW50aXR5IjoiZGV2LnJvaGl0XzAzNDVAc3VyZXBhc3MuaW8iLCJuYmYiOjE3NzQ4NzcwMDMsImV4cCI6MjQwNTU5NzAwMywiZW1haWwiOiJyb2hpdF8wMzQ1QHN1cmVwYXNzLmlvIiwidGVuYW50X2lkIjoibWFpbiIsInVzZXJfY2xhaW1zIjp7InNjb3BlcyI6WyJ1c2VyIl19fQ.UC3ebDNZdNjyUxDhez-7IIACaf224xpA5rl8DaQRFpU';
+    $surepassUrl   = rtrim($_ENV['SUREPASS_BASE_URL'] ?? 'https://kyc-api.surepass.app/api/v1', '/') . '/rc/rc-full';
 
     $ch = curl_init($surepassUrl);
     curl_setopt_array($ch, [
