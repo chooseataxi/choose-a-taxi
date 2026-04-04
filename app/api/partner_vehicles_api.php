@@ -56,12 +56,16 @@ if ($action === 'lookup_rc') {
         exit;
     }
 
-    // ── Call Surepass RC Full API ──
-require_once __DIR__ . '/../../includes/api_config.php';
+    // ── Call Surepass RC Full API (token from .env → $_ENV) ──
+    $surepassToken = $_ENV['SUREPASS_TOKEN'] ?? '';
+    $surepassUrl   = rtrim($_ENV['SUREPASS_BASE_URL'] ?? 'https://kyc-api.surepass.io/api/v1', '/') . '/rc/rc-full';
 
-    $surepassToken = SUREPASS_TOKEN;
+    if (empty($surepassToken)) {
+        echo json_encode(['status' => 'error', 'message' => 'Surepass token not configured. Set SUREPASS_TOKEN in .env']);
+        exit;
+    }
 
-    $ch = curl_init('https://kyc-api.surepass.io/api/v1/rc/rc-full');
+    $ch = curl_init($surepassUrl);
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST           => true,
