@@ -99,4 +99,27 @@ if ($action === 'create_booking') {
     exit;
 }
 
+if ($action === 'get_bookings') {
+    $partner_id = $_GET['partner_id'] ?? $_POST['partner_id'] ?? '';
+    if (empty($partner_id)) {
+        echo json_encode(["status" => "error", "message" => "partner_id is required"]);
+        exit;
+    }
+    try {
+        $sql = "SELECT pb.*, 
+                    COALESCE(CONCAT(c.name, ' ', COALESCE(c.model, '')), pb.car_type) AS car_name
+                FROM partner_bookings pb
+                LEFT JOIN cars c ON c.id = pb.car_type
+                WHERE pb.partner_id = ?
+                ORDER BY pb.id DESC";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$partner_id]);
+        $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        echo json_encode(["status" => "success", "bookings" => $bookings]);
+    } catch (PDOException $e) {
+        echo json_encode(["status" => "error", "message" => "DB Error: " . $e->getMessage()]);
+    }
+    exit;
+}
+
 echo json_encode(["status" => "error", "message" => "Invalid action requested"]);
