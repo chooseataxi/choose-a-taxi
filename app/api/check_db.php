@@ -1,8 +1,8 @@
 <?php
 require_once __DIR__ . '/../../includes/db.php';
 try {
-    $stmt = $pdo->query("EXPLAIN partner_bookings");
-    print_r($stmt->fetchAll(PDO::FETCH_ASSOC));
-} catch (Exception $e) {
-    echo "DB ERROR: " . $e->getMessage();
+    $r = $pdo->query('SHOW TABLES');
+    print_r($r->fetchAll(PDO::FETCH_COLUMN));
+} catch(Exception $e){
+    echo $e->getMessage();
 }
