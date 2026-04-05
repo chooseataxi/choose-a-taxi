@@ -99,8 +99,13 @@ try {
             break;
 
         case 'get_chat_history':
-            $stmt = $pdo->prepare("SELECT * FROM booking_chats WHERE booking_id = ? ORDER BY id ASC");
-            $stmt->execute([$booking_id]);
+            // We want chats between ME and the OTHER partner for this booking
+            $other_id = $_REQUEST['other_id'] ?? '';
+            $stmt = $pdo->prepare("SELECT * FROM booking_chats 
+                                  WHERE booking_id = ? 
+                                  AND ((sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?))
+                                  ORDER BY id ASC");
+            $stmt->execute([$booking_id, $partner_id, $other_id, $other_id, $partner_id]);
             echo json_encode(['status' => 'success', 'chats' => $stmt->fetchAll()]);
             break;
 
@@ -148,7 +153,7 @@ try {
             $posted = $stmt->fetchAll();
 
             // ── 2. Received (Others' bookings I chatted on) ──
-            $sqlReceived = "SELECT BC.booking_id, BC.message, BC.created_at, P.full_name as partner_name, BC.type
+            $sqlReceived = "SELECT BC.booking_id, BC.message, BC.created_at, P.full_name as partner_name, BC.type, PB.partner_id as other_id
                             FROM booking_chats BC
                             JOIN partner_bookings PB ON BC.booking_id = PB.id
                             JOIN partners P ON P.id = PB.partner_id
