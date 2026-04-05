@@ -14,11 +14,10 @@ $action = $_REQUEST['action'] ?? '';
 $partner_id = $_REQUEST['partner_id'] ?? '';
 $booking_id = $_REQUEST['booking_id'] ?? '';
 
-if (empty($partner_id) || empty($booking_id)) {
-    if ($action !== 'options') {
-        echo json_encode(['status' => 'error', 'message' => 'Partner ID and Booking ID required']);
-        exit;
-    }
+$no_booking_id_actions = ['get_chat_list', 'get_my_received', 'options'];
+if (empty($partner_id) || (empty($booking_id) && !in_array($action, $no_booking_id_actions))) {
+    echo json_encode(['status' => 'error', 'message' => 'Partner ID (and Booking ID if required) is missing']);
+    exit;
 }
 
 // Helper: Get Razorpay Keys
@@ -90,7 +89,11 @@ try {
                 'payload' => $payload,
                 'created_at' => date('Y-m-d H:i:s')
             ];
-            $pusher->trigger("booking-chat-$booking_id", 'new-message', $event_data);
+            
+            try {
+                $pusher->trigger("booking-chat-$booking_id", 'new-message', $event_data);
+                $pusher->trigger("partner-$receiver_id", 'chat-update', $event_data);
+            } catch (Exception $e) { /* Log pusher error but don't fail message insertion */ }
 
             echo json_encode(['status' => 'success', 'chat' => $event_data]);
             break;
@@ -126,6 +129,45 @@ try {
                                   ORDER BY a.id DESC");
             $stmt->execute([$partner_id]);
             echo json_encode(['status' => 'success', 'bookings' => $stmt->fetchAll()]);
+            break;
+
+        case 'get_chat_list':
+            // ── 1. Posted (My own bookings) ──
+            $sqlPosted = "SELECT BC.booking_id, BC.message, BC.created_at, P.full_name as partner_name, BC.type
+                          FROM booking_chats BC
+                          JOIN partner_bookings PB ON BC.booking_id = PB.id
+                          JOIN partners P ON P.id = (CASE WHEN BC.sender_id = ? THEN BC.receiver_id ELSE BC.sender_id END)
+                          WHERE PB.partner_id = ?
+                          AND BC.id IN (
+                              SELECT MAX(id) FROM booking_chats 
+                              GROUP BY booking_id, (CASE WHEN sender_id = ? THEN receiver_id ELSE sender_id END)
+                          )
+                          ORDER BY BC.id DESC";
+            $stmt = $pdo->prepare($sqlPosted);
+            $stmt->execute([$partner_id, $partner_id, $partner_id]);
+            $posted = $stmt->fetchAll();
+
+            // ── 2. Received (Others' bookings I chatted on) ──
+            $sqlReceived = "SELECT BC.booking_id, BC.message, BC.created_at, P.full_name as partner_name, BC.type
+                            FROM booking_chats BC
+                            JOIN partner_bookings PB ON BC.booking_id = PB.id
+                            JOIN partners P ON P.id = PB.partner_id
+                            WHERE (BC.sender_id = ? OR BC.receiver_id = ?)
+                            AND PB.partner_id != ?
+                            AND BC.id IN (
+                                SELECT MAX(id) FROM booking_chats 
+                                GROUP BY booking_id
+                            )
+                            ORDER BY BC.id DESC";
+            $stmt = $pdo->prepare($sqlReceived);
+            $stmt->execute([$partner_id, $partner_id, $partner_id]);
+            $received = $stmt->fetchAll();
+
+            echo json_encode([
+                'status' => 'success',
+                'posted' => $posted,
+                'received' => $received
+            ]);
             break;
 
         default:
