@@ -47,6 +47,14 @@ $menuItems = [
         "pages" => [
             ["title" => "Razorpay Configure", "url" => "payment-gateway/razorpay-configure.php"]
         ],
+    ],
+    [
+        "menuTitle" => "Subscriptions",
+        "icon" => "fas fa-medal",
+        "pages" => [
+            ["title" => "Manage Plans", "url" => "partner-subscription-plans/plan-management.php"],
+            ["title" => "Add New Plan", "url" => "partner-subscription-plans/add-plan.php"]
+        ],
     ]
 ];
 
