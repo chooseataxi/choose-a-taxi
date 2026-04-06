@@ -250,7 +250,10 @@ try {
 
         case 'get_my_received':
             if (empty($partner_id)) throw new Exception("Partner ID required");
-            $stmt = $pdo->prepare("SELECT a.*, b.*, p.full_name as partner_name, 
+            $stmt = $pdo->prepare("SELECT a.id as acceptance_id, a.booking_id, a.status as acceptance_status, a.driver_id,
+                                  b.pickup_address, b.drop_address, b.start_date, b.start_time, b.status as booking_status,
+                                  b.total_amount, b.commission, b.booking_type,
+                                  p.full_name as partner_name, 
                                   ct.type_name as car_type_name, ct.image as car_type_image, 
                                   c.car_name, c.car_model
                                   FROM accepted_bookings a 
