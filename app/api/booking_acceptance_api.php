@@ -124,6 +124,7 @@ try {
             try {
                 $pusher->trigger("booking-chat-$booking_id", 'new-message', $event_data);
                 $pusher->trigger("partner-$receiver_id", 'chat-update', $event_data);
+                $pusher->trigger("partner-$partner_id", 'chat-update', $event_data);
             } catch (Exception $e) { /* Log pusher error but don't fail message insertion */ }
 
             echo json_encode(['status' => 'success', 'chat' => $event_data]);
