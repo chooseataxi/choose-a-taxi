@@ -36,10 +36,14 @@ function getRazorpayConfig($pdo) {
 try {
     switch ($action) {
         case 'get_details':
-            // 1. Get Booking Main Info
-            $stmt = $pdo->prepare("SELECT b.*, p.full_name as poster_name 
+            // 1. Get Booking Main Info with Car Details
+            $stmt = $pdo->prepare("SELECT b.*, p.full_name as poster_name, 
+                                         c.name AS car_name, c.model AS car_model, 
+                                         ct.name AS car_type_name, ct.image AS car_type_image
                                   FROM partner_bookings b 
                                   JOIN partners p ON b.partner_id = p.id 
+                                  LEFT JOIN cars c ON c.id = b.car_type
+                                  LEFT JOIN car_types ct ON ct.id = c.type_id
                                   WHERE b.id = ?");
             $stmt->execute([$booking_id]);
             $booking = $stmt->fetch();
