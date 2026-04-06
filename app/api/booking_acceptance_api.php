@@ -160,10 +160,18 @@ try {
             $commission = $_POST['commission'] ?? 0;
             if (empty($driver_id)) throw new Exception("Driver assignment is mandatory");
 
-            // 1. Check if already taken
-            $stmt = $pdo->prepare("SELECT id FROM accepted_bookings WHERE booking_id = ? AND status != 'Cancelled'");
+            // 1. Get meta and check for self-acceptance
+            $stmt = $pdo->prepare("SELECT partner_id FROM partner_bookings WHERE id = ?");
             $stmt->execute([$booking_id]);
-            if ($stmt->fetch()) throw new Exception("Already accepted by another partner");
+            $bookingMeta = $stmt->fetch();
+            if (!$bookingMeta) throw new Exception("Booking not found");
+            if ($bookingMeta['partner_id'] == $partner_id) throw new Exception("You cannot accept your own booking. Please chat with a partner to request a commission.");
+
+            // 2. Check if already taken by someone else
+            $stmt = $pdo->prepare("SELECT partner_id FROM accepted_bookings WHERE booking_id = ? AND status != 'Cancelled'");
+            $stmt->execute([$booking_id]);
+            $accepted = $stmt->fetch();
+            if ($accepted && $accepted['partner_id'] != $partner_id) throw new Exception("Already accepted by another partner");
 
             // 2. Check Wallet
             $stmt = $pdo->prepare("SELECT balance FROM partner_wallet WHERE partner_id = ?");
@@ -196,8 +204,18 @@ try {
             break;
 
         case 'accept_create_razorpay_order':
-            $commission = $_POST['commission'] ?? 0;
-            if ($commission < 1) throw new Exception("Invalid commission amount");
+            // 1. Prevent self-payment
+            $stmt = $pdo->prepare("SELECT partner_id FROM partner_bookings WHERE id = ?");
+            $stmt->execute([$booking_id]);
+            $bookingMeta = $stmt->fetch();
+            if (!$bookingMeta) throw new Exception("Booking not found");
+            if ($bookingMeta['partner_id'] == $partner_id) throw new Exception("You cannot accept your own booking.");
+
+            // 2. Already accepted check
+            $stmt = $pdo->prepare("SELECT partner_id FROM accepted_bookings WHERE booking_id = ? AND status != 'Cancelled'");
+            $stmt->execute([$booking_id]);
+            $accepted = $stmt->fetch();
+            if ($accepted && $accepted['partner_id'] != $partner_id) throw new Exception("Already accepted by another partner");
 
             $config = getRazorpayConfig($pdo);
             if (!$config || $config['status'] !== 'Active') throw new Exception("Payment gateway not active");
