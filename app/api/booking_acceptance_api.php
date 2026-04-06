@@ -34,6 +34,28 @@ function getRazorpayConfig($pdo) {
 }
 
 try {
+    // Helper: Update Wallet & Log Transaction
+    function updateWallet($pdo, $partner_id, $amount, $type, $source, $source_id, $description) {
+        if (!$pdo->inTransaction()) $pdo->beginTransaction();
+        try {
+            $stmt = $pdo->prepare("INSERT IGNORE INTO partner_wallet (partner_id, balance) VALUES (?, 0)");
+            $stmt->execute([$partner_id]);
+
+            if ($type === 'Credit') {
+                $stmt = $pdo->prepare("UPDATE partner_wallet SET balance = balance + ? WHERE partner_id = ?");
+            } else {
+                $stmt = $pdo->prepare("UPDATE partner_wallet SET balance = balance - ? WHERE partner_id = ?");
+            }
+            $stmt->execute([$amount, $partner_id]);
+
+            $stmt = $pdo->prepare("INSERT INTO partner_transactions (partner_id, type, amount, source, source_id, description) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$partner_id, $type, $amount, $source, $source_id, $description]);
+            return true;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
     switch ($action) {
         case 'get_details':
             // 1. Get Booking Main Info with Car Details
@@ -114,18 +136,100 @@ try {
             break;
 
         case 'accept_booking':
+            throw new Exception("Use accept_with_wallet or accept_create_razorpay_order instead");
+            break;
+
+        case 'accept_with_wallet':
             $driver_id = $_POST['driver_id'] ?? '';
+            $commission = $_POST['commission'] ?? 0;
             if (empty($driver_id)) throw new Exception("Driver assignment is mandatory");
 
-            // Check if already taken
+            // 1. Check if already taken
             $stmt = $pdo->prepare("SELECT id FROM accepted_bookings WHERE booking_id = ? AND status != 'Cancelled'");
             $stmt->execute([$booking_id]);
-            if ($stmt->fetch()) throw new Exception("This booking has already been accepted by another partner");
+            if ($stmt->fetch()) throw new Exception("Already accepted by another partner");
 
-            $stmt = $pdo->prepare("INSERT INTO accepted_bookings (booking_id, partner_id, driver_id, status) VALUES (?, ?, ?, 'Pending')");
-            $stmt->execute([$booking_id, $partner_id, $driver_id]);
-            
-            echo json_encode(['status' => 'success', 'message' => 'Booking locked. Please complete commission payment.']);
+            // 2. Check Wallet
+            $stmt = $pdo->prepare("SELECT balance FROM partner_wallet WHERE partner_id = ?");
+            $stmt->execute([$partner_id]);
+            $wallet = $stmt->fetch();
+            if (!$wallet || $wallet['balance'] < $commission) throw new Exception("Insufficient wallet balance. Please add funds.");
+
+            $pdo->beginTransaction();
+            try {
+                // 3. Update/Insert Acceptance
+                $stmt = $pdo->prepare("INSERT INTO accepted_bookings (booking_id, partner_id, driver_id, status) VALUES (?, ?, ?, 'Accepted') ON DUPLICATE KEY UPDATE status='Accepted', driver_id=VALUES(driver_id)");
+                $stmt->execute([$booking_id, $partner_id, $driver_id]);
+                $acc_id = $pdo->lastInsertId() ?: $booking_id; // Simple fallback
+
+                // 4. Update Main Booking Status
+                $stmt = $pdo->prepare("UPDATE partner_bookings SET status = 'Accepted' WHERE id = ?");
+                $stmt->execute([$booking_id]);
+
+                // 5. Deduct Wallet
+                if (!updateWallet($pdo, $partner_id, $commission, 'Debit', 'Booking Acceptance', $acc_id, "Commission for Booking #$booking_id")) {
+                    throw new Exception("Wallet update failed");
+                }
+
+                $pdo->commit();
+                echo json_encode(['status' => 'success', 'message' => 'Booking accepted successfully using wallet balance.']);
+            } catch (Exception $e) {
+                $pdo->rollBack();
+                throw $e;
+            }
+            break;
+
+        case 'accept_create_razorpay_order':
+            $commission = $_POST['commission'] ?? 0;
+            if ($commission < 1) throw new Exception("Invalid commission amount");
+
+            $config = getRazorpayConfig($pdo);
+            if (!$config || $config['status'] !== 'Active') throw new Exception("Payment gateway not active");
+
+            $api = new \Razorpay\Api\Api($config['key_id'], $config['key_secret']);
+            $order = $api->order->create([
+                'receipt' => 'acc_' . $booking_id . '_' . time(),
+                'amount' => $commission * 100,
+                'currency' => 'INR'
+            ]);
+
+            echo json_encode(['status' => 'success', 'order_id' => $order['id'], 'key_id' => $config['key_id']]);
+            break;
+
+        case 'accept_verify_razorpay':
+            $order_id = $_POST['razorpay_order_id'] ?? '';
+            $payment_id = $_POST['razorpay_payment_id'] ?? '';
+            $signature = $_POST['razorpay_signature'] ?? '';
+            $driver_id = $_POST['driver_id'] ?? '';
+            $commission = $_POST['commission'] ?? 0;
+
+            $config = getRazorpayConfig($pdo);
+            $api = new \Razorpay\Api\Api($config['key_id'], $config['key_secret']);
+
+            try {
+                $api->utility->verifyPaymentSignature([
+                    'razorpay_order_id' => $order_id,
+                    'razorpay_payment_id' => $payment_id,
+                    'razorpay_signature' => $signature
+                ]);
+
+                $pdo->beginTransaction();
+                $stmt = $pdo->prepare("INSERT INTO accepted_bookings (booking_id, partner_id, driver_id, status) VALUES (?, ?, ?, 'Accepted') ON DUPLICATE KEY UPDATE status='Accepted', driver_id=VALUES(driver_id)");
+                $stmt->execute([$booking_id, $partner_id, $driver_id]);
+                
+                $stmt = $pdo->prepare("UPDATE partner_bookings SET status = 'Accepted' WHERE id = ?");
+                $stmt->execute([$booking_id]);
+
+                // Log as transaction (Paid but not from wallet, so maybe just log it)
+                $stmt = $pdo->prepare("INSERT INTO partner_transactions (partner_id, type, amount, source, source_id, description) VALUES (?, 'Debit', ?, 'Razorpay Acceptance', ?, ?)");
+                $stmt->execute([$partner_id, $commission, $payment_id, "Commission for Booking #$booking_id via Razorpay"]);
+
+                $pdo->commit();
+                echo json_encode(['status' => 'success', 'message' => 'Payment verified. Booking accepted.']);
+            } catch (Exception $e) {
+                if ($pdo->inTransaction()) $pdo->rollBack();
+                throw new Exception("Payment verification failed: " . $e->getMessage());
+            }
             break;
 
         case 'get_my_received':
