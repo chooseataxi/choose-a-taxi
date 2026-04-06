@@ -1,14 +1,9 @@
 <?php
-require_once __DIR__ . '/includes/db.php';
-$tables = ['cars', 'car_brands', 'car_types', 'trip_types'];
-foreach ($tables as $table) {
-    try {
-        $stmt = $pdo->query("DESC $table");
-        echo "--- $table ---\n";
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            echo "{$row['Field']} ({$row['Type']})\n";
-        }
-    } catch (Exception $e) {
-        echo "--- $table: Missing ---\n";
-    }
+require_once __DIR__ . '/../includes/db.php';
+try {
+    $stmt = $pdo->query("DESCRIBE booking_chats");
+    $columns = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    echo json_encode($columns, JSON_PRETTY_PRINT);
+} catch (Exception $e) {
+    echo $e->getMessage();
 }

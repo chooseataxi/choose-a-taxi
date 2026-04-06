@@ -34,6 +34,11 @@ function getRazorpayConfig($pdo) {
 }
 
 try {
+    // Lazy Migration: Add is_read if not exists
+    try {
+        $pdo->exec("ALTER TABLE booking_chats ADD COLUMN is_read TINYINT(1) DEFAULT 0");
+    } catch (PDOException $e) {}
+
     // Helper: Update Wallet & Log Transaction
     function updateWallet($pdo, $partner_id, $amount, $type, $source, $source_id, $description) {
         if (!$pdo->inTransaction()) $pdo->beginTransaction();
@@ -132,7 +137,18 @@ try {
                                   AND ((sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?))
                                   ORDER BY id ASC");
             $stmt->execute([$booking_id, $partner_id, $other_id, $other_id, $partner_id]);
-            echo json_encode(['status' => 'success', 'chats' => $stmt->fetchAll()]);
+            $chats = $stmt->fetchAll();
+            
+            echo json_encode(['status' => 'success', 'chats' => $chats]);
+            break;
+
+        case 'mark_as_read':
+            $other_id = $_POST['other_id'] ?? '';
+            if (empty($other_id)) throw new Exception("Other ID required");
+            $stmt = $pdo->prepare("UPDATE booking_chats SET is_read = 1 
+                                  WHERE booking_id = ? AND sender_id = ? AND receiver_id = ? AND is_read = 0");
+            $stmt->execute([$booking_id, $other_id, $partner_id]);
+            echo json_encode(['status' => 'success']);
             break;
 
         case 'accept_booking':
@@ -234,10 +250,14 @@ try {
 
         case 'get_my_received':
             if (empty($partner_id)) throw new Exception("Partner ID required");
-            $stmt = $pdo->prepare("SELECT a.*, b.*, p.full_name as partner_name 
+            $stmt = $pdo->prepare("SELECT a.*, b.*, p.full_name as partner_name, 
+                                  ct.type_name as car_type_name, ct.image as car_type_image, 
+                                  c.car_name, c.car_model
                                   FROM accepted_bookings a 
                                   JOIN partner_bookings b ON a.booking_id = b.id 
                                   JOIN partners p ON b.partner_id = p.id 
+                                  LEFT JOIN cars c ON b.vehicle = c.id
+                                  LEFT JOIN car_types ct ON c.car_type_id = ct.id
                                   WHERE a.partner_id = ? 
                                   ORDER BY a.id DESC");
             $stmt->execute([$partner_id]);
@@ -246,7 +266,8 @@ try {
 
         case 'get_chat_list':
             // ── 1. Posted (My own bookings) ──
-            $sqlPosted = "SELECT BC.booking_id, BC.message, BC.created_at, P.full_name as partner_name, BC.type
+            $sqlPosted = "SELECT BC.booking_id, BC.message, BC.created_at, P.full_name as partner_name, BC.type, P.id as other_id,
+                          (SELECT COUNT(*) FROM booking_chats WHERE booking_id = BC.booking_id AND receiver_id = ? AND sender_id = P.id AND is_read = 0) as unread_count
                           FROM booking_chats BC
                           JOIN partner_bookings PB ON BC.booking_id = PB.id
                           JOIN partners P ON P.id = (CASE WHEN BC.sender_id = ? THEN BC.receiver_id ELSE BC.sender_id END)
@@ -257,11 +278,12 @@ try {
                           )
                           ORDER BY BC.id DESC";
             $stmt = $pdo->prepare($sqlPosted);
-            $stmt->execute([$partner_id, $partner_id, $partner_id]);
+            $stmt->execute([$partner_id, $partner_id, $partner_id, $partner_id]);
             $posted = $stmt->fetchAll();
 
-            // ── 2. Received (Others' bookings I chatted on) ──
-            $sqlReceived = "SELECT BC.booking_id, BC.message, BC.created_at, P.full_name as partner_name, BC.type, PB.partner_id as other_id
+            // ── 2. Received (Others' bookings I chatted on / Accepted) ──
+            $sqlReceived = "SELECT BC.booking_id, BC.message, BC.created_at, P.full_name as partner_name, BC.type, PB.partner_id as other_id,
+                            (SELECT COUNT(*) FROM booking_chats WHERE booking_id = BC.booking_id AND receiver_id = ? AND sender_id = P.id AND is_read = 0) as unread_count
                             FROM booking_chats BC
                             JOIN partner_bookings PB ON BC.booking_id = PB.id
                             JOIN partners P ON P.id = PB.partner_id
@@ -269,11 +291,11 @@ try {
                             AND PB.partner_id != ?
                             AND BC.id IN (
                                 SELECT MAX(id) FROM booking_chats 
-                                GROUP BY booking_id
+                                GROUP BY booking_id, (CASE WHEN sender_id = ? THEN receiver_id ELSE sender_id END)
                             )
                             ORDER BY BC.id DESC";
             $stmt = $pdo->prepare($sqlReceived);
-            $stmt->execute([$partner_id, $partner_id, $partner_id]);
+            $stmt->execute([$partner_id, $partner_id, $partner_id, $partner_id, $partner_id]);
             $received = $stmt->fetchAll();
 
             echo json_encode([
