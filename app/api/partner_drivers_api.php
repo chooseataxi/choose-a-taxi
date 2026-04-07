@@ -44,6 +44,27 @@ if (empty($partner_id) && $action !== 'options') {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
+// Helper: Update Wallet & Log Transaction
+// ──────────────────────────────────────────────────────────────────────────────
+function updateWallet($pdo, $partner_id, $amount, $type, $description) {
+    try {
+        $stmt = $pdo->prepare("INSERT IGNORE INTO partner_wallet (partner_id, balance) VALUES (?, 0)");
+        $stmt->execute([$partner_id]);
+
+        if ($type === 'Credit') {
+            $stmt = $pdo->prepare("UPDATE partner_wallet SET balance = balance + ? WHERE partner_id = ?");
+        } else {
+            $stmt = $pdo->prepare("UPDATE partner_wallet SET balance = balance - ? WHERE partner_id = ?");
+        }
+        $stmt->execute([$amount, $partner_id]);
+
+        $stmt = $pdo->prepare("INSERT INTO partner_transactions (partner_id, type, amount, source, description) VALUES (?, ?, ?, 'Driver Registration', ?)");
+        $stmt->execute([$partner_id, $type, $amount, $description]);
+        return true;
+    } catch (Exception $e) { return false; }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 // Helper: Surepass DL API call
 // ──────────────────────────────────────────────────────────────────────────────
 function verifyDrivingLicense($license_number, $dob)
@@ -94,10 +115,20 @@ try {
         case 'add_driver':
             $license_number = $_POST['license_number'] ?? '';
             $dob = $_POST['dob'] ?? ''; // YYYY-MM-DD
+            $phone = $_POST['phone'] ?? ''; // NEW
             $is_self = $_POST['is_self'] ?? 0;
 
-            if (empty($license_number) || empty($dob))
-                throw new Exception("License number and DOB are required");
+            if (empty($license_number) || empty($dob) || empty($phone))
+                throw new Exception("License number, DOB, and Mobile are required");
+
+            // ── 0. Check Wallet Balance ──
+            $stmt = $pdo->prepare("SELECT balance FROM partner_wallet WHERE partner_id = ?");
+            $stmt->execute([$partner_id]);
+            $wallet = $stmt->fetch();
+            $fee = 7.50;
+            if (!$wallet || $wallet['balance'] < $fee) {
+                throw new Exception("Insufficient wallet balance. Deposit at least ₹$fee to register a driver.");
+            }
 
             $verification = verifyDrivingLicense($license_number, $dob);
             if ($verification['status'] !== 'success')
@@ -119,8 +150,8 @@ try {
 
             // Insert into DB
             $stmt = $pdo->prepare("INSERT INTO drivers 
-                (partner_id, full_name, license_number, dob, doe, doi, gender, father_or_husband_name, state, permanent_address, profile_image_path, vehicle_classes, is_partner_self) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                (partner_id, full_name, license_number, dob, doe, doi, gender, father_or_husband_name, state, permanent_address, profile_image_path, vehicle_classes, phone, is_partner_self) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
             $stmt->execute([
                 $partner_id,
@@ -135,10 +166,14 @@ try {
                 $data['permanent_address'],
                 $imgPath,
                 json_encode($data['vehicle_classes']),
+                $phone,
                 $is_self
             ]);
 
-            echo json_encode(["status" => "success", "message" => "Driver added successfully", "data" => $data]);
+            // ── Deduct Fee ──
+            updateWallet($pdo, $partner_id, $fee, 'Debit', "Registration fee for Driver: " . $data['name']);
+
+            echo json_encode(["status" => "success", "message" => "Driver added successfully and ₹$fee deducted from wallet.", "data" => $data]);
             break;
 
         case 'update_status':

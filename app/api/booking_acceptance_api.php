@@ -111,7 +111,7 @@ try {
         case 'send_message':
             $message = $_POST['message'] ?? '';
             $receiver_id = $_POST['receiver_id'] ?? '';
-            $type = $_POST[ 'type'] ?? 'text';
+            $type = $_POST['type'] ?? 'text';
             $payload = $_POST['payload'] ?? null;
 
             if (empty($message) || empty($receiver_id)) throw new Exception("Message and Receiver required");
@@ -248,10 +248,15 @@ try {
             $config = getRazorpayConfig($pdo);
             if (!$config || $config['status'] !== 'Active') throw new Exception("Payment gateway not active");
 
+            $amount_paise = (int)(round((float)$commission, 2) * 100);
+            if ($amount_paise < 100) {
+                throw new Exception("Minimum commission for Razorpay is ₹1.00. Your current commission is ₹$commission. Please use Wallet or request a higher commission.");
+            }
+
             $api = new \Razorpay\Api\Api($config['key_id'], $config['key_secret']);
             $order = $api->order->create([
                 'receipt' => 'acc_' . $booking_id . '_' . time(),
-                'amount' => $commission * 100,
+                'amount' => $amount_paise,
                 'currency' => 'INR'
             ]);
 

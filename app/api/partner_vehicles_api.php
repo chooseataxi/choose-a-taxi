@@ -40,7 +40,31 @@ try {
     )");
 } catch(PDOException $e) {}
 
-$action = $_REQUEST['action'] ?? '';
+if (empty($partner_id) && $action !== 'lookup_rc' && $action !== 'options') {
+    echo json_encode(['status' => 'error', 'message' => 'partner_id required']);
+    exit;
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Helper: Update Wallet & Log Transaction
+// ──────────────────────────────────────────────────────────────────────────────
+function updateWallet($pdo, $partner_id, $amount, $type, $description) {
+    try {
+        $stmt = $pdo->prepare("INSERT IGNORE INTO partner_wallet (partner_id, balance) VALUES (?, 0)");
+        $stmt->execute([$partner_id]);
+
+        if ($type === 'Credit') {
+            $stmt = $pdo->prepare("UPDATE partner_wallet SET balance = balance + ? WHERE partner_id = ?");
+        } else {
+            $stmt = $pdo->prepare("UPDATE partner_wallet SET balance = balance - ? WHERE partner_id = ?");
+        }
+        $stmt->execute([$amount, $partner_id]);
+
+        $stmt = $pdo->prepare("INSERT INTO partner_transactions (partner_id, type, amount, source, description) VALUES (?, ?, ?, 'Vehicle Registration', ?)");
+        $stmt->execute([$partner_id, $type, $amount, $description]);
+        return true;
+    } catch (Exception $e) { return false; }
+}
 
 // ──────────────────────────────────────────────
 // ACTION: lookup_rc  — hits Surepass API
@@ -102,6 +126,16 @@ if ($action === 'add_vehicle') {
     $partner_id = $_POST['partner_id'] ?? '';
     if (empty($partner_id)) {
         echo json_encode(['status' => 'error', 'message' => 'partner_id required']);
+        exit;
+    }
+
+    // ── 0. Check Wallet Balance ──
+    $stmt = $pdo->prepare("SELECT balance FROM partner_wallet WHERE partner_id = ?");
+    $stmt->execute([$partner_id]);
+    $wallet = $stmt->fetch();
+    $fee = 7.50;
+    if (!$wallet || $wallet['balance'] < $fee) {
+        echo json_encode(['status' => 'error', 'message' => "Insufficient wallet balance. Deposit at least ₹$fee to register a vehicle."]);
         exit;
     }
 
@@ -167,7 +201,10 @@ if ($action === 'add_vehicle') {
             $raw_rc_data, $front_image, $back_image
         ]);
 
-        echo json_encode(['status' => 'success', 'message' => 'Vehicle added successfully!', 'vehicle_id' => $pdo->lastInsertId()]);
+        // ── Deduct Fee ──
+        updateWallet($pdo, $partner_id, $fee, 'Debit', "Registration fee for Vehicle: $maker_model ($rc_number)");
+
+        echo json_encode(['status' => 'success', 'message' => "Vehicle added successfully and ₹$fee deducted from wallet.", 'vehicle_id' => $pdo->lastInsertId()]);
     } catch (PDOException $e) {
         echo json_encode(['status' => 'error', 'message' => 'DB Error: ' . $e->getMessage()]);
     }
