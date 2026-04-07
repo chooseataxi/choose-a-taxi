@@ -39,6 +39,11 @@ try {
         $pdo->exec("ALTER TABLE booking_chats ADD COLUMN is_read TINYINT(1) DEFAULT 0");
     } catch (PDOException $e) {}
 
+    // Lazy Migration: Add phone to drivers if not exists
+    try {
+        $pdo->exec("ALTER TABLE drivers ADD COLUMN phone VARCHAR(20) DEFAULT NULL AFTER full_name");
+    } catch (PDOException $e) {}
+
     // Helper: Update Wallet & Log Transaction
     function updateWallet($pdo, $partner_id, $amount, $type, $source, $source_id, $description) {
         if (!$pdo->inTransaction()) $pdo->beginTransaction();
@@ -85,7 +90,7 @@ try {
             $acceptance = $stmt->fetch();
 
             // 3. Get Drivers & Vehicles for the current partner (to allow acceptance/sharing)
-            $stmt = $pdo->prepare("SELECT id, full_name as name, phone as mobile, image FROM drivers WHERE partner_id = ? AND status = 'Active'");
+            $stmt = $pdo->prepare("SELECT id, full_name as name, phone, profile_image_path as image FROM drivers WHERE partner_id = ? AND status = 'Active'");
             $stmt->execute([$partner_id]);
             $drivers = $stmt->fetchAll();
 
@@ -187,9 +192,15 @@ try {
 
             $pdo->beginTransaction();
             try {
+                // 2.5 Fetch Total Amount for DB storage
+                $total_amount = $bookingMeta['total_amount'] ?? 0;
+
                 // 3. Update/Insert Acceptance
-                $stmt = $pdo->prepare("INSERT INTO accepted_bookings (booking_id, partner_id, driver_id, status) VALUES (?, ?, ?, 'Accepted') ON DUPLICATE KEY UPDATE status='Accepted', driver_id=VALUES(driver_id)");
-                $stmt->execute([$booking_id, $partner_id, $driver_id]);
+                $stmt = $pdo->prepare("INSERT INTO accepted_bookings (booking_id, partner_id, driver_id, status, total_fare, commission, payment_status) 
+                                       VALUES (?, ?, ?, 'Accepted', ?, ?, 'Paid') 
+                                       ON DUPLICATE KEY UPDATE status='Accepted', driver_id=VALUES(driver_id), 
+                                                               total_fare=VALUES(total_fare), commission=VALUES(commission), payment_status='Paid'");
+                $stmt->execute([$booking_id, $partner_id, $driver_id, $total_amount, $commission]);
                 $acc_id = $pdo->lastInsertId() ?: $booking_id; // Simple fallback
 
                 // 4. Update Main Booking Status
@@ -254,8 +265,19 @@ try {
                 ]);
 
                 $pdo->beginTransaction();
-                $stmt = $pdo->prepare("INSERT INTO accepted_bookings (booking_id, partner_id, driver_id, status) VALUES (?, ?, ?, 'Accepted') ON DUPLICATE KEY UPDATE status='Accepted', driver_id=VALUES(driver_id)");
-                $stmt->execute([$booking_id, $partner_id, $driver_id]);
+                // 2. Fetch Total Fare from Booking
+                $stmt = $pdo->prepare("SELECT total_amount FROM partner_bookings WHERE id = ?");
+                $stmt->execute([$booking_id]);
+                $bookingMeta = $stmt->fetch();
+                $total_fare = $bookingMeta['total_amount'] ?? 0;
+
+                $stmt = $pdo->prepare("INSERT INTO accepted_bookings (booking_id, partner_id, driver_id, status, total_fare, commission, payment_status, razorpay_order_id, razorpay_payment_id, razorpay_signature) 
+                                       VALUES (?, ?, ?, 'Accepted', ?, ?, 'Paid', ?, ?, ?) 
+                                       ON DUPLICATE KEY UPDATE status='Accepted', driver_id=VALUES(driver_id), 
+                                                               total_fare=VALUES(total_fare), commission=VALUES(commission), 
+                                                               payment_status='Paid', razorpay_order_id=VALUES(razorpay_order_id), 
+                                                               razorpay_payment_id=VALUES(razorpay_payment_id), razorpay_signature=VALUES(razorpay_signature)");
+                $stmt->execute([$booking_id, $partner_id, $driver_id, $total_fare, $commission, $order_id, $payment_id, $signature]);
                 
                 $stmt = $pdo->prepare("UPDATE partner_bookings SET status = 'Accepted' WHERE id = ?");
                 $stmt->execute([$booking_id]);
