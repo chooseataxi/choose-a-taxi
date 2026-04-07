@@ -111,7 +111,7 @@ try {
         case 'send_message':
             $message = $_POST['message'] ?? '';
             $receiver_id = $_POST['receiver_id'] ?? '';
-            $type = $_POST['type'] ?? 'text';
+            $type = $_POST[ 'type'] ?? 'text';
             $payload = $_POST['payload'] ?? null;
 
             if (empty($message) || empty($receiver_id)) throw new Exception("Message and Receiver required");
@@ -172,7 +172,7 @@ try {
             if (empty($driver_id)) throw new Exception("Driver assignment is mandatory");
 
             // 1. Get meta and check for self-acceptance
-            $stmt = $pdo->prepare("SELECT partner_id FROM partner_bookings WHERE id = ?");
+            $stmt = $pdo->prepare("SELECT partner_id, total_amount FROM partner_bookings WHERE id = ?");
             $stmt->execute([$booking_id]);
             $bookingMeta = $stmt->fetch();
             if (!$bookingMeta) throw new Exception("Booking not found");
@@ -194,6 +194,17 @@ try {
             try {
                 // 2.5 Fetch Total Amount for DB storage
                 $total_amount = $bookingMeta['total_amount'] ?? 0;
+                
+                // 2.6 Fallback for Negotiable bookings
+                if ($total_amount == 0 || $total_amount == 'Negotiable') {
+                    $qStmt = $pdo->prepare("SELECT payload FROM booking_chats WHERE booking_id = ? AND type = 'quote_request' ORDER BY id DESC LIMIT 1");
+                    $qStmt->execute([$booking_id]);
+                    $lastQuote = $qStmt->fetch();
+                    if ($lastQuote) {
+                        $payload = json_decode($lastQuote['payload'], true);
+                        $total_amount = $payload['fare'] ?? $total_amount;
+                    }
+                }
 
                 // 3. Update/Insert Acceptance
                 $stmt = $pdo->prepare("INSERT INTO accepted_bookings (booking_id, partner_id, driver_id, status, total_fare, commission, payment_status) 
@@ -270,6 +281,17 @@ try {
                 $stmt->execute([$booking_id]);
                 $bookingMeta = $stmt->fetch();
                 $total_fare = $bookingMeta['total_amount'] ?? 0;
+
+                // 2.2 Fallback for Negotiable
+                if ($total_fare == 0 || $total_fare == 'Negotiable') {
+                    $qStmt = $pdo->prepare("SELECT payload FROM booking_chats WHERE booking_id = ? AND type = 'quote_request' ORDER BY id DESC LIMIT 1");
+                    $qStmt->execute([$booking_id]);
+                    $lastQuote = $qStmt->fetch();
+                    if ($lastQuote) {
+                        $payload = json_decode($lastQuote['payload'], true);
+                        $total_fare = $payload['fare'] ?? $total_fare;
+                    }
+                }
 
                 $stmt = $pdo->prepare("INSERT INTO accepted_bookings (booking_id, partner_id, driver_id, status, total_fare, commission, payment_status, razorpay_order_id, razorpay_payment_id, razorpay_signature) 
                                        VALUES (?, ?, ?, 'Accepted', ?, ?, 'Paid', ?, ?, ?) 
