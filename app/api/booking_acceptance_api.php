@@ -232,8 +232,10 @@ try {
             break;
 
         case 'accept_create_razorpay_order':
+            $commission = $_POST['commission'] ?? 0;
+
             // 1. Prevent self-payment
-            $stmt = $pdo->prepare("SELECT partner_id FROM partner_bookings WHERE id = ?");
+            $stmt = $pdo->prepare("SELECT partner_id, total_amount FROM partner_bookings WHERE id = ?");
             $stmt->execute([$booking_id]);
             $bookingMeta = $stmt->fetch();
             if (!$bookingMeta) throw new Exception("Booking not found");
@@ -244,6 +246,17 @@ try {
             $stmt->execute([$booking_id]);
             $accepted = $stmt->fetch();
             if ($accepted && $accepted['partner_id'] != $partner_id) throw new Exception("Already accepted by another partner");
+
+            // 2.5 Fallback for Negotiable commission if null
+            if (empty($commission) || $commission == 0) {
+                $qStmt = $pdo->prepare("SELECT payload FROM booking_chats WHERE booking_id = ? AND type = 'quote_request' ORDER BY id DESC LIMIT 1");
+                $qStmt->execute([$booking_id]);
+                $lastQuote = $qStmt->fetch();
+                if ($lastQuote) {
+                    $p = json_decode($lastQuote['payload'], true);
+                    $commission = $p['comm'] ?? $commission;
+                }
+            }
 
             $config = getRazorpayConfig($pdo);
             if (!$config || $config['status'] !== 'Active') throw new Exception("Payment gateway not active");
@@ -288,13 +301,14 @@ try {
                 $total_fare = $bookingMeta['total_amount'] ?? 0;
 
                 // 2.2 Fallback for Negotiable
-                if ($total_fare == 0 || $total_fare == 'Negotiable') {
+                if ($total_fare == 0 || $total_fare == 'Negotiable' || empty($commission) || $commission == 0) {
                     $qStmt = $pdo->prepare("SELECT payload FROM booking_chats WHERE booking_id = ? AND type = 'quote_request' ORDER BY id DESC LIMIT 1");
                     $qStmt->execute([$booking_id]);
                     $lastQuote = $qStmt->fetch();
                     if ($lastQuote) {
-                        $payload = json_decode($lastQuote['payload'], true);
-                        $total_fare = $payload['fare'] ?? $total_fare;
+                        $p = json_decode($lastQuote['payload'], true);
+                        $total_fare = ($total_fare == 0 || $total_fare == 'Negotiable') ? ($p['fare'] ?? $total_fare) : $total_fare;
+                        $commission = (empty($commission) || $commission == 0) ? ($p['comm'] ?? $commission) : $commission;
                     }
                 }
 
