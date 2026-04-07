@@ -175,6 +175,12 @@ try {
                 }
 
                 $pdo->commit();
+
+                // Trigger real-time update
+                try {
+                    $pusher->trigger("booking-chat-$booking_id", 'booking-update', ['status' => 'Accepted', 'partner_id' => $partner_id]);
+                } catch (Exception $e) {}
+
                 echo json_encode(['status' => 'success', 'message' => 'Booking accepted successfully.']);
             } catch (Exception $e) { $pdo->rollBack(); throw $e; }
             break;
@@ -231,6 +237,12 @@ try {
                 $stmt->execute([$partner_id, $commission, $payment_id, "Commission payment for Booking #$booking_id (Razorpay)"]);
 
                 $pdo->commit();
+
+                // Trigger real-time update
+                try {
+                    $pusher->trigger("booking-chat-$booking_id", 'booking-update', ['status' => 'Accepted', 'partner_id' => $partner_id]);
+                } catch (Exception $e) {}
+
                 echo json_encode(['status' => 'success', 'message' => 'Payment verified. Booking accepted.']);
             } catch (Exception $e) { if ($pdo->inTransaction()) $pdo->rollBack(); throw new Exception("Payment verification failed"); }
             break;
