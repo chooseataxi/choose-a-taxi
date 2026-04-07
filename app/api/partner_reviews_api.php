@@ -12,6 +12,9 @@ $action      = $_REQUEST['action']      ?? '';
 $partner_id  = $_REQUEST['partner_id']  ?? '';
 $reviewed_id = $_REQUEST['reviewed_id'] ?? '';
 
+// Generate a random ID to prove this file is fresh
+$debug_id = "v3_" . time();
+
 try {
     // ── Lazy table creation ──────────────────────────────────────────────────
     $pdo->exec("
@@ -29,7 +32,6 @@ try {
 
     switch ($action) {
 
-        // ── Submit a rating ─────────────────────────────────────────────────
         case 'submit_rating': {
             $reviewer_id = (int)($_POST['reviewer_id'] ?? $partner_id);
             $reviewed_id = (int)($_POST['reviewed_id'] ?? 0);
@@ -46,7 +48,6 @@ try {
                 exit;
             }
 
-            // Upsert — update if same reviewer+booking exists
             $stmt = $pdo->prepare("
                 INSERT INTO partner_ratings (reviewer_id, reviewed_id, booking_id, rating, review_text)
                 VALUES (:rev, :revd, :bid, :r, :txt)
@@ -66,7 +67,6 @@ try {
             break;
         }
 
-        // ── Get ratings for a partner ────────────────────────────────────────
         case 'get_ratings': {
             $target = (int)($reviewed_id ?: $partner_id);
             if (!$target) { echo json_encode(['status' => 'error', 'message' => 'reviewed_id required']); exit; }
@@ -79,7 +79,7 @@ try {
             $sumStmt->execute([':id' => $target]);
             $summary = $sumStmt->fetch(PDO::FETCH_ASSOC);
 
-            // Individual reviews with reviewer name
+            // Individual reviews
             $revStmt = $pdo->prepare("
                 SELECT pr.id, pr.rating, pr.review_text, pr.created_at, pr.booking_id,
                        p.full_name as reviewer_name
@@ -92,7 +92,7 @@ try {
             $revStmt->execute([':id' => $target]);
             $reviews = $revStmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // Partner name
+            // Target Partner name
             $nameStmt = $pdo->prepare("SELECT full_name FROM partners WHERE id = :id");
             $nameStmt->execute([':id' => $target]);
             $partner = $nameStmt->fetch(PDO::FETCH_ASSOC);
@@ -103,12 +103,12 @@ try {
                 'avg_rating'   => $summary['avg_rating'] ?? 0,
                 'total'        => (int)($summary['total'] ?? 0),
                 'reviews'      => $reviews ?? [],
-                'debug'        => 'cortex_v1',
+                'debug_file'   => 'partner_reviews_api.php',
+                'debug_id'     => $debug_id
             ]);
             break;
         }
 
-        // ── Get just the avg rating for a partner (used on cards) ───────────
         case 'get_avg_rating': {
             $target = (int)($reviewed_id ?: $partner_id);
             if (!$target) { echo json_encode(['avg' => 0, 'count' => 0]); exit; }
