@@ -84,16 +84,21 @@ try {
             $stmt->execute([$booking_id]);
             $acceptance = $stmt->fetch();
 
-            // 3. Get Drivers for the current partner (to allow acceptance)
-            $stmt = $pdo->prepare("SELECT id, full_name as name FROM drivers WHERE partner_id = ? AND status = 'Active'");
+            // 3. Get Drivers & Vehicles for the current partner (to allow acceptance/sharing)
+            $stmt = $pdo->prepare("SELECT id, full_name as name, phone as mobile, image FROM drivers WHERE partner_id = ? AND status = 'Active'");
             $stmt->execute([$partner_id]);
             $drivers = $stmt->fetchAll();
+
+            $stmt = $pdo->prepare("SELECT id, rc_number, maker_model, front_image as image FROM partner_vehicles WHERE partner_id = ? AND status = 'Active'");
+            $stmt->execute([$partner_id]);
+            $vehicles = $stmt->fetchAll();
 
             echo json_encode([
                 'status' => 'success',
                 'booking' => $booking,
                 'acceptance' => $acceptance,
                 'drivers' => $drivers,
+                'vehicles' => $vehicles,
                 'is_poster' => ($booking['partner_id'] == $partner_id)
             ]);
             break;
