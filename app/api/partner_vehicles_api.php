@@ -40,6 +40,9 @@ try {
     )");
 } catch(PDOException $e) {}
 
+$action = $_REQUEST['action'] ?? '';
+$partner_id = $_REQUEST['partner_id'] ?? '';
+
 if (empty($partner_id) && $action !== 'lookup_rc' && $action !== 'options') {
     echo json_encode(['status' => 'error', 'message' => 'partner_id required']);
     exit;
