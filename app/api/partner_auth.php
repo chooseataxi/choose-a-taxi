@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
 
 // Basic SMS API Wrapper
-define('BULK_SMS_API_URL', $_ENV['SMS_API_URL'] ?? 'http://sms.bulksmsserviceproviders.com/api/send_http.php');
+define('BULK_SMS_API_URL', $_ENV['SMS_API_URL'] ?? 'https://sms.bulksmsserviceproviders.com/api/send_http.php');
 define('BULK_SMS_AUTH_KEY', $_ENV['SMS_KEY'] ?? 'fa233ee27ba952ccb7f416e13d7cf532');
 define('BULK_SMS_SENDER_ID', $_ENV['SENDER_ID'] ?? 'CHSTXI');
 define('BULK_SMS_ROUTE_TR', $_ENV['SMS_ROUTE_TR'] ?? 'B');
@@ -71,6 +71,7 @@ function sendSms($mobile, $message, $templateId = '') {
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT => 30,
         CURLOPT_CUSTOMREQUEST => 'GET',
+        CURLOPT_FOLLOWLOCATION => true,
     ]);
 
     $response = curl_exec($curl);

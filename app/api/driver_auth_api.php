@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
 
 // SMS API Config (Same as partner_auth.php)
-define('BULK_SMS_API_URL', $_ENV['SMS_API_URL'] ?? 'http://sms.bulksmsserviceproviders.com/api/send_http.php');
+define('BULK_SMS_API_URL', $_ENV['SMS_API_URL'] ?? 'https://sms.bulksmsserviceproviders.com/api/send_http.php');
 define('BULK_SMS_AUTH_KEY', $_ENV['SMS_KEY'] ?? 'fa233ee27ba952ccb7f416e13d7cf532');
 define('BULK_SMS_SENDER_ID', $_ENV['SENDER_ID'] ?? 'CHSTXI');
 define('BULK_SMS_SENDER_TEMPLATE_ID', '1407171048438404190');
@@ -44,9 +44,16 @@ function sendSms($mobile, $message) {
     $ch = curl_init($apiUrl);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     $response = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $err = curl_error($ch);
     curl_close($ch);
-    return ['success' => true]; // Assume success or check response if possible
+
+    if ($err || $http_code !== 200) {
+        return ['success' => false, 'error' => "SMS Gateway Error: " . ($err ?: "HTTP $http_code")];
+    }
+    return ['success' => true];
 }
 
 try {
@@ -71,7 +78,10 @@ try {
             $stmt->execute([$otp, $driver['id']]);
 
             $msg = "Dear Driver Your OTP for login to Choose A Taxi Driver app is $otp. Don't Share OTP with Anyone. Regard's- Choose A Taxi Team";
-            sendSms($mobile, $msg);
+            $smsRes = sendSms($mobile, $msg);
+            if ($smsRes['success'] !== true) {
+                throw new Exception($smsRes['error'] ?? "Failed to send SMS");
+            }
 
             echo json_encode([
                 'success' => true,
