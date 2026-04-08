@@ -17,9 +17,26 @@
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
         .info-pill { background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 20px; font-size: 13px; font-weight: 500; }
         .taxi-marker { filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5)); transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        /* New Prompt Overlay */
+        #prompt-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 2000; display: none; align-items: center; justify-content: center; color: white; }
+        .prompt-card { background: #262626; padding: 40px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); text-align: center; max-width: 400px; width: 90%; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .prompt-card h2 { margin-bottom: 20px; color: #F4C20D; font-size: 24px; }
+        .prompt-card input { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #444; background: #1a1a1a; color: white; font-size: 18px; text-align: center; box-sizing: border-box; outline: none; transition: 0.3s; }
+        .prompt-card input:focus { border-color: #F4C20D; box-shadow: 0 0 10px rgba(244, 194, 13, 0.2); }
+        .prompt-card button { margin-top: 20px; width: 100%; padding: 15px; border-radius: 12px; border: none; background: #F4C20D; color: black; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        .prompt-card button:hover { background: #ffd700; transform: translateY(-2px); }
     </style>
 </head>
 <body>
+    <div id="prompt-overlay">
+        <div class="prompt-card">
+            <h2>Track Your Trip</h2>
+            <p style="color: #888; margin-bottom: 25px;">Please enter your Booking ID to start live tracking.</p>
+            <input type="text" id="id-input" placeholder="e.g. 123456" onkeyup="if(event.key==='Enter') startTracking()">
+            <button onclick="startTracking()">START TRACKING</button>
+        </div>
+    </div>
     <div class="header">
         <div style="display:flex; align-items:center; gap:15px;">
             <img src="../../assets/logo/logo.png" alt="Logo" class="logo" onerror="this.src='https://chooseataxi.com/assets/logo/logo.png'">
@@ -37,14 +54,23 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const bookingId = urlParams.get('booking_id');
+        let urlParams = new URLSearchParams(window.location.search);
+        let bookingId = urlParams.get('booking_id');
         
         if (!bookingId) {
-            alert("Booking ID is missing in URL");
-            document.getElementById('booking-id-display').innerText = "ERROR";
+            document.getElementById('prompt-overlay').style.display = 'flex';
+            document.getElementById('booking-id-display').innerText = "WAITING...";
         } else {
             document.getElementById('booking-id-display').innerText = "Trip #" + bookingId;
+        }
+
+        function startTracking() {
+            const val = document.getElementById('id-input').value.trim();
+            if (val) {
+                window.location.href = `track_trip.php?booking_id=${val}`;
+            } else {
+                alert("Please enter a valid Booking ID");
+            }
         }
 
         // Initialize Map
