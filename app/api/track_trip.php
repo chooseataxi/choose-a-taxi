@@ -26,6 +26,11 @@
         .prompt-card input:focus { border-color: #F4C20D; box-shadow: 0 0 10px rgba(244, 194, 13, 0.2); }
         .prompt-card button { margin-top: 20px; width: 100%; padding: 15px; border-radius: 12px; border: none; background: #F4C20D; color: black; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; }
         .prompt-card button:hover { background: #ffd700; transform: translateY(-2px); }
+
+        /* Waiting Overlay */
+        #waiting-overlay { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1c1c1c; color: white; padding: 12px 25px; border-radius: 30px; border: 1px solid #F4C20D; z-index: 1000; font-size: 14px; font-weight: 600; display: none; align-items: center; gap: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .loading-dot { width: 8px; height: 8px; background: #F4C20D; border-radius: 50%; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
     </style>
 </head>
 <body>
@@ -37,15 +42,21 @@
             <button onclick="startTracking()">START TRACKING</button>
         </div>
     </div>
+
+    <div id="waiting-overlay">
+        <div class="loading-dot"></div>
+        Waiting for driver's signal...
+    </div>
+
     <div class="header">
         <div style="display:flex; align-items:center; gap:15px;">
-            <img src="../../assets/logo/logo.png" alt="Logo" class="logo" onerror="this.src='https://chooseataxi.com/assets/logo/logo.png'">
+            <img src="../assets/logo.png" alt="Logo" class="logo" id="main-logo">
             <h1>Live Tracking</h1>
         </div>
         <div class="status-container">
             <div class="info-pill" id="booking-id-display">Loading...</div>
-            <div class="status-dot"></div>
-            <span style="font-size: 14px; color: #4CAF50; font-weight: bold;">LIVE</span>
+            <div class="status-dot" id="live-indicator-dot"></div>
+            <span id="live-text" style="font-size: 14px; color: #4CAF50; font-weight: bold;">OFFLINE</span>
         </div>
     </div>
 
@@ -91,6 +102,7 @@
 
         let marker = null;
         let polyline = L.polyline([], {color: '#F4C20D', weight: 4}).addTo(map);
+        let firstLoad = true;
 
         async function updateLocation() {
             if (!bookingId) return;
@@ -103,29 +115,41 @@
                     const lng = parseFloat(data.data.longitude);
                     const newPos = [lat, lng];
 
+                    // Update UI status
+                    document.getElementById('live-text').innerText = "LIVE";
+                    document.getElementById('live-indicator-dot').style.background = "#4CAF50";
+                    document.getElementById('live-indicator-dot').style.boxShadow = "0 0 5px #4CAF50";
+                    document.getElementById('waiting-overlay').style.display = 'none';
+
                     if (!marker) {
                         marker = L.marker(newPos, {icon: taxiIcon}).addTo(map);
                         map.setView(newPos, 16);
                     } else {
-                        // Smoothly move marker
                         marker.setLatLng(newPos);
                     }
                     
                     polyline.addLatLng(newPos);
                     
-                    // Auto-follow if marker moves out of bounds (optional)
-                    if (!map.getBounds().contains(newPos)) {
+                    if (firstLoad) {
+                        map.setView(newPos, 16);
+                        firstLoad = false;
+                    } else if (!map.getBounds().contains(newPos)) {
                         map.panTo(newPos);
                     }
+                } else {
+                    document.getElementById('waiting-overlay').style.display = 'flex';
                 }
             } catch (error) {
                 console.error("Tracking Error:", error);
+                document.getElementById('waiting-overlay').style.display = 'flex';
             }
         }
 
-        // Initial fetch and start polling
-        updateLocation();
-        setInterval(updateLocation, 3000); // Poll every 3 seconds as requested
+        // Initial fetch then start polling
+        if (bookingId) {
+            updateLocation();
+            setInterval(updateLocation, 3000); // Poll every 3 seconds as requested
+        }
     </script>
 </body>
 </html>
