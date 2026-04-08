@@ -190,7 +190,7 @@
                     const distanceKm = (feature.properties.summary.distance / 1000).toFixed(1);
                     
                     if (routeLayer) map.removeLayer(routeLayer);
-                    routeLayer = L.polyline(coords, {color: '#F4C20D', weight: 5, opacity: 0.8, dashArray: '1, 10'}).addTo(map);
+                    routeLayer = L.polyline(coords, {color: '#2196F3', weight: 5, opacity: 0.8, dashArray: '1, 10'}).addTo(map);
                     document.getElementById('trip-distance').innerText = `${distanceKm} KM`;
                 }
             } catch (e) { console.error("Routing Error:", e); }
