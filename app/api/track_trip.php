@@ -11,7 +11,7 @@
         #map { height: calc(100vh - 80px); width: 100%; }
         .header { height: 80px; background: #1c1c1c; color: white; display: flex; align-items: center; padding: 0 20px; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.3); position: relative; z-index: 1000; }
         .header h1 { margin: 0; font-size: 20px; font-weight: 600; }
-        .logo { height: 40px; }
+        .logo { height: 40px; width: 40px; border-radius: 50%; background: white; padding: 5px; object-fit: contain; }
         .status-container { display: flex; align-items: center; gap: 10px; }
         .status-dot { width: 10px; height: 10px; background: #4CAF50; border-radius: 50%; box-shadow: 0 0 5px #4CAF50; animation: blink 1.5s infinite; }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
@@ -85,7 +85,7 @@
         }
 
         // Initialize Map
-        const map = L.map('map').setView([20.5937, 78.9629], 5); // India center
+        const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([20.5937, 78.9629], 5); // India center
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
