@@ -63,9 +63,11 @@ try {
             $booking_id = $_GET['booking_id'] ?? '';
             if (empty($booking_id)) throw new Exception("Booking ID required");
 
-            $stmt = $pdo->prepare("SELECT dl.*, d.full_name as driver_name 
+            $stmt = $pdo->prepare("SELECT dl.*, d.full_name as driver_name, 
+                                          pb.pickup_location, pb.drop_location
                                   FROM driver_locations dl 
                                   JOIN drivers d ON dl.driver_id = d.id 
+                                  JOIN partner_bookings pb ON dl.booking_id = pb.id
                                   WHERE dl.booking_id = ? ORDER BY dl.last_updated DESC LIMIT 1");
             $stmt->execute([$booking_id]);
             $loc = $stmt->fetch();

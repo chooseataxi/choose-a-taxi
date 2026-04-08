@@ -18,6 +18,22 @@
         .info-pill { background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 20px; font-size: 13px; font-weight: 500; }
         .taxi-marker { filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5)); transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
         
+        /* Trip Detail Card */
+        .trip-detail-card { 
+            position: absolute; bottom: 20px; left: 20px; right: 20px; 
+            background: #262626; border-radius: 16px; padding: 20px; 
+            color: white; z-index: 1000; display: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05);
+            max-width: 500px; margin: 0 auto;
+        }
+        .trip-info-item { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+        .trip-info-item:last-child { margin-bottom: 0; }
+        .dot-connector { width: 12px; display: flex; flex-direction: column; align-items: center; }
+        .outer-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid #F4C20D; }
+        .inner-line { width: 2px; height: 25px; background: rgba(255,255,255,0.2); }
+        .location-text { font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .distance-badge { background: #333; color: #F4C20D; padding: 4px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; }
+
         /* New Prompt Overlay */
         #prompt-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 2000; display: none; align-items: center; justify-content: center; color: white; }
         .prompt-card { background: #262626; padding: 40px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); text-align: center; max-width: 400px; width: 90%; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
@@ -45,7 +61,7 @@
 
     <div id="waiting-overlay">
         <div class="loading-dot"></div>
-        Waiting for driver's signal...
+        Searching for trip details...
     </div>
 
     <div class="header">
@@ -61,6 +77,34 @@
     </div>
 
     <div id="map"></div>
+
+    <div class="trip-detail-card" id="trip-detail-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <span style="color: #888; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Trip Summary</span>
+            <div class="distance-badge" id="trip-distance">-- KM</div>
+        </div>
+        
+        <div class="trip-info-item">
+            <div class="dot-connector">
+                <div class="outer-dot" style="border-color: #4CAF50;"></div>
+                <div class="inner-line"></div>
+            </div>
+            <div style="flex: 1;">
+                <div style="color: #888; font-size: 10px; margin-bottom: 2px;">PICKUP</div>
+                <div class="location-text" id="pickup-text">--</div>
+            </div>
+        </div>
+
+        <div class="trip-info-item">
+            <div class="dot-connector">
+                <div class="outer-dot" style="border-color: #F4C20D;"></div>
+            </div>
+            <div style="flex: 1;">
+                <div style="color: #888; font-size: 10px; margin-bottom: 2px;">DROPOFF</div>
+                <div class="location-text" id="dropoff-text">--</div>
+            </div>
+        </div>
+    </div>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
@@ -100,9 +144,57 @@
             className: 'taxi-marker'
         });
 
+        const ORS_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImUxMjZkZTRiZjFkYzQwNWE4YzQ5ZDgzYmZmMjZkYTQ1IiwiaCI6Im11cm11cjY0In0=';
+        
+        const pickupIcon = L.icon({
+            iconUrl: 'https://cdn-icons-png.flaticon.com/512/1673/1673221.png',
+            iconSize: [36, 36], iconAnchor: [18, 36], className: 'pickup-marker'
+        });
+
+        const dropIcon = L.icon({
+            iconUrl: 'https://cdn-icons-png.flaticon.com/512/61/61168.png',
+            iconSize: [36, 36], iconAnchor: [18, 36], className: 'drop-marker'
+        });
+
         let marker = null;
+        let pickupMarker = null;
+        let dropMarker = null;
+        let routeLayer = null;
         let polyline = L.polyline([], {color: '#F4C20D', weight: 4}).addTo(map);
         let firstLoad = true;
+        let tripDetailsLoaded = false;
+
+        async function geocodeAddress(address) {
+            try {
+                const url = `https://api.openrouteservice.org/geocode/search?api_key=${ORS_KEY}&text=${encodeURIComponent(address)}&size=1`;
+                const resp = await fetch(url);
+                const data = await resp.json();
+                if (data.features && data.features.length > 0) {
+                    const coords = data.features[0].geometry.coordinates; // [lng, lat]
+                    return [coords[1], coords[0]]; // [lat, lng]
+                }
+            } catch (e) { console.error("Geocode Error:", e); }
+            return null;
+        }
+
+        async function drawRoute(startRaw, endRaw) {
+            try {
+                // startRaw is [lat, lng]
+                const url = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${ORS_KEY}&start=${startRaw[1]},${startRaw[0]}&end=${endRaw[1]},${endRaw[0]}`;
+                const resp = await fetch(url);
+                const data = await resp.json();
+                
+                if (data.features && data.features.length > 0) {
+                    const feature = data.features[0];
+                    const coords = feature.geometry.coordinates.map(c => [c[1], c[0]]);
+                    const distanceKm = (feature.properties.summary.distance / 1000).toFixed(1);
+                    
+                    if (routeLayer) map.removeLayer(routeLayer);
+                    routeLayer = L.polyline(coords, {color: '#F4C20D', weight: 5, opacity: 0.8, dashArray: '1, 10'}).addTo(map);
+                    document.getElementById('trip-distance').innerText = `${distanceKm} KM`;
+                }
+            } catch (e) { console.error("Routing Error:", e); }
+        }
 
         async function updateLocation() {
             if (!bookingId) return;
@@ -114,6 +206,29 @@
                     const lat = parseFloat(data.data.latitude);
                     const lng = parseFloat(data.data.longitude);
                     const newPos = [lat, lng];
+
+                    // Process metadata once
+                    if (!tripDetailsLoaded) {
+                        const pickupAddr = data.data.pickup_location;
+                        const dropAddr = data.data.drop_location;
+                        document.getElementById('pickup-text').innerText = pickupAddr;
+                        document.getElementById('dropoff-text').innerText = dropAddr;
+                        document.getElementById('trip-detail-card').style.display = 'block';
+
+                        const pCoords = await geocodeAddress(pickupAddr);
+                        const dCoords = await geocodeAddress(dropAddr);
+
+                        if (pCoords) {
+                            pickupMarker = L.marker(pCoords, {icon: pickupIcon}).addTo(map).bindPopup("<b>Pickup:</b> " + pickupAddr);
+                        }
+                        if (dCoords) {
+                            dropMarker = L.marker(dCoords, {icon: dropIcon}).addTo(map).bindPopup("<b>Goal:</b> " + dropAddr);
+                        }
+                        if (pCoords && dCoords) {
+                            drawRoute(pCoords, dCoords);
+                        }
+                        tripDetailsLoaded = true;
+                    }
 
                     // Update UI status
                     document.getElementById('live-text').innerText = "LIVE";
