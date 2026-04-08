@@ -50,7 +50,7 @@
 
     <div class="header">
         <div style="display:flex; align-items:center; gap:15px;">
-            <img src="../assets/logo.png" alt="Logo" class="logo" id="main-logo">
+            <img src="../../assets/logo.png" alt="Logo" class="logo" id="main-logo">
             <h1>Live Tracking</h1>
         </div>
         <div class="status-container">
