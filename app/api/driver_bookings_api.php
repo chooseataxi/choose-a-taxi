@@ -32,7 +32,7 @@ try {
     switch ($action) {
         case 'get_my_bookings':
             $stmt = $pdo->prepare("
-                SELECT ab.id as acceptance_id, ab.booking_id, ab.status as acceptance_status, ab.trip_status,
+                SELECT ab.id as acceptance_id, ab.booking_id, ab.driver_id, ab.status as acceptance_status, ab.trip_status,
                        pb.pickup_location, pb.drop_location, pb.start_date, pb.start_time,
                        pb.total_amount, pb.booking_type,
                        p.full_name as partner_name, p.mobile as partner_mobile
