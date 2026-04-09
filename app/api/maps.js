@@ -44,7 +44,7 @@ const lightStyle = [
 
 function initMap() {
     const isDark = (localStorage.getItem('theme') || 'light') === 'dark';
-    
+
     map = new google.maps.Map(document.getElementById("map"), {
         center: { lat: 20.5937, lng: 78.9629 },
         zoom: 5,
@@ -66,7 +66,7 @@ function initMap() {
     geocoder = new google.maps.Geocoder();
 
     window.applyMapTheme = (isDarkTheme) => {
-        map.setOptions({ 
+        map.setOptions({
             styles: isDarkTheme ? darkStyle : lightStyle,
             backgroundColor: isDarkTheme ? '#1c1c1c' : '#f5f5f5'
         });
@@ -82,7 +82,7 @@ function initMap() {
 
 function getTaxiIcon(isDark) {
     return {
-        url: isDark ? '../../assets/taxi_dark.png' : '../../assets/taxi_light.png',
+        url: isDark ? '../../assets/driver-icon.png' : '../../assets/driver-icon.png',
         scaledSize: new google.maps.Size(46, 46),
         anchor: new google.maps.Point(23, 23)
     };
