@@ -16,8 +16,8 @@ let targetPosition = null;
 let animationStartTime = null;
 const POLLING_INTERVAL = 3000;
 
-// Custom Styles for Premium Look
-const mapStyles = [
+// Professional Map Styles
+const darkStyle = [
     { "elementType": "geometry", "stylers": [{ "color": "#212121" }] },
     { "elementType": "labels.icon", "stylers": [{ "visibility": "off" }] },
     { "elementType": "labels.text.fill", "stylers": [{ "color": "#757575" }] },
@@ -29,13 +29,28 @@ const mapStyles = [
     { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#000000" }] }
 ];
 
+const lightStyle = [
+    { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#e9e9e9" }, { "lightness": 17 }] },
+    { "featureType": "landscape", "elementType": "geometry", "stylers": [{ "color": "#f5f5f5" }, { "lightness": 20 }] },
+    { "featureType": "road.highway", "elementType": "geometry.fill", "stylers": [{ "color": "#ffffff" }, { "lightness": 17 }] },
+    { "featureType": "road.highway", "elementType": "geometry.stroke", "stylers": [{ "color": "#ffffff" }, { "lightness": 29 }, { "weight": 0.2 }] },
+    { "featureType": "road.arterial", "elementType": "geometry", "stylers": [{ "color": "#ffffff" }, { "lightness": 18 }] },
+    { "featureType": "road.local", "elementType": "geometry", "stylers": [{ "color": "#ffffff" }, { "lightness": 16 }] },
+    { "featureType": "poi", "elementType": "geometry", "stylers": [{ "color": "#f5f5f5" }, { "lightness": 21 }] },
+    { "elementType": "labels.text.stroke", "stylers": [{ "visibility": "on" }, { "color": "#ffffff" }, { "lightness": 16 }] },
+    { "elementType": "labels.text.fill", "stylers": [{ "saturation": 36 }, { "color": "#333333" }, { "lightness": 40 }] },
+    { "elementType": "labels.icon", "stylers": [{ "visibility": "off" }] }
+];
+
 function initMap() {
+    const isDark = (localStorage.getItem('theme') || 'light') === 'dark';
+    
     map = new google.maps.Map(document.getElementById("map"), {
-        center: { lat: 20.5937, lng: 78.9629 }, // India center
+        center: { lat: 20.5937, lng: 78.9629 },
         zoom: 5,
-        styles: mapStyles,
+        styles: isDark ? darkStyle : lightStyle,
         disableDefaultUI: true,
-        backgroundColor: '#1c1c1c'
+        backgroundColor: isDark ? '#1c1c1c' : '#f5f5f5'
     });
 
     directionsService = new google.maps.DirectionsService();
@@ -50,9 +65,27 @@ function initMap() {
     });
     geocoder = new google.maps.Geocoder();
 
+    window.applyMapTheme = (isDarkTheme) => {
+        map.setOptions({ 
+            styles: isDarkTheme ? darkStyle : lightStyle,
+            backgroundColor: isDarkTheme ? '#1c1c1c' : '#f5f5f5'
+        });
+        if (taxiMarker) {
+            taxiMarker.setIcon(getTaxiIcon(isDarkTheme));
+        }
+    };
+
     if (bookingId) {
         startTrackingProcess();
     }
+}
+
+function getTaxiIcon(isDark) {
+    return {
+        url: isDark ? '../../assets/taxi_dark.png' : '../../assets/taxi_light.png',
+        scaledSize: new google.maps.Size(46, 46),
+        anchor: new google.maps.Point(23, 23)
+    };
 }
 
 async function startTrackingProcess() {
@@ -72,7 +105,6 @@ async function updateLocation() {
             const lng = parseFloat(data.data.longitude);
             const newPos = { lat, lng };
 
-            // Handle metadata once
             if (!tripDetailsLoaded) {
                 loadTripMetadata(data.data.pickup_location, data.data.drop_location);
             }
@@ -81,17 +113,15 @@ async function updateLocation() {
             document.getElementById('live-indicator-dot').style.background = "#4CAF50";
             document.getElementById('waiting-overlay').style.display = 'none';
 
+            const isDark = document.body.getAttribute('data-theme') === 'dark';
+
             if (!currentPosition) {
                 currentPosition = newPos;
                 targetPosition = newPos;
                 taxiMarker = new google.maps.Marker({
                     position: newPos,
                     map: map,
-                    icon: {
-                        url: 'https://cdn-icons-png.flaticon.com/512/3448/3448339.png',
-                        scaledSize: new google.maps.Size(40, 40),
-                        anchor: new google.maps.Point(20, 20)
-                    },
+                    icon: getTaxiIcon(isDark),
                     optimized: false
                 });
                 map.setCenter(newPos);
