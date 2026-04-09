@@ -106,11 +106,13 @@
         </div>
     </div>
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCT5jMYUaHtsT2Z2IzkQgl-8TsIw_946VY&callback=initMap&libraries=geometry,places" async defer></script>
+    <script src="maps.js"></script>
     <script>
         let urlParams = new URLSearchParams(window.location.search);
         let bookingId = urlParams.get('booking_id');
+        let tripDetailsLoaded = false;
         
         if (!bookingId) {
             document.getElementById('prompt-overlay').style.display = 'flex';
@@ -126,144 +128,6 @@
             } else {
                 alert("Please enter a valid Booking ID");
             }
-        }
-
-        // Initialize Map
-        const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([20.5937, 78.9629], 5); // India center
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap drivers'
-        }).addTo(map);
-
-        // Custom Taxi Icon
-        const taxiIcon = L.icon({
-            iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448339.png', // Taxi top-view icon
-            iconSize: [40, 40],
-            iconAnchor: [20, 20],
-            className: 'taxi-marker'
-        });
-
-        const ORS_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImUxMjZkZTRiZjFkYzQwNWE4YzQ5ZDgzYmZmMjZkYTQ1IiwiaCI6Im11cm11cjY0In0=';
-        
-        const pickupIcon = L.icon({
-            iconUrl: 'https://cdn-icons-png.flaticon.com/512/1673/1673221.png',
-            iconSize: [36, 36], iconAnchor: [18, 36], className: 'pickup-marker'
-        });
-
-        const dropIcon = L.icon({
-            iconUrl: 'https://cdn-icons-png.flaticon.com/512/61/61168.png',
-            iconSize: [36, 36], iconAnchor: [18, 36], className: 'drop-marker'
-        });
-
-        let marker = null;
-        let pickupMarker = null;
-        let dropMarker = null;
-        let routeLayer = null;
-        let polyline = L.polyline([], {color: '#F4C20D', weight: 4}).addTo(map);
-        let firstLoad = true;
-        let tripDetailsLoaded = false;
-
-        async function geocodeAddress(address) {
-            try {
-                const url = `https://api.openrouteservice.org/geocode/search?api_key=${ORS_KEY}&text=${encodeURIComponent(address)}&size=1`;
-                const resp = await fetch(url);
-                const data = await resp.json();
-                if (data.features && data.features.length > 0) {
-                    const coords = data.features[0].geometry.coordinates; // [lng, lat]
-                    return [coords[1], coords[0]]; // [lat, lng]
-                }
-            } catch (e) { console.error("Geocode Error:", e); }
-            return null;
-        }
-
-        async function drawRoute(startRaw, endRaw) {
-            try {
-                // startRaw is [lat, lng]
-                const url = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${ORS_KEY}&start=${startRaw[1]},${startRaw[0]}&end=${endRaw[1]},${endRaw[0]}`;
-                const resp = await fetch(url);
-                const data = await resp.json();
-                
-                if (data.features && data.features.length > 0) {
-                    const feature = data.features[0];
-                    const coords = feature.geometry.coordinates.map(c => [c[1], c[0]]);
-                    const distanceKm = (feature.properties.summary.distance / 1000).toFixed(1);
-                    
-                    if (routeLayer) map.removeLayer(routeLayer);
-                    routeLayer = L.polyline(coords, {color: '#2196F3', weight: 5, opacity: 0.8, dashArray: '1, 10'}).addTo(map);
-                    document.getElementById('trip-distance').innerText = `${distanceKm} KM`;
-                }
-            } catch (e) { console.error("Routing Error:", e); }
-        }
-
-        async function updateLocation() {
-            if (!bookingId) return;
-            try {
-                const response = await fetch(`driver_location_api.php?action=get_location&booking_id=${bookingId}`);
-                const data = await response.json();
-
-                if (data.success && data.data) {
-                    const lat = parseFloat(data.data.latitude);
-                    const lng = parseFloat(data.data.longitude);
-                    const newPos = [lat, lng];
-
-                    // Process metadata once
-                    if (!tripDetailsLoaded) {
-                        const pickupAddr = data.data.pickup_location;
-                        const dropAddr = data.data.drop_location;
-                        document.getElementById('pickup-text').innerText = pickupAddr;
-                        document.getElementById('dropoff-text').innerText = dropAddr;
-                        document.getElementById('trip-detail-card').style.display = 'block';
-
-                        const pCoords = await geocodeAddress(pickupAddr);
-                        const dCoords = await geocodeAddress(dropAddr);
-
-                        if (pCoords) {
-                            pickupMarker = L.marker(pCoords, {icon: pickupIcon}).addTo(map).bindPopup("<b>Pickup:</b> " + pickupAddr);
-                        }
-                        if (dCoords) {
-                            dropMarker = L.marker(dCoords, {icon: dropIcon}).addTo(map).bindPopup("<b>Goal:</b> " + dropAddr);
-                        }
-                        if (pCoords && dCoords) {
-                            drawRoute(pCoords, dCoords);
-                        }
-                        tripDetailsLoaded = true;
-                    }
-
-                    // Update UI status
-                    document.getElementById('live-text').innerText = "LIVE";
-                    document.getElementById('live-indicator-dot').style.background = "#4CAF50";
-                    document.getElementById('live-indicator-dot').style.boxShadow = "0 0 5px #4CAF50";
-                    document.getElementById('waiting-overlay').style.display = 'none';
-
-                    if (!marker) {
-                        marker = L.marker(newPos, {icon: taxiIcon}).addTo(map);
-                        map.setView(newPos, 16);
-                    } else {
-                        marker.setLatLng(newPos);
-                    }
-                    
-                    polyline.addLatLng(newPos);
-                    
-                    if (firstLoad) {
-                        map.setView(newPos, 16);
-                        firstLoad = false;
-                    } else if (!map.getBounds().contains(newPos)) {
-                        map.panTo(newPos);
-                    }
-                } else {
-                    document.getElementById('waiting-overlay').style.display = 'flex';
-                }
-            } catch (error) {
-                console.error("Tracking Error:", error);
-                document.getElementById('waiting-overlay').style.display = 'flex';
-            }
-        }
-
-        // Initial fetch then start polling
-        if (bookingId) {
-            updateLocation();
-            setInterval(updateLocation, 3000); // Poll every 3 seconds as requested
         }
     </script>
 </body>
