@@ -34,11 +34,14 @@ try {
             $stmt = $pdo->prepare("
                 SELECT ab.id as acceptance_id, ab.booking_id, ab.driver_id, ab.status as acceptance_status, ab.trip_status,
                        pb.pickup_location, pb.drop_location, pb.start_date, pb.start_time,
-                       pb.total_amount, pb.booking_type,
+                       pb.total_amount, pb.booking_type, pb.toll_tax, pb.parking,
+                       ct.name AS car_type_name, ct.image AS car_type_image,
                        p.full_name as partner_name, p.mobile as partner_mobile
                 FROM accepted_bookings ab 
                 JOIN partner_bookings pb ON ab.booking_id = pb.id 
                 JOIN partners p ON pb.partner_id = p.id
+                LEFT JOIN cars c ON c.id = pb.car_type
+                LEFT JOIN car_types ct ON ct.id = c.type_id
                 WHERE ab.driver_id = ? 
                 ORDER BY pb.start_date DESC, pb.start_time DESC
             ");
