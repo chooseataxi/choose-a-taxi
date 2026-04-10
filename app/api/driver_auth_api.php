@@ -126,6 +126,19 @@ try {
             ]);
             break;
 
+        case 'get_driver_details':
+            $driver_id = $_POST['driver_id'] ?? $_GET['driver_id'] ?? '';
+            if (empty($driver_id)) throw new Exception("Driver ID required");
+            $stmt = $pdo->prepare("SELECT * FROM drivers WHERE id = ? LIMIT 1");
+            $stmt->execute([$driver_id]);
+            $driver = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($driver) {
+                echo json_encode(['success' => true, 'driver' => $driver]);
+            } else {
+                throw new Exception("Driver not found");
+            }
+            break;
+
         default:
             throw new Exception("Invalid action.");
     }
