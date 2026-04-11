@@ -103,7 +103,8 @@ if ($action === 'create_booking') {
             $car_type, $start_date, $start_time, $end_date, $end_time,
             $pricing_option, $total_amount, $commission, $toll, $parking, $note, $preferences
         ]);
-        echo json_encode(["status" => "success", "message" => "Booking created successfully!"]);
+        $bookingId = $pdo->lastInsertId();
+        echo json_encode(["status" => "success", "message" => "Booking created successfully!", "booking_id" => $bookingId]);
     } catch (PDOException $e) {
         echo json_encode(["status" => "error", "message" => "SQL Error: " . $e->getMessage()]);
     }
@@ -209,6 +210,34 @@ if ($action === 'cancel_booking') {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// ACTION: delete_vehicle (kept for partner vehicles)
+// ACTION: update_booking_preferences
+// ──────────────────────────────────────────────────────────────────────────────
+if ($action === 'update_booking_preferences') {
+    $raw = file_get_contents("php://input");
+    $data = json_decode($raw, true);
+    if (!is_array($data)) $data = $_POST;
+
+    $booking_id = $data['booking_id'] ?? '';
+    $partner_id = $data['partner_id'] ?? '';
+    $approach = $data['approach_type'] ?? 'first_driver';
+    $allow_calls = isset($data['allow_calls']) ? (int)$data['allow_calls'] : 1;
+
+    if (empty($booking_id) || empty($partner_id)) {
+        echo json_encode(["status" => "error", "message" => "Booking ID and Partner ID are required"]);
+        exit;
+    }
+
+    try {
+        $stmt = $pdo->prepare("UPDATE partner_bookings SET approach_type = ?, allow_calls = ? WHERE id = ? AND partner_id = ?");
+        $stmt->execute([$approach, $allow_calls, $booking_id, $partner_id]);
+        echo json_encode(["status" => "success", "message" => "Booking preferences updated successfully"]);
+    } catch (PDOException $e) {
+        echo json_encode(["status" => "error", "message" => "DB Error: " . $e->getMessage()]);
+    }
+    exit;
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// ACTION: default
 // ──────────────────────────────────────────────────────────────────────────────
 echo json_encode(["status" => "error", "message" => "Invalid action requested"]);
