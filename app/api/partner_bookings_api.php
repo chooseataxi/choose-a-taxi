@@ -167,6 +167,48 @@ if ($action === 'get_market_bookings') {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
+// ACTION: cancel_booking
+// ──────────────────────────────────────────────────────────────────────────────
+if ($action === 'cancel_booking') {
+    $booking_id = $_REQUEST['booking_id'] ?? '';
+    $partner_id = $_REQUEST['partner_id'] ?? '';
+
+    if (empty($booking_id) || empty($partner_id)) {
+        echo json_encode(["status" => "error", "message" => "Booking ID and Partner ID are required"]);
+        exit;
+    }
+
+    try {
+        $pdo->beginTransaction();
+
+        // 1. Verify owner
+        $stmt = $pdo->prepare("SELECT partner_id, status FROM partner_bookings WHERE id = ?");
+        $stmt->execute([$booking_id]);
+        $booking = $stmt->fetch();
+
+        if (!$booking) throw new Exception("Booking not found");
+        if ($booking['partner_id'] != $partner_id) throw new Exception("You are not authorized to cancel this booking");
+        if ($booking['status'] === 'Cancelled') throw new Exception("Booking is already cancelled");
+        if ($booking['status'] === 'Completed') throw new Exception("Cannot cancel a completed booking");
+
+        // 2. Update booking status
+        $stmt = $pdo->prepare("UPDATE partner_bookings SET status = 'Cancelled' WHERE id = ?");
+        $stmt->execute([$booking_id]);
+
+        // 3. Update acceptance status if any (where not already cancelled)
+        $stmt = $pdo->prepare("UPDATE accepted_bookings SET status = 'Cancelled' WHERE booking_id = ? AND status != 'Cancelled'");
+        $stmt->execute([$booking_id]);
+
+        $pdo->commit();
+        echo json_encode(["status" => "success", "message" => "Booking cancelled successfully"]);
+    } catch (Exception $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        echo json_encode(["status" => "error", "message" => $e->getMessage()]);
+    }
+    exit;
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 // ACTION: delete_vehicle (kept for partner vehicles)
 // ──────────────────────────────────────────────────────────────────────────────
 echo json_encode(["status" => "error", "message" => "Invalid action requested"]);
