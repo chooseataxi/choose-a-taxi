@@ -184,11 +184,14 @@ try {
             $accepted = $stmt->fetch();
             if ($accepted && $accepted['partner_id'] != $partner_id) throw new Exception("Already accepted by another partner");
 
-            // 2. Check Wallet
+            // 2. Check Wallet (Must have commission + 300 minimum balance)
             $stmt = $pdo->prepare("SELECT balance FROM partner_wallet WHERE partner_id = ?");
             $stmt->execute([$partner_id]);
             $wallet = $stmt->fetch();
-            if (!$wallet || $wallet['balance'] < $commission) throw new Exception("Insufficient wallet balance. Please add funds.");
+            $required = (float)$commission + 300;
+            if (!$wallet || $wallet['balance'] < $required) {
+                throw new Exception("Insufficient wallet balance. You need a minimum balance of ₹" . number_format($required, 2) . " (₹300 security deposit + ₹" . $commission . " commission) to accept this booking.");
+            }
 
             $pdo->beginTransaction();
             try {
@@ -247,7 +250,14 @@ try {
             $accepted = $stmt->fetch();
             if ($accepted && $accepted['partner_id'] != $partner_id) throw new Exception("Already accepted by another partner");
 
-            // 2.5 Fallback for Negotiable commission if null
+            // 2.1 Check Wallet Minimum Balance (₹300)
+            $stmt = $pdo->prepare("SELECT balance FROM partner_wallet WHERE partner_id = ?");
+            $stmt->execute([$partner_id]);
+            $wallet = $stmt->fetch();
+            $required_base = 300; // Minimum security deposit
+            if (!$wallet || $wallet['balance'] < $required_base) {
+                throw new Exception("Minimum wallet balance of ₹300 (security deposit) is required to accept bookings via Razorpay. Please top up your wallet first.");
+            }
             if (empty($commission) || $commission == 0) {
                 $qStmt = $pdo->prepare("SELECT payload FROM booking_chats WHERE booking_id = ? AND type = 'quote_request' ORDER BY id DESC LIMIT 1");
                 $qStmt->execute([$booking_id]);
