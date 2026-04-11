@@ -69,6 +69,34 @@ function updateWallet($pdo, $partner_id, $amount, $type, $description) {
     } catch (Exception $e) { return false; }
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// Helper: Check Vehicle Compliance (Dates & Permit)
+// ──────────────────────────────────────────────────────────────────────────────
+function isVehicleCompliant($v) {
+    $today = date('Y-m-d');
+    
+    // 1. Check Date Formats and Expiry
+    $fit     = $v['fit_up_to'] ?? '';
+    $ins     = $v['insurance_upto'] ?? '';
+    $permit  = $v['permit_valid_upto'] ?? '';
+    $pType   = strtolower($v['permit_type'] ?? '');
+
+    if (empty($fit) || empty($ins) || empty($permit)) return ['status' => false, 'msg' => 'Required documents (Fitness, Insurance, or Permit) are missing.'];
+    
+    if (strtotime($fit) < strtotime($today)) return ['status' => false, 'msg' => 'Vehicle Fitness (Passing) has expired.'];
+    if (strtotime($ins) < strtotime($today)) return ['status' => false, 'msg' => 'Vehicle Insurance has expired.'];
+    if (strtotime($permit) < strtotime($today)) return ['status' => false, 'msg' => 'Vehicle Permit has expired.'];
+
+    // 2. Check for Private vs Taxi
+    // Permits usually contain 'Taxi' or 'Transport' for commercial vehicles.
+    // If it's explicitly 'Private' or no permit type provided, it's likely not a taxi.
+    if (empty($pType) || strpos($pType, 'private') !== false) {
+        return ['status' => false, 'msg' => "This vehicle can't be added because it's a private vehicle, not a taxi."];
+    }
+
+    return ['status' => true];
+}
+
 // ──────────────────────────────────────────────
 // ACTION: lookup_rc  — hits Surepass API
 // ──────────────────────────────────────────────
@@ -162,6 +190,18 @@ if ($action === 'add_vehicle') {
     $permit_valid_upto       = $_POST['permit_valid_upto'] ?? '';
     $raw_rc_data             = $_POST['raw_rc_data'] ?? '{}';
 
+    // ── Pre-Check Compliance ──
+    $compliance = isVehicleCompliant([
+        'fit_up_to' => $fit_up_to,
+        'insurance_upto' => $insurance_upto,
+        'permit_valid_upto' => $permit_valid_upto,
+        'permit_type' => $permit_type
+    ]);
+    if (!$compliance['status']) {
+        echo json_encode(['status' => 'error', 'message' => $compliance['msg']]);
+        exit;
+    }
+
     // ── Handle image uploads ──
     $uploadDir   = __DIR__ . '/../../uploads/vehicles/';
     if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
@@ -227,6 +267,18 @@ if ($action === 'get_vehicles') {
         $stmt = $pdo->prepare("SELECT * FROM partner_vehicles WHERE partner_id = ? ORDER BY id DESC");
         $stmt->execute([$partner_id]);
         $vehicles = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Auto-Deactivate expired vehicles
+        foreach ($vehicles as &$v) {
+            if ($v['status'] === 'Active') {
+                $compliance = isVehicleCompliant($v);
+                if (!$compliance['status']) {
+                    $pdo->prepare("UPDATE partner_vehicles SET status = 'Inactive' WHERE id = ?")
+                        ->execute([$v['id']]);
+                    $v['status'] = 'Inactive';
+                }
+            }
+        }
         echo json_encode(['status' => 'success', 'vehicles' => $vehicles]);
     } catch (PDOException $e) {
         echo json_encode(['status' => 'error', 'message' => 'DB Error: ' . $e->getMessage()]);
@@ -254,6 +306,83 @@ if ($action === 'delete_vehicle') {
         echo json_encode(['status' => 'success', 'message' => 'Vehicle removed.']);
     } catch (PDOException $e) {
         echo json_encode(['status' => 'error', 'message' => 'DB Error: ' . $e->getMessage()]);
+    }
+    exit;
+}
+
+// ──────────────────────────────────────────────
+// ACTION: renew_vehicle
+// ──────────────────────────────────────────────
+if ($action === 'renew_vehicle') {
+    $raw  = file_get_contents("php://input");
+    $data = json_decode($raw, true);
+    if (!is_array($data)) $data = $_POST;
+
+    $vehicle_id = $data['vehicle_id'] ?? '';
+    $partner_id = $data['partner_id'] ?? '';
+    
+    if (empty($vehicle_id) || empty($partner_id)) {
+        echo json_encode(['status' => 'error', 'message' => 'vehicle_id and partner_id required']);
+        exit;
+    }
+
+    try {
+        // 1. Get current vehicle details
+        $stmt = $pdo->prepare("SELECT * FROM partner_vehicles WHERE id = ? AND partner_id = ?");
+        $stmt->execute([$vehicle_id, $partner_id]);
+        $vehicle = $stmt->fetch();
+        if (!$vehicle) throw new Exception("Vehicle not found");
+
+        // 2. Check Wallet for ₹7.50
+        $stmt = $pdo->prepare("SELECT balance FROM partner_wallet WHERE partner_id = ?");
+        $stmt->execute([$partner_id]);
+        $wallet = $stmt->fetch();
+        $fee = 7.50;
+        if (!$wallet || $wallet['balance'] < $fee) throw new Exception("Insufficient balance to renew. Fee: ₹$fee");
+
+        // 3. Re-fetch from Surepass
+        $rc_number = $vehicle['rc_number'];
+        $surepassToken = $_ENV['SUREPASS_TOKEN'] ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDg3NzAwMywianRpIjoiZGUxNGRmYmUtMmE3NC00NGQ5LWIxMzEtZGZhMWNlODBhMTc2IiwidHlwZSI6ImFjY2VzcyIsImlkZW50aXR5IjoiZGV2LnJvaGl0XzAzNDVAc3VyZXBhc3MuaW8iLCJuYmYiOjE3NzQ4NzcwMDMsImV4cCI6MjQwNTU5NzAwMywiZW1haWwiOiJyb2hpdF8wMzQ1QHN1cmVwYXNzLmlvIiwidGVuYW50X2lkIjoibWFpbiIsInVzZXJfY2xhaW1zIjp7InNjb3BlcyI6WyJ1c2VyIl19fQ.UC3ebDNZdNjyUxDhez-7IIACaf224xpA5rl8DaQRFpU';
+        $surepassUrl   = rtrim($_ENV['SUREPASS_BASE_URL'] ?? 'https://kyc-api.surepass.app/api/v1', '/') . '/rc/rc-full';
+
+        $ch = curl_init($surepassUrl);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_HTTPHEADER     => ['Content-Type: application/json', "Authorization: Bearer $surepassToken"],
+            CURLOPT_POSTFIELDS     => json_encode(['id_number' => $rc_number]),
+            CURLOPT_TIMEOUT        => 15,
+        ]);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode !== 200) throw new Exception("Document re-fetch failed. Please try later.");
+        $rcJson = json_decode($response, true);
+        $newData = $rcJson['data'];
+
+        // 4. Validate New Compliance
+        $compliance = isVehicleCompliant($newData);
+        if (!$compliance['status']) throw new Exception("Renewal failed: " . $compliance['msg']);
+
+        // 5. Update DB & Wallet
+        $pdo->beginTransaction();
+        $stmt = $pdo->prepare("UPDATE partner_vehicles SET 
+            fit_up_to = ?, insurance_upto = ?, permit_valid_upto = ?, 
+            rc_status = ?, status = 'Active', raw_rc_data = ?
+            WHERE id = ?");
+        $stmt->execute([
+            $newData['fit_up_to'], $newData['insurance_upto'], $newData['permit_valid_upto'],
+            $newData['rc_status'] ?? 'Active', json_encode($newData), $vehicle_id
+        ]);
+
+        updateWallet($pdo, $partner_id, $fee, 'Debit', "Document renewal fee for Vehicle: " . $vehicle['maker_model'] . " ($rc_number)");
+        $pdo->commit();
+
+        echo json_encode(['status' => 'success', 'message' => 'Vehicle documents renewed and updated successfully.']);
+    } catch (Exception $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     }
     exit;
 }
