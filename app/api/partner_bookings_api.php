@@ -15,11 +15,12 @@ $action = $_REQUEST['action'] ?? '';
 if ($action === 'get_cars') {
     $trip_type = $_GET['trip_type'] ?? '';
     try {
-        $sql = "SELECT c.id, c.name, c.model, ct.name AS type_name, ct.image AS type_image
+        $sql = "SELECT MIN(c.id) as id, ct.name AS type_name, ct.image AS type_image
                 FROM cars c 
                 JOIN trip_types t ON c.trip_type_id = t.id 
                 LEFT JOIN car_types ct ON c.type_id = ct.id
-                WHERE c.status = 'Active' AND t.name LIKE ?";
+                WHERE c.status = 'Active' AND t.name LIKE ?
+                GROUP BY ct.name";
         $stmt = $pdo->prepare($sql);
         $stmt->execute(["%$trip_type%"]);
         $cars = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -36,7 +37,7 @@ if ($action === 'get_cars') {
         $formatted = array_map(function($c) { 
             return [
                 'id'         => $c['id'],
-                'name'       => trim($c['name'] . ' ' . ($c['model'] ?? '')),
+                'name'       => $c['type_name'] ?? 'Unknown Type',
                 'type_name'  => $c['type_name'] ?? '',
                 'type_image' => $c['type_image'] ?? '',
             ];
