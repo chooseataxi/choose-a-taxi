@@ -108,6 +108,9 @@ function verifyDrivingLicense($license_number, $dob)
 try {
     switch ($action) {
         case 'get_drivers':
+            // Auto-deactivate expired drivers before sending list
+            $pdo->prepare("UPDATE drivers SET status = 'Inactive' WHERE doe < CURDATE() AND status = 'Active' AND partner_id = ?")->execute([$partner_id]);
+
             $stmt = $pdo->prepare("SELECT * FROM drivers WHERE partner_id = ? ORDER BY id DESC");
             $stmt->execute([$partner_id]);
             $drivers = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -184,9 +187,58 @@ try {
             if (!$driver_id || !$status)
                 throw new Exception("Missing parameters");
 
+            if ($status === 'Active') {
+                $stmt = $pdo->prepare("SELECT doe FROM drivers WHERE id = ? AND partner_id = ?");
+                $stmt->execute([$driver_id, $partner_id]);
+                $d = $stmt->fetch();
+                if ($d && strtotime($d['doe']) < time()) {
+                    throw new Exception("Cannot activate: Driving License is expired. Please renew first.");
+                }
+            }
+
             $stmt = $pdo->prepare("UPDATE drivers SET status = ? WHERE id = ? AND partner_id = ?");
             $stmt->execute([$status, $driver_id, $partner_id]);
             echo json_encode(["status" => "success", "message" => "Status updated"]);
+            break;
+
+        case 'renew_license':
+            $driver_id = $_POST['driver_id'] ?? '';
+            if (!$driver_id) throw new Exception("Driver ID required");
+
+            $stmt = $pdo->prepare("SELECT * FROM drivers WHERE id = ? AND partner_id = ?");
+            $stmt->execute([$driver_id, $partner_id]);
+            $driver = $stmt->fetch();
+            if (!$driver) throw new Exception("Driver not found");
+
+            // 1. Check Wallet for fee (7.50)
+            $stmt = $pdo->prepare("SELECT balance FROM partner_wallet WHERE partner_id = ?");
+            $stmt->execute([$partner_id]);
+            $wallet = $stmt->fetch();
+            $fee = 7.50;
+            if (!$wallet || $wallet['balance'] < $fee) {
+                throw new Exception("Insufficient wallet balance. Please add at least ₹7.50 to your wallet to renew this license.");
+            }
+
+            // 2. Verify with Surepass
+            $verification = verifyDrivingLicense($driver['license_number'], $driver['dob']);
+            if ($verification['status'] !== 'success') throw new Exception($verification['message']);
+            
+            $data = $verification['data'];
+            // Check if new doe is still in the past
+            if (strtotime($data['doe']) <= time()) {
+                 throw new Exception("License still shows as expired in official records (Expires: " . $data['doe'] . "). Please try again once it is updated in the Parivahan system.");
+            }
+
+            // 3. Deduct Fee
+            if (!updateWallet($pdo, $partner_id, $fee, 'Debit', "License Renewal fee for Driver: " . $driver['full_name'])) {
+                throw new Exception("Wallet deduction failed");
+            }
+
+            // 4. Update DB
+            $stmt = $pdo->prepare("UPDATE drivers SET doe = ?, doi = ?, status = 'Active' WHERE id = ?");
+            $stmt->execute([$data['doe'], $data['doi'], $driver_id]);
+
+            echo json_encode(["status" => "success", "message" => "License renewed successfully and Driver activated!", "doe" => $data['doe']]);
             break;
 
         case 'delete_driver':
