@@ -41,8 +41,20 @@ $page_title = "Edit & Verify Partner";
             <!-- Left Side: Profile Editing -->
             <div class="col-lg-7">
                 <div class="card shadow-lg border-0 rounded-4 overflow-hidden h-100">
-                    <div class="card-header bg-dark py-3">
-                        <h5 class="card-title mb-0 text-white fw-bold">Primary Details</h5>
+                    <div class="card-body p-4 text-center border-bottom bg-light">
+                        <div class="position-relative d-inline-block">
+                            <div class="rounded-circle shadow border border-4 border-white overflow-hidden mb-3" style="width: 120px; height: 120px; background: #fff;">
+                                <?php if (!empty($partner['selfie_link'])): ?>
+                                    <img src="../../uploads/partners/<?= $partner['selfie_link'] ?>" style="width:100%; height:100%; object-fit:cover;">
+                                <?php else: ?>
+                                    <div class="h-100 d-flex align-items-center justify-content-center bg-gray-200">
+                                        <i class="fas fa-user fa-3x text-muted"></i>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <h4 class="fw-bold mb-0 text-dark"><?= htmlspecialchars($partner['full_name'] ?? 'Incomplete Profile') ?></h4>
+                        <p class="text-muted small mb-0"><i class="fas fa-id-badge me-1"></i> Partner ID: #<?= $partner['id'] ?></p>
                     </div>
                     <div class="card-body p-4">
                         <form id="editPartnerForm">
@@ -97,58 +109,62 @@ $page_title = "Edit & Verify Partner";
                     </div>
                     <div class="card-body bg-gray-100 p-4">
                         
-                        <!-- Driving License -->
+                        <!-- Aadhaar Front -->
                         <div class="bg-white p-3 rounded-4 shadow-sm border border-light mb-4">
-                            <h6 class="fw-bold mb-3 border-bottom pb-2 text-muted">Driving License (DL)</h6>
-                            <?php if (!empty($partner['driving_license_link'])): ?>
+                            <h6 class="fw-bold mb-3 border-bottom pb-2 text-muted">Aadhar Card (Front)</h6>
+                            <?php if (!empty($partner['aadhaar_front_link'])): ?>
                                 <div class="ratio ratio-16x9 rounded-3 overflow-hidden shadow-sm" style="max-height: 200px;">
-                                    <?php 
-                                        $dlUrl = "../../uploads/partners/" . $partner['driving_license_link'];
-                                        $ext = strtolower(pathinfo($partner['driving_license_link'], PATHINFO_EXTENSION));
-                                    ?>
-                                    <?php if($ext === 'pdf'): ?>
-                                        <iframe src="<?= $dlUrl ?>" style="width:100%; height:100%;" frameborder="0"></iframe>
-                                    <?php else: ?>
-                                        <a href="<?= $dlUrl ?>" target="_blank" title="Click to view full screen">
-                                            <img src="<?= $dlUrl ?>" style="width:100%; height:100%; object-fit:cover;">
-                                        </a>
-                                    <?php endif; ?>
+                                    <?php $url = "../../uploads/partners/" . $partner['aadhaar_front_link']; ?>
+                                    <a href="<?= $url ?>" target="_blank">
+                                        <img src="<?= $url ?>" style="width:100%; height:100%; object-fit:cover;">
+                                    </a>
                                 </div>
-                                <div class="mt-2 text-end">
-                                    <a href="<?= $dlUrl ?>" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill"><i class="fas fa-external-link-alt me-1"></i> Open original</a>
+                                <div class="mt-2 text-end small">
+                                    <a href="<?= $url ?>" target="_blank" class="text-primary text-decoration-none"><i class="fas fa-expand me-1"></i> View Full Image</a>
                                 </div>
                             <?php else: ?>
                                 <div class="text-center py-4 bg-light rounded border border-dashed">
-                                    <i class="fas fa-file-excel fa-2x text-muted mb-2"></i>
-                                    <div class="small fw-bold text-danger">No DL Uploaded Yet</div>
+                                    <div class="small fw-bold text-danger">Front Not Uploaded</div>
                                 </div>
                             <?php endif; ?>
                         </div>
 
-                        <!-- RC Book -->
-                        <div class="bg-white p-3 rounded-4 shadow-sm border border-light">
-                            <h6 class="fw-bold mb-3 border-bottom pb-2 text-muted">Registration Book (RC)</h6>
-                            <?php if (!empty($partner['rc_book_link'])): ?>
+                        <!-- Aadhaar Back -->
+                        <div class="bg-white p-3 rounded-4 shadow-sm border border-light mb-4">
+                            <h6 class="fw-bold mb-3 border-bottom pb-2 text-muted">Aadhar Card (Back)</h6>
+                            <?php if (!empty($partner['aadhaar_back_link'])): ?>
                                 <div class="ratio ratio-16x9 rounded-3 overflow-hidden shadow-sm" style="max-height: 200px;">
-                                    <?php 
-                                        $rcUrl = "../../uploads/partners/" . $partner['rc_book_link'];
-                                        $ext = strtolower(pathinfo($partner['rc_book_link'], PATHINFO_EXTENSION));
-                                    ?>
-                                    <?php if($ext === 'pdf'): ?>
-                                        <iframe src="<?= $rcUrl ?>" style="width:100%; height:100%;" frameborder="0"></iframe>
-                                    <?php else: ?>
-                                        <a href="<?= $rcUrl ?>" target="_blank" title="Click to view full screen">
-                                            <img src="<?= $rcUrl ?>" style="width:100%; height:100%; object-fit:cover;">
-                                        </a>
-                                    <?php endif; ?>
+                                    <?php $url = "../../uploads/partners/" . $partner['aadhaar_back_link']; ?>
+                                    <a href="<?= $url ?>" target="_blank">
+                                        <img src="<?= $url ?>" style="width:100%; height:100%; object-fit:cover;">
+                                    </a>
                                 </div>
-                                <div class="mt-2 text-end">
-                                    <a href="<?= $rcUrl ?>" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill"><i class="fas fa-external-link-alt me-1"></i> Open original</a>
+                                <div class="mt-2 text-end small">
+                                    <a href="<?= $url ?>" target="_blank" class="text-primary text-decoration-none"><i class="fas fa-expand me-1"></i> View Full Image</a>
                                 </div>
                             <?php else: ?>
                                 <div class="text-center py-4 bg-light rounded border border-dashed">
-                                    <i class="fas fa-file-excel fa-2x text-muted mb-2"></i>
-                                    <div class="small fw-bold text-danger">No RC Uploaded Yet</div>
+                                    <div class="small fw-bold text-danger">Back Not Uploaded</div>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Full Selfie -->
+                        <div class="bg-white p-3 rounded-4 shadow-sm border border-light">
+                            <h6 class="fw-bold mb-3 border-bottom pb-2 text-muted">Live Selfie Screenshot</h6>
+                            <?php if (!empty($partner['selfie_link'])): ?>
+                                <div class="ratio ratio-1x1 rounded-3 overflow-hidden shadow-sm mx-auto" style="max-width: 250px;">
+                                    <?php $url = "../../uploads/partners/" . $partner['selfie_link']; ?>
+                                    <a href="<?= $url ?>" target="_blank">
+                                        <img src="<?= $url ?>" style="width:100%; height:100%; object-fit:cover;">
+                                    </a>
+                                </div>
+                                <div class="mt-3 text-center small">
+                                    <a href="<?= $url ?>" target="_blank" class="btn btn-sm btn-dark rounded-pill px-3"><i class="fas fa-search-plus me-1"></i> Inspect Image</a>
+                                </div>
+                            <?php else: ?>
+                                <div class="text-center py-4 bg-light rounded border border-dashed">
+                                    <div class="small fw-bold text-danger">Selfie Missing</div>
                                 </div>
                             <?php endif; ?>
                         </div>

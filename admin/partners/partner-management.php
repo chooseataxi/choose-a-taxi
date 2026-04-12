@@ -57,9 +57,13 @@ try {
                                         <td class="text-muted fw-bold">#<?= $partner['id'] ?></td>
                                         <td>
                                             <div class="d-flex align-items-center">
-                                                <div class="bg-light rounded-circle shadow-sm text-center d-flex align-items-center justify-content-center me-3" style="width:40px; height:40px;">
-                                                     <i class="fas fa-user text-primary"></i>
-                                                </div>
+                                                <div class="rounded-circle shadow-sm text-center d-flex align-items-center justify-content-center me-3 border overflow-hidden" style="width:40px; height:40px; background-color: #f8f9fa;">
+                                                     <?php if (!empty($partner['selfie_link'])): ?>
+                                                         <img src="../../uploads/partners/<?= $partner['selfie_link'] ?>" style="width:100%; height:100%; object-fit:cover;">
+                                                     <?php else: ?>
+                                                         <i class="fas fa-user text-primary"></i>
+                                                     <?php endif; ?>
+                                                 </div>
                                                 <div>
                                                     <h6 class="mb-0 fw-bold"><?= htmlspecialchars($partner['full_name'] ?? 'N/A') ?></h6>
                                                 </div>

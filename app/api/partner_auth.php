@@ -235,8 +235,14 @@ try {
             }
 
             if (!empty($updates)) {
-                // Also reset status to Pending to trigger review flow
                 $updates[] = "manual_verification_status = 'Pending'";
+                
+                // Also capture name if provided during document submission
+                if (!empty($_POST['full_name'])) {
+                    $updates[] = "full_name = ?";
+                    $params[] = $_POST['full_name'];
+                }
+
                 $query = "UPDATE partners SET " . implode(", ", $updates) . " WHERE id = ?";
                 $params[] = $partner_id;
                 $stmt = $pdo->prepare($query);
