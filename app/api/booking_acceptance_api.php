@@ -71,7 +71,8 @@ try {
             // 1. Get Booking Main Info with Car Details
             $stmt = $pdo->prepare("SELECT b.*, p.full_name as poster_name, 
                                          c.name AS car_name, c.model AS car_model, 
-                                         ct.name AS car_type_name, ct.image AS car_type_image
+                                         ct.name AS car_type_name, ct.image AS car_type_image,
+                                         p.id AS poster_id, p.selfie_link AS poster_image
                                   FROM partner_bookings b 
                                   JOIN partners p ON b.partner_id = p.id 
                                   LEFT JOIN cars c ON c.id = b.car_type
@@ -82,7 +83,7 @@ try {
             if (!$booking) throw new Exception("Booking not found");
 
             // 2. Check if already accepted
-            $stmt = $pdo->prepare("SELECT a.*, p.full_name as accepter_name 
+            $stmt = $pdo->prepare("SELECT a.*, p.full_name as accepter_name, p.id as accepter_id, p.selfie_link as accepter_image 
                                   FROM accepted_bookings a 
                                   JOIN partners p ON a.partner_id = p.id 
                                   WHERE a.booking_id = ? AND a.status != 'Cancelled' LIMIT 1");
