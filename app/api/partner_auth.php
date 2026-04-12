@@ -180,7 +180,7 @@ try {
         case 'fetch_profile':
             $partner_id = $_POST['partner_id'] ?? $_GET['partner_id'] ?? 0;
             
-            $stmt = $pdo->prepare("SELECT id, full_name, mobile, email, status, manual_verification_status, driving_license_link, rc_book_link FROM partners WHERE id = ?");
+            $stmt = $pdo->prepare("SELECT id, full_name, mobile, email, status, manual_verification_status, driving_license_link, rc_book_link, aadhaar_front_link, aadhaar_back_link, selfie_link FROM partners WHERE id = ?");
             $stmt->execute([$partner_id]);
             $partner = $stmt->fetch();
 
@@ -204,27 +204,39 @@ try {
             $updates = [];
             $params = [];
 
-            // Handle Driving License
-            if (isset($_FILES['driving_license']) && $_FILES['driving_license']['error'] == UPLOAD_ERR_OK) {
-                $ext = pathinfo($_FILES['driving_license']['name'], PATHINFO_EXTENSION);
-                $dl_name = "dl_{$partner_id}_" . time() . ".$ext";
-                if (move_uploaded_file($_FILES['driving_license']['tmp_name'], $targetDir . $dl_name)) {
-                    $updates[] = "driving_license_link = ?";
-                    $params[] = $dl_name;
+            // Handle Aadhaar Front
+            if (isset($_FILES['aadhar_front']) && $_FILES['aadhar_front']['error'] == UPLOAD_ERR_OK) {
+                $ext = pathinfo($_FILES['aadhar_front']['name'], PATHINFO_EXTENSION);
+                $name = "adh_f_{$partner_id}_" . time() . ".$ext";
+                if (move_uploaded_file($_FILES['aadhar_front']['tmp_name'], $targetDir . $name)) {
+                    $updates[] = "aadhaar_front_link = ?";
+                    $params[] = $name;
                 }
             }
 
-            // Handle RC Book
-            if (isset($_FILES['rc_book']) && $_FILES['rc_book']['error'] == UPLOAD_ERR_OK) {
-                $ext = pathinfo($_FILES['rc_book']['name'], PATHINFO_EXTENSION);
-                $rc_name = "rc_{$partner_id}_" . time() . ".$ext";
-                if (move_uploaded_file($_FILES['rc_book']['tmp_name'], $targetDir . $rc_name)) {
-                    $updates[] = "rc_book_link = ?";
-                    $params[] = $rc_name;
+            // Handle Aadhaar Back
+            if (isset($_FILES['aadhar_back']) && $_FILES['aadhar_back']['error'] == UPLOAD_ERR_OK) {
+                $ext = pathinfo($_FILES['aadhar_back']['name'], PATHINFO_EXTENSION);
+                $name = "adh_b_{$partner_id}_" . time() . ".$ext";
+                if (move_uploaded_file($_FILES['aadhar_back']['tmp_name'], $targetDir . $name)) {
+                    $updates[] = "aadhaar_back_link = ?";
+                    $params[] = $name;
+                }
+            }
+
+            // Handle Selfie
+            if (isset($_FILES['selfie']) && $_FILES['selfie']['error'] == UPLOAD_ERR_OK) {
+                $ext = pathinfo($_FILES['selfie']['name'], PATHINFO_EXTENSION);
+                $name = "selfie_{$partner_id}_" . time() . ".$ext";
+                if (move_uploaded_file($_FILES['selfie']['tmp_name'], $targetDir . $name)) {
+                    $updates[] = "selfie_link = ?";
+                    $params[] = $name;
                 }
             }
 
             if (!empty($updates)) {
+                // Also reset status to Pending to trigger review flow
+                $updates[] = "manual_verification_status = 'Pending'";
                 $query = "UPDATE partners SET " . implode(", ", $updates) . " WHERE id = ?";
                 $params[] = $partner_id;
                 $stmt = $pdo->prepare($query);
