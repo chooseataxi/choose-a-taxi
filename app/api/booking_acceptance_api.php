@@ -367,7 +367,7 @@ try {
 
         case 'get_chat_list':
             // ── 1. Posted (My own bookings) ──
-            $sqlPosted = "SELECT BC.booking_id, BC.message, BC.created_at, P.full_name as partner_name, BC.type, P.id as other_id,
+            $sqlPosted = "SELECT BC.booking_id, BC.message, BC.created_at, P.full_name as partner_name, BC.type, P.id as other_id, P.selfie_link as partner_image,
                           (SELECT COUNT(*) FROM booking_chats WHERE booking_id = BC.booking_id AND receiver_id = ? AND sender_id = P.id AND is_read = 0) as unread_count
                           FROM booking_chats BC
                           JOIN partner_bookings PB ON BC.booking_id = PB.id
@@ -383,7 +383,7 @@ try {
             $posted = $stmt->fetchAll();
 
             // ── 2. Received (Others' bookings I chatted on / Accepted) ──
-            $sqlReceived = "SELECT BC.booking_id, BC.message, BC.created_at, P.full_name as partner_name, BC.type, PB.partner_id as other_id,
+            $sqlReceived = "SELECT BC.booking_id, BC.message, BC.created_at, P.full_name as partner_name, BC.type, PB.partner_id as other_id, P.selfie_link as partner_image,
                             (SELECT COUNT(*) FROM booking_chats WHERE booking_id = BC.booking_id AND receiver_id = ? AND sender_id = P.id AND is_read = 0) as unread_count
                             FROM booking_chats BC
                             JOIN partner_bookings PB ON BC.booking_id = PB.id
