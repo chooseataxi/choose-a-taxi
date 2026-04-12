@@ -237,10 +237,14 @@ try {
             if (!empty($updates)) {
                 $updates[] = "manual_verification_status = 'Pending'";
                 
-                // Also capture name if provided during document submission
+                // Also capture name and email if provided during document submission
                 if (!empty($_POST['full_name'])) {
                     $updates[] = "full_name = ?";
                     $params[] = $_POST['full_name'];
+                }
+                if (!empty($_POST['email'])) {
+                    $updates[] = "email = ?";
+                    $params[] = $_POST['email'];
                 }
 
                 $query = "UPDATE partners SET " . implode(", ", $updates) . " WHERE id = ?";
