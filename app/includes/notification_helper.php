@@ -1,17 +1,19 @@
 <?php
-/**
- * NotificationHelper - Updated to use OneSignal REST API
- */
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 class NotificationHelper {
     
     private static function loadEnv() {
-        if (!isset($_ENV['ONESIGNAL_APP_ID'])) {
+        if (!isset($_ENV['ONESIGNAL_APP_ID']) || empty($_ENV['ONESIGNAL_API_KEY'])) {
             try {
                 $rootPath = realpath(__DIR__ . '/../../');
-                $dotenv = Dotenv\Dotenv::createImmutable($rootPath);
-                $dotenv->safeLoad();
-            } catch (Exception $e) {}
+                if (class_exists('Dotenv\Dotenv')) {
+                    $dotenv = Dotenv\Dotenv::createImmutable($rootPath);
+                    $dotenv->safeLoad();
+                }
+            } catch (Exception $e) {
+                error_log("OneSignal loadEnv Error: " . $e->getMessage());
+            }
         }
     }
 
@@ -22,7 +24,37 @@ class NotificationHelper {
 
     private static function getApiKey() {
         self::loadEnv();
-        return $_ENV['ONESIGNAL_API_KEY'] ?? ''; // Needs User Input
+        $key = $_ENV['ONESIGNAL_API_KEY'] ?? '';
+        
+        // Manual fallback if Dotenv failed
+        if (empty($key)) {
+            $path = realpath(__DIR__ . '/../../') . '/.env';
+            if (file_exists($path)) {
+                $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+                foreach ($lines as $line) {
+                    if (strpos(trim($line), '#') === 0) continue;
+                    list($name, $value) = explode('=', $line, 2);
+                    $name = trim($name);
+                    $value = trim($value, " \t\n\r\0\x0B\"'");
+                    if ($name === 'ONESIGNAL_API_KEY') {
+                        $key = $value;
+                        $_ENV['ONESIGNAL_API_KEY'] = $value;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (empty($key)) {
+             $logFile = __DIR__ . '/../../tmp/onesignal_log.json';
+             $logData = [
+                 'timestamp' => date('Y-m-d H:i:s'),
+                 'error' => 'API KEY NOT FOUND IN $_ENV OR .ENV MANUALLY',
+                 'check_path' => realpath(__DIR__ . '/../../') . '/.env'
+             ];
+             @file_put_contents($logFile, json_encode($logData, JSON_PRETTY_PRINT) . PHP_EOL . "---" . PHP_EOL, FILE_APPEND);
+        }
+        return $key;
     }
 
     /**
