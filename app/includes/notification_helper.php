@@ -1,14 +1,62 @@
 <?php
 /**
  * NotificationHelper - Handles Sending Firebase Cloud Messages (FCM) 
- * Supports both Legacy (Server Key) and recommended for this project setup.
+ * Updated to use FCM HTTP v1 API with Service Account
  */
+
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+use Google\Auth\Credentials\ServiceAccountCredentials;
+use Google\Auth\HttpHandler\HttpHandlerFactory;
 
 class NotificationHelper {
     
-    // Set your FCM Server Key in the .env file as FIREBASE_SERVER_KEY
-    private static function getServerKey() {
-        return $_ENV['FIREBASE_SERVER_KEY'] ?? 'YOUR_FCM_SERVER_KEY_HERE';
+    private static $accessToken = null;
+    private static $tokenExpiry = 0;
+
+    private static function loadEnv() {
+        if (!isset($_ENV['FIREBASE_PROJECT_ID'])) {
+            try {
+                $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../../');
+                $dotenv->safeLoad();
+            } catch (Exception $e) {}
+        }
+    }
+
+    private static function getAccessToken() {
+        self::loadEnv();
+        
+        // Return cached token if valid
+        if (self::$accessToken && time() < self::$tokenExpiry - 60) {
+            return self::$accessToken;
+        }
+
+        $jsonFile = $_ENV['FIREBASE_SERVICE_ACCOUNT_JSON'] ?? 'choose-a-taxi-india-00fd9479b1a4.json';
+        $path = __DIR__ . '/../../' . $jsonFile;
+
+        if (!file_exists($path)) {
+            error_log("FCM Error: Service account file not found at $path");
+            return null;
+        }
+
+        try {
+            $scopes = ['https://www.googleapis.com/auth/cloud-platform'];
+            $credentials = new ServiceAccountCredentials($scopes, $path);
+            $token = $credentials->fetchAuthToken(HttpHandlerFactory::build());
+            
+            self::$accessToken = $token['access_token'];
+            self::$tokenExpiry = time() + $token['expires_in'];
+            
+            return self::$accessToken;
+        } catch (Exception $e) {
+            error_log("FCM Token Error: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    private static function getProjectId() {
+        self::loadEnv();
+        return $_ENV['FIREBASE_PROJECT_ID'] ?? 'choose-a-taxi-india';
     }
 
     /**
@@ -17,43 +65,49 @@ class NotificationHelper {
     public static function send($token, $title, $body, $data = []) {
         if (empty($token)) return false;
 
-        $url = 'https://fcm.googleapis.com/fcm/send';
+        $projectId = self::getProjectId();
+        $url = "https://fcm.googleapis.com/v1/projects/$projectId/messages:send";
         
-        $notification = [
-            'title' => $title,
-            'body' => $body,
-            'sound' => 'chat_notification_sound.wav', // Custom sound from assets/raw
-            'android_channel_id' => 'high_importance_channel',
+        $accessToken = self::getAccessToken();
+        if (!$accessToken) return false;
+
+        // HTTP v1 Structure
+        $message = [
+            'message' => [
+                'token' => $token,
+                'notification' => [
+                    'title' => $title,
+                    'body' => $body,
+                ],
+                'android' => [
+                    'notification' => [
+                        'sound' => 'chat_notification_sound.wav',
+                        'channel_id' => 'high_importance_channel',
+                    ],
+                    'priority' => 'high'
+                ],
+                'data' => array_map('strval', $data) // Ensure all data values are strings
+            ]
         ];
 
-        $payload = [
-            'to' => $token,
-            'notification' => $notification,
-            'data' => array_merge($data, [
-                'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
-            ]),
-            'priority' => 'high'
-        ];
-
-        return self::executeCurl($url, $payload);
+        return self::executeCurl($url, $message, $accessToken);
     }
 
     /**
      * Sends a notification to all active partners/drivers (e.g. for new bookings)
      */
     public static function broadcastToAll($pdo, $title, $body, $data = [], $exclude_id = 0) {
-        // Collect all tokens from both partners and drivers
         $tokens = [];
         
         // Partners
-        $stmt = $pdo->prepare("SELECT fcm_token FROM partners WHERE fcm_token IS NOT NULL AND id != ?");
+        $stmt = $pdo->prepare("SELECT fcm_token FROM partners WHERE fcm_token IS NOT NULL AND fcm_token != '' AND id != ?");
         $stmt->execute([$exclude_id]);
         while ($row = $stmt->fetch()) {
             $tokens[] = $row['fcm_token'];
         }
 
         // Drivers
-        $stmt = $pdo->prepare("SELECT fcm_token FROM drivers WHERE fcm_token IS NOT NULL");
+        $stmt = $pdo->prepare("SELECT fcm_token FROM drivers WHERE fcm_token IS NOT NULL AND fcm_token != ''");
         $stmt->execute();
         while ($row = $stmt->fetch()) {
             $tokens[] = $row['fcm_token'];
@@ -61,36 +115,17 @@ class NotificationHelper {
 
         if (empty($tokens)) return true;
 
-        // FCM supports up to 1000 tokens per multicast request
-        $chunks = array_chunk($tokens, 1000);
-        foreach ($chunks as $chunk) {
-            self::sendMulticast($chunk, $title, $body, $data);
+        // HTTP v1 does not support multicast with registration_ids. 
+        // We must loop or use topics. For this scale, looping is fine.
+        foreach ($tokens as $token) {
+            self::send($token, $title, $body, $data);
         }
         return true;
     }
 
-    private static function sendMulticast($registration_ids, $title, $body, $data) {
-        $url = 'https://fcm.googleapis.com/fcm/send';
-        
-        $payload = [
-            'registration_ids' => $registration_ids,
-            'notification' => [
-                'title' => $title,
-                'body' => $body,
-                'sound' => 'chat_notification_sound.wav',
-                'android_channel_id' => 'high_importance_channel',
-            ],
-            'data' => $data,
-            'priority' => 'high'
-        ];
-
-        return self::executeCurl($url, $payload);
-    }
-
-    private static function executeCurl($url, $payload) {
-        $serverKey = self::getServerKey();
+    private static function executeCurl($url, $payload, $accessToken) {
         $headers = [
-            'Authorization: key=' . $serverKey,
+            'Authorization: Bearer ' . $accessToken,
             'Content-Type: application/json'
         ];
 
@@ -103,7 +138,12 @@ class NotificationHelper {
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
 
         $result = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
+        
+        if ($httpCode !== 200) {
+            error_log("FCM HTTP v1 Error ($httpCode): " . $result);
+        }
         
         return $result;
     }

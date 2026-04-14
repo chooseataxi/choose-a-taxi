@@ -103,10 +103,10 @@ try {
             $stmt->execute([$target, $monthStart]);
             $stats['cancelled'] = (int)$stmt->fetchColumn();
 
-            // 4. Individual reviews
+            // 4. Individual reviews with reviewer images
             $revStmt = $pdo->prepare("
                 SELECT pr.id, pr.rating, pr.review_text, pr.created_at, pr.booking_id,
-                       p.full_name as reviewer_name
+                       p.full_name as reviewer_name, p.selfie_link as reviewer_image
                 FROM partner_ratings pr
                 LEFT JOIN partners p ON p.id = pr.reviewer_id
                 WHERE pr.reviewed_id = :id

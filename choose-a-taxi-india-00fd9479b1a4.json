@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "choose-a-taxi-india",
+  "private_key_id": "00fd9479b1a4c697d763ea70b7555bdc62c24f60",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCg3iJWxF/dNcwo\nvufY5PAQhQreMk7HCFUErpyx2lisoqGBSWkbJcDibGCqPkqY+cNlQzT6pSeVsOzm\nsBghGB9Bygfm+whrnbv5zpDdLlAXtZffnowo54NcRtTfy2kr7nbWmhZ1jBYG6/LK\nqE7Jbreo4HwFPVMOskuo8oMvYNo/dhU/MXhTyGb6jj2VzOn6LKpn2wCacwAfnO5Y\n4DDanzOStkHg/D3xu8AN1xqHzgO5fYWjBhs1Ae2/UPLDYhcAfVvGoeWXtfCn6uR4\nMrLWNwcqQRvU8wglsjreKUN4mDaDUljyozb9J2ZTipWDVlzdOsJZAbVNULGDRtbb\nEffurHp5AgMBAAECggEAJs8AJMOSRvkcDDZmE27DtZCLGyiy1ZReglcnqUZ+PwOr\nB9gweaKlglpYBaoqb/ZNW8gXZ2Jhhtzcghi4cX9yxvnY5zHniaLPfwgE7b8nBllC\nTunecV3M1H2oDGdzs2v/km0w/uGxTLEubRKmkzTZLO4fLVpqh7CezR7YZB0u+cD+\nkI/WxTYFmXCi4qYmfU9lbRsDvGFDQflrBFz1jhrYvxWU5gq9XZRAP4PwYgln8j0y\nnMV/btP7pOSiG0yJUHgmoJbr7dYksrE/OL3NvThXq6pJF3ZlVnYJimKca1GwWOyD\n0Ct/V5gJOsVL6BSPUcbjIBTQeej9Jr2zprTlkS6kIwKBgQDRImysdFMiyyALbZ6E\nRZEiL3JtjsRB26Z5g/r7V4Kj15yuszWfVoN8eHwIZhwGURmrlv01AY0RYFYuk2Pv\ndZuRhRW0SHve5VAo0G2NAApFaIPUZ+bZv/X6fztWEke65+jkrWvsFyZPkofRsvCX\nQI99CpZhi3n9qq9q2DQ/qX6WVwKBgQDE6sEAiz1sizvmJe4U0fT84cy3CJcJRzK/\nH33Axst1kvzRkE8DLzgB+mfS0GhsPwadJGS8UuToiHVYnlhyL700BE0sh1q8V9hJ\nlaKJx6pqNS/6NBGmMc1h33L6cXoTqYRmy7txB1Ifmxr+NjAKiO+eJq1yAgPs1l4U\nnAgIVlbTrwKBgF05eTQOzpht76Togob389BHUjzgLUAmR7lXSeQMiGG81U1S+Y5D\npG0x0Ch2S/vM3yKMNecQ/+9FAGXWse+mf2iI6Lnqrb0Yf3kSICOAZxO1mT5v6ooa\nde3qFWsyzuLUSg7V94vQbfV+niiuGW1zDANzWsG0yPZ4xaVdJz1RsuoVAoGAGOM+\nr23pvn0+fdEPbSw4FXoIYJ3CURbhkAxP3XyCnIKOV4IwqktefcmDM77JY9z3XgcK\ngE7NxaHxitjAfvYPqLJeeqFE04cau/ogh99nZ3L/dFT+Yg3rUlJmesa60h9br45S\nS2/MblgxKi35FmvGNSvYQg+FJXrWey5ZSYx3/tsCgYEAn5sdrTxlEOIsbt8GOBke\nlPoWrg5HswXy+ZETTNUb3kzMS/mLRjPQaj5hCV5NfKTuvg4XlkusS3lZPdJXfegO\nSiASWCS/K2tqryTTOTVOwFyZZcwfZCZ4D6vejrCwW7da3MgdKMSk8B5G9MuE6Ovg\nH8RSyr1ePw8XevlvWCkOjkQ=\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-fbsvc@choose-a-taxi-india.iam.gserviceaccount.com",
+  "client_id": "104912801711660088633",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40choose-a-taxi-india.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

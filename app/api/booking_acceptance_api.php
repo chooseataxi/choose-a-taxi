@@ -141,7 +141,7 @@ try {
 
             // ── Send FCM Push Notification ──
             try {
-                require_once __DIR__ . '/../../includes/notification_helper.php';
+                require_once __DIR__ . '/../includes/notification_helper.php';
                 $stmtToken = $pdo->prepare("SELECT fcm_token FROM partners WHERE id = ?");
                 $stmtToken->execute([$receiver_id]);
                 $recToken = $stmtToken->fetchColumn();

@@ -42,6 +42,7 @@ class ComposerStaticInit34c36c05260b7e8e8b2fbced22e7ef39
             'Psr\\Log\\' => 8,
             'Psr\\Http\\Message\\' => 17,
             'Psr\\Http\\Client\\' => 16,
+            'Psr\\Cache\\' => 10,
             'PhpOption\\' => 10,
             'ParagonIE\\Sodium\\' => 17,
         ),
@@ -51,6 +52,7 @@ class ComposerStaticInit34c36c05260b7e8e8b2fbced22e7ef39
             'GuzzleHttp\\Promise\\' => 19,
             'GuzzleHttp\\' => 11,
             'GrahamCampbell\\ResultType\\' => 26,
+            'Google\\Auth\\' => 12,
         ),
         'F' => 
         array (
@@ -112,6 +114,10 @@ class ComposerStaticInit34c36c05260b7e8e8b2fbced22e7ef39
         array (
             0 => __DIR__ . '/..' . '/psr/http-client/src',
         ),
+        'Psr\\Cache\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/cache/src',
+        ),
         'PhpOption\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpoption/phpoption/src/PhpOption',
@@ -135,6 +141,10 @@ class ComposerStaticInit34c36c05260b7e8e8b2fbced22e7ef39
         'GrahamCampbell\\ResultType\\' => 
         array (
             0 => __DIR__ . '/..' . '/graham-campbell/result-type/src',
+        ),
+        'Google\\Auth\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/google/auth/src',
         ),
         'Firebase\\JWT\\' => 
         array (

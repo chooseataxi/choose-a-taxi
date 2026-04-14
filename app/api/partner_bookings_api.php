@@ -137,13 +137,16 @@ if ($action === 'create_booking') {
         } catch (Exception $e) {}
 
         // Send Push Notification to All
-        require_once __DIR__ . '/../../includes/notification_helper.php';
-        $title = "New Booking Available!";
-        $body = "From $pickup to $drop for $car_type. Tap to view!";
-        NotificationHelper::broadcastToAll($pdo, $title, $body, [
-            'type' => 'new_booking',
-            'booking_id' => $bookingId
-        ], $partner_id);
+        try {
+            require_once __DIR__ . '/../../vendor/autoload.php';
+            require_once __DIR__ . '/../includes/notification_helper.php';
+            $title = "New Booking Available!";
+            $body = "From $pickup to $drop for $car_type. Tap to view!";
+            NotificationHelper::broadcastToAll($pdo, $title, $body, [
+                'type' => 'new_booking',
+                'booking_id' => $bookingId
+            ], $partner_id);
+        } catch (Exception $nf) {}
 
         echo json_encode(["status" => "success", "message" => "Booking created successfully!", "booking_id" => $bookingId]);
     } catch (PDOException $e) {
