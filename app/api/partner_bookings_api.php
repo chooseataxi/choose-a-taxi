@@ -132,7 +132,7 @@ if ($action === 'get_bookings') {
                 LEFT JOIN car_types ct ON ct.id = c.type_id
                 LEFT JOIN partners p ON p.id = pb.partner_id
                 WHERE pb.partner_id = ?
-                ORDER BY pb.id DESC";
+                ORDER BY pb.start_date ASC, pb.start_time ASC, pb.id DESC";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$partner_id]);
         $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -159,7 +159,8 @@ if ($action === 'get_market_bookings') {
                 LEFT JOIN cars c       ON c.id = pb.car_type
                 LEFT JOIN car_types ct ON ct.id = c.type_id
                 LEFT JOIN partners p   ON p.id = pb.partner_id
-                ORDER BY pb.id DESC
+                WHERE pb.status = 'Posted'
+                ORDER BY pb.start_date ASC, pb.start_time ASC, pb.id DESC
                 LIMIT 50";
         $stmt = $pdo->query($sql);
         $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
