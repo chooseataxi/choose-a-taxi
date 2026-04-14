@@ -11,6 +11,8 @@ try {
         $pdo->exec("ALTER TABLE partners ADD COLUMN driving_license_link VARCHAR(255) NULL AFTER aadhaar_pdf_link");
         $pdo->exec("ALTER TABLE partners ADD COLUMN rc_book_link VARCHAR(255) NULL AFTER driving_license_link");
         $pdo->exec("ALTER TABLE partners ADD COLUMN manual_verification_status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending' AFTER status");
+        $pdo->exec("ALTER TABLE partners ADD COLUMN aadhar_number VARCHAR(12) NULL");
+        $pdo->exec("ALTER TABLE partners ADD COLUMN city VARCHAR(100) NULL");
     } catch(PDOException $e) {
         // Ignore if already created
     }
@@ -180,7 +182,7 @@ try {
         case 'fetch_profile':
             $partner_id = $_POST['partner_id'] ?? $_GET['partner_id'] ?? 0;
             
-            $stmt = $pdo->prepare("SELECT id, full_name, mobile, email, status, manual_verification_status, driving_license_link, rc_book_link, aadhaar_front_link, aadhaar_back_link, selfie_link FROM partners WHERE id = ?");
+            $stmt = $pdo->prepare("SELECT id, full_name, mobile, email, status, manual_verification_status, driving_license_link, rc_book_link, aadhaar_front_link, aadhaar_back_link, selfie_link, aadhar_number, city FROM partners WHERE id = ?");
             $stmt->execute([$partner_id]);
             $partner = $stmt->fetch();
 
@@ -245,6 +247,14 @@ try {
                 if (!empty($_POST['email'])) {
                     $updates[] = "email = ?";
                     $params[] = $_POST['email'];
+                }
+                if (!empty($_POST['aadhar_number'])) {
+                    $updates[] = "aadhar_number = ?";
+                    $params[] = $_POST['aadhar_number'];
+                }
+                if (!empty($_POST['city'])) {
+                    $updates[] = "city = ?";
+                    $params[] = $_POST['city'];
                 }
 
                 $query = "UPDATE partners SET " . implode(", ", $updates) . " WHERE id = ?";
