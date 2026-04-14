@@ -9,13 +9,35 @@ try {
 } catch (PDOException $e) {
     try {
         $pdo->exec("ALTER TABLE partners ADD COLUMN driving_license_link VARCHAR(255) NULL AFTER aadhaar_pdf_link");
-        $pdo->exec("ALTER TABLE partners ADD COLUMN rc_book_link VARCHAR(255) NULL AFTER driving_license_link");
-        $pdo->exec("ALTER TABLE partners ADD COLUMN manual_verification_status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending' AFTER status");
+    } catch(PDOException $e) {}
+}
+try {
+    $pdo->query("SELECT rc_book_link FROM partners LIMIT 1");
+} catch (PDOException $e) {
+    try {
+        $pdo->exec("ALTER TABLE partners ADD COLUMN rc_book_link VARCHAR(255) NULL");
+    } catch(PDOException $e) {}
+}
+try {
+    $pdo->query("SELECT manual_verification_status FROM partners LIMIT 1");
+} catch (PDOException $e) {
+    try {
+        $pdo->exec("ALTER TABLE partners ADD COLUMN manual_verification_status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending'");
+    } catch(PDOException $e) {}
+}
+try {
+    $pdo->query("SELECT aadhar_number FROM partners LIMIT 1");
+} catch (PDOException $e) {
+    try {
         $pdo->exec("ALTER TABLE partners ADD COLUMN aadhar_number VARCHAR(12) NULL");
+    } catch(PDOException $e) {}
+}
+try {
+    $pdo->query("SELECT city FROM partners LIMIT 1");
+} catch (PDOException $e) {
+    try {
         $pdo->exec("ALTER TABLE partners ADD COLUMN city VARCHAR(100) NULL");
-    } catch(PDOException $e) {
-        // Ignore if already created
-    }
+    } catch(PDOException $e) {}
 }
 try {
     $pdo->query("SELECT login_otp FROM partners LIMIT 1");
