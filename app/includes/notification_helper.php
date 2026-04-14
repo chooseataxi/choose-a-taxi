@@ -116,18 +116,18 @@ class NotificationHelper {
             $tokens[] = $row['fcm_token'];
         }
 
-        // Drivers
-        $stmt = $pdo->prepare("SELECT fcm_token FROM drivers WHERE fcm_token IS NOT NULL AND fcm_token != ''");
-        $stmt->execute();
+        // Drivers (Broadcasting to active drivers too)
+        $stmt = $pdo->prepare("SELECT fcm_token FROM drivers WHERE fcm_token IS NOT NULL AND fcm_token != '' AND id != ?");
+        $stmt->execute([$exclude_id]);
         while ($row = $stmt->fetch()) {
             $tokens[] = $row['fcm_token'];
         }
 
-        if (empty($tokens)) return true;
+        if (empty($tokens)) return false;
 
         // HTTP v1 does not support multicast with registration_ids. 
         // We must loop or use topics. For this scale, looping is fine.
-        foreach ($tokens as $token) {
+        foreach (array_unique($tokens) as $token) {
             self::send($token, $title, $body, $data);
         }
         return true;

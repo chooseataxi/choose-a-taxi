@@ -142,9 +142,18 @@ try {
             // ── Send FCM Push Notification ──
             try {
                 require_once __DIR__ . '/../includes/notification_helper.php';
+                
+                // Try to find recipient in Partners
                 $stmtToken = $pdo->prepare("SELECT fcm_token FROM partners WHERE id = ?");
                 $stmtToken->execute([$receiver_id]);
                 $recToken = $stmtToken->fetchColumn();
+                
+                // If not found in Partners, try Drivers
+                if (!$recToken) {
+                    $stmtToken = $pdo->prepare("SELECT fcm_token FROM drivers WHERE id = ?");
+                    $stmtToken->execute([$receiver_id]);
+                    $recToken = $stmtToken->fetchColumn();
+                }
                 
                 if ($recToken) {
                     $stName = $pdo->prepare("SELECT full_name FROM partners WHERE id = ?");
@@ -161,7 +170,7 @@ try {
                     $logFile = __DIR__ . '/../../tmp/fcm_v1_log.json';
                     $logData = [
                         'timestamp' => date('Y-m-d H:i:s'),
-                        'error' => "Recipient ID $receiver_id has no FCM token",
+                        'error' => "Recipient ID $receiver_id not found or has no FCM token in either Partners or Drivers table",
                         'title' => 'Chat Notification Skipped',
                         'sender_id' => $partner_id
                     ];
