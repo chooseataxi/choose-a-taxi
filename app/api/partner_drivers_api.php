@@ -126,14 +126,7 @@ try {
             if (empty($license_number) || empty($dob) || empty($phone))
                 throw new Exception("License number, DOB, and Mobile are required");
 
-            // ── 0. Check Wallet Balance ──
-            $stmt = $pdo->prepare("SELECT balance FROM partner_wallet WHERE partner_id = ?");
-            $stmt->execute([$partner_id]);
-            $wallet = $stmt->fetch();
             $fee = 7.50;
-            if (!$wallet || $wallet['balance'] < $fee) {
-                throw new Exception("Insufficient wallet balance. Deposit at least ₹$fee to register a driver.");
-            }
 
             $verification = verifyDrivingLicense($license_number, $dob);
             if ($verification['status'] !== 'success')
@@ -210,14 +203,8 @@ try {
             $driver = $stmt->fetch();
             if (!$driver) throw new Exception("Driver not found");
 
-            // 1. Check Wallet for fee (7.50)
-            $stmt = $pdo->prepare("SELECT balance FROM partner_wallet WHERE partner_id = ?");
-            $stmt->execute([$partner_id]);
-            $wallet = $stmt->fetch();
             $fee = 7.50;
-            if (!$wallet || $wallet['balance'] < $fee) {
-                throw new Exception("Insufficient wallet balance. Please add at least ₹7.50 to your wallet to renew this license.");
-            }
+            // Wallet check removed to allow negative balance
 
             // 2. Verify with Surepass
             $verification = verifyDrivingLicense($driver['license_number'], $driver['dob']);

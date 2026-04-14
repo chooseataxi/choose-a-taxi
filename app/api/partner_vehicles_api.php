@@ -106,8 +106,8 @@ if ($action === 'lookup_rc') {
     if (!is_array($data)) $data = $_POST;
 
     $rc_number = strtoupper(trim($data['rc_number'] ?? ''));
-    if (empty($rc_number)) {
-        echo json_encode(['status' => 'error', 'message' => 'RC number is required']);
+    if (empty($rc_number) || empty($partner_id)) {
+        echo json_encode(['status' => 'error', 'message' => 'RC number and partner_id are required']);
         exit;
     }
 
@@ -146,6 +146,10 @@ if ($action === 'lookup_rc') {
         exit;
     }
 
+    // ── Deduct Fee immediately on lookup ──
+    $fee = 7.50;
+    updateWallet($pdo, $partner_id, $fee, 'Debit', "Lookup fee for RC: $rc_number");
+
     echo json_encode(['status' => 'success', 'data' => $rcJson['data']]);
     exit;
 }
@@ -160,15 +164,8 @@ if ($action === 'add_vehicle') {
         exit;
     }
 
-    // ── 0. Check Wallet Balance ──
-    $stmt = $pdo->prepare("SELECT balance FROM partner_wallet WHERE partner_id = ?");
-    $stmt->execute([$partner_id]);
-    $wallet = $stmt->fetch();
+    // ── Wallet check removed as per requirement ──
     $fee = 7.50;
-    if (!$wallet || $wallet['balance'] < $fee) {
-        echo json_encode(['status' => 'error', 'message' => "Insufficient wallet balance. Deposit at least ₹$fee to register a vehicle."]);
-        exit;
-    }
 
     $rc_number               = strtoupper(trim($_POST['rc_number'] ?? ''));
     $owner_name              = $_POST['owner_name'] ?? '';
@@ -244,8 +241,7 @@ if ($action === 'add_vehicle') {
             $raw_rc_data, $front_image, $back_image
         ]);
 
-        // ── Deduct Fee ──
-        updateWallet($pdo, $partner_id, $fee, 'Debit', "Registration fee for Vehicle: $maker_model ($rc_number)");
+        // Fee already deducted during lookup_rc
 
         echo json_encode(['status' => 'success', 'message' => "Vehicle added successfully and ₹$fee deducted from wallet.", 'vehicle_id' => $pdo->lastInsertId()]);
     } catch (PDOException $e) {
@@ -333,12 +329,8 @@ if ($action === 'renew_vehicle') {
         $vehicle = $stmt->fetch();
         if (!$vehicle) throw new Exception("Vehicle not found");
 
-        // 2. Check Wallet for ₹7.50
-        $stmt = $pdo->prepare("SELECT balance FROM partner_wallet WHERE partner_id = ?");
-        $stmt->execute([$partner_id]);
-        $wallet = $stmt->fetch();
         $fee = 7.50;
-        if (!$wallet || $wallet['balance'] < $fee) throw new Exception("Insufficient balance to renew. Fee: ₹$fee");
+        // Wallet check removed to allow negative balance
 
         // 3. Re-fetch from Surepass
         $rc_number = $vehicle['rc_number'];
