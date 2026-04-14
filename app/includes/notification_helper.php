@@ -81,7 +81,7 @@ class NotificationHelper {
                 ],
                 'android' => [
                     'notification' => [
-                        'sound' => 'chat_notification_sound.wav',
+                        'sound' => 'chat_notification_sound',
                         'channel_id' => 'high_importance_channel',
                     ],
                     'priority' => 'high'
@@ -141,9 +141,19 @@ class NotificationHelper {
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
         
-        if ($httpCode !== 200) {
-            error_log("FCM HTTP v1 Error ($httpCode): " . $result);
-        }
+        // Detailed Logging for debugging
+        $logFile = __DIR__ . '/../../tmp/fcm_v1_log.json';
+        $logDir = dirname($logFile);
+        if (!is_dir($logDir)) @mkdir($logDir, 0777, true);
+        
+        $logData = [
+            'timestamp' => date('Y-m-d H:i:s'),
+            'url' => $url,
+            'http_code' => $httpCode,
+            'payload' => $payload,
+            'response' => json_decode($result, true) ?: $result
+        ];
+        file_put_contents($logFile, json_encode($logData, JSON_PRETTY_PRINT) . PHP_EOL . "---" . PHP_EOL, FILE_APPEND);
         
         return $result;
     }
