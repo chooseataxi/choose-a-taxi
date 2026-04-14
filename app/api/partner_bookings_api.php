@@ -11,6 +11,31 @@ header("Access-Control-Allow-Headers: Content-Type");
 $action = $_REQUEST['action'] ?? '';
 
 // ──────────────────────────────────────────────────────────────────────────────
+// ACTION: get_trip_types — for dynamic filter synchronization
+// ──────────────────────────────────────────────────────────────────────────────
+if ($action === 'get_trip_types') {
+    try {
+        $sql = "SELECT DISTINCT name FROM trip_types WHERE status = 'Active'";
+        if (isset($_GET['market_only'])) {
+            // Optional: filter for types that actually have active bookings if needed
+        }
+        $stmt = $pdo->query($sql);
+        $types = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        
+        // Map common variations for client-side consistency
+        $formatted = array_map(function($t) {
+            if ($t === 'One Way') return 'One Way Trip';
+            return $t;
+        }, $types);
+
+        echo json_encode(["status" => "success", "types" => $formatted]);
+    } catch (PDOException $e) {
+        echo json_encode(["status" => "error", "message" => $e->getMessage()]);
+    }
+    exit;
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 // ACTION: get_cars  — for create booking dropdown
 // ──────────────────────────────────────────────────────────────────────────────
 if ($action === 'get_cars') {
