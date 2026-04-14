@@ -1,170 +1,117 @@
 <?php
 /**
- * NotificationHelper - Handles Sending Firebase Cloud Messages (FCM) 
- * Updated to use FCM HTTP v1 API with Service Account
+ * NotificationHelper - Updated to use OneSignal REST API
  */
-
-require_once __DIR__ . '/../../vendor/autoload.php';
-
-use Google\Auth\Credentials\ServiceAccountCredentials;
-use Google\Auth\HttpHandler\HttpHandlerFactory;
 
 class NotificationHelper {
     
-    private static $accessToken = null;
-    private static $tokenExpiry = 0;
-
     private static function loadEnv() {
-        if (!isset($_ENV['FIREBASE_PROJECT_ID'])) {
+        if (!isset($_ENV['ONESIGNAL_APP_ID'])) {
             try {
-                $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../../');
+                $rootPath = realpath(__DIR__ . '/../../');
+                $dotenv = Dotenv\Dotenv::createImmutable($rootPath);
                 $dotenv->safeLoad();
             } catch (Exception $e) {}
         }
     }
 
-    private static function getAccessToken() {
+    private static function getAppId() {
         self::loadEnv();
-        
-        // Return cached token if valid
-        if (self::$accessToken && time() < self::$tokenExpiry - 60) {
-            return self::$accessToken;
-        }
-
-        $jsonFile = $_ENV['FIREBASE_SERVICE_ACCOUNT_JSON'] ?? 'choose-a-taxi-india-00fd9479b1a4.json';
-        $path = __DIR__ . '/../../' . $jsonFile;
-
-        if (!file_exists($path)) {
-            error_log("FCM Error: Service account file not found at $path");
-            return null;
-        }
-
-        try {
-            $scopes = ['https://www.googleapis.com/auth/cloud-platform'];
-            $credentials = new ServiceAccountCredentials($scopes, $path);
-            $token = $credentials->fetchAuthToken(HttpHandlerFactory::build());
-            
-            self::$accessToken = $token['access_token'];
-            self::$tokenExpiry = time() + $token['expires_in'];
-            
-            return self::$accessToken;
-        } catch (Exception $e) {
-            error_log("FCM Token Error: " . $e->getMessage());
-            return null;
-        }
+        return $_ENV['ONESIGNAL_APP_ID'] ?? '8af20809-09e9-4ce1-9377-989b6b4e4600';
     }
 
-    private static function getProjectId() {
+    private static function getApiKey() {
         self::loadEnv();
-        return $_ENV['FIREBASE_PROJECT_ID'] ?? 'choose-a-taxi-india';
+        return $_ENV['ONESIGNAL_API_KEY'] ?? ''; // Needs User Input
     }
 
     /**
-     * Sends a notification to a specific FCM token
+     * Sends a notification to specific user(s) using OneSignal External IDs
+     * $recipients: can be a single string (e.g. "partner_14") or an array of strings
      */
-    public static function send($token, $title, $body, $data = []) {
-        if (empty($token)) {
-            $logFile = __DIR__ . '/../../tmp/fcm_v1_log.json';
-            $logData = [
-                'timestamp' => date('Y-m-d H:i:s'),
-                'error' => 'FCM Send Failed: Token is empty or null',
-                'title' => $title,
-                'data' => $data
-            ];
-            file_put_contents($logFile, json_encode($logData, JSON_PRETTY_PRINT) . PHP_EOL . "---" . PHP_EOL, FILE_APPEND);
+    public static function send($recipients, $title, $body, $data = []) {
+        $appId = self::getAppId();
+        $apiKey = self::getApiKey();
+
+        if (!$apiKey) {
+            error_log("OneSignal Error: REST API KEY is missing in .env");
             return false;
         }
 
-        $projectId = self::getProjectId();
-        $url = "https://fcm.googleapis.com/v1/projects/$projectId/messages:send";
-        
-        $accessToken = self::getAccessToken();
-        if (!$accessToken) return false;
+        $recipientList = is_array($recipients) ? $recipients : [$recipients];
 
-        // HTTP v1 Structure
-        $message = [
-            'message' => [
-                'token' => $token,
-                'notification' => [
-                    'title' => $title,
-                    'body' => $body,
-                ],
-                'android' => [
-                    'notification' => [
-                        'sound' => 'chat_notification_sound',
-                        'channel_id' => 'high_importance_channel',
-                    ],
-                    'priority' => 'high'
-                ],
-                'data' => array_map('strval', $data) // Ensure all data values are strings
-            ]
-        ];
+        $content = array(
+            "en" => $body
+        );
+        $headings = array(
+            "en" => $title
+        );
 
-        return self::executeCurl($url, $message, $accessToken);
+        $fields = array(
+            'app_id' => $appId,
+            'include_external_user_ids' => $recipientList,
+            'data' => $data,
+            'contents' => $content,
+            'headings' => $headings,
+            'android_accent_color' => 'FF1A1F36',
+            'small_icon' => 'ic_stat_onesignal_default' 
+        );
+
+        return self::executeCurl($fields, $apiKey);
     }
 
     /**
-     * Sends a notification to all active partners/drivers (e.g. for new bookings)
+     * Sends notification to ALL users (broadcasting)
      */
     public static function broadcastToAll($pdo, $title, $body, $data = [], $exclude_id = 0) {
-        $tokens = [];
-        
-        // Partners
-        $stmt = $pdo->prepare("SELECT fcm_token FROM partners WHERE fcm_token IS NOT NULL AND fcm_token != '' AND id != ?");
-        $stmt->execute([$exclude_id]);
-        while ($row = $stmt->fetch()) {
-            $tokens[] = $row['fcm_token'];
-        }
+        $appId = self::getAppId();
+        $apiKey = self::getApiKey();
 
-        // Drivers (Broadcasting to active drivers too)
-        $stmt = $pdo->prepare("SELECT fcm_token FROM drivers WHERE fcm_token IS NOT NULL AND fcm_token != '' AND id != ?");
-        $stmt->execute([$exclude_id]);
-        while ($row = $stmt->fetch()) {
-            $tokens[] = $row['fcm_token'];
-        }
+        if (!$apiKey) return false;
 
-        if (empty($tokens)) return false;
+        $fields = array(
+            'app_id' => $appId,
+            'included_segments' => array('All'),
+            'data' => $data,
+            'contents' => array("en" => $body),
+            'headings' => array("en" => $title)
+        );
 
-        // HTTP v1 does not support multicast with registration_ids. 
-        // We must loop or use topics. For this scale, looping is fine.
-        foreach (array_unique($tokens) as $token) {
-            self::send($token, $title, $body, $data);
-        }
-        return true;
+        return self::executeCurl($fields, $apiKey);
     }
 
-    private static function executeCurl($url, $payload, $accessToken) {
-        $headers = [
-            'Authorization: Bearer ' . $accessToken,
-            'Content-Type: application/json'
-        ];
-
+    private static function executeCurl($fields, $apiKey) {
+        $fields = json_encode($fields);
+        
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+        curl_setopt($ch, CURLOPT_URL, "https://onesignal.com/api/v1/notifications");
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            'Content-Type: application/json; charset=utf-8',
+            'Authorization: Basic ' . $apiKey
+        ));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_HEADER, FALSE);
+        curl_setopt($ch, CURLOPT_POST, TRUE);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
 
-        $result = curl_exec($ch);
+        $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
-        
-        // Detailed Logging for debugging
-        $logFile = __DIR__ . '/../../tmp/fcm_v1_log.json';
+
+        // Logging
+        $logFile = __DIR__ . '/../../tmp/onesignal_log.json';
         $logDir = dirname($logFile);
         if (!is_dir($logDir)) @mkdir($logDir, 0777, true);
-        
+
         $logData = [
             'timestamp' => date('Y-m-d H:i:s'),
-            'url' => $url,
             'http_code' => $httpCode,
-            'payload' => $payload,
-            'response' => json_decode($result, true) ?: $result
+            'payload' => json_decode($fields, true),
+            'response' => json_decode($response, true) ?: $response
         ];
         file_put_contents($logFile, json_encode($logData, JSON_PRETTY_PRINT) . PHP_EOL . "---" . PHP_EOL, FILE_APPEND);
-        
-        return $result;
+
+        return $response;
     }
 }

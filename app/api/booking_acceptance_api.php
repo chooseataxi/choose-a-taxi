@@ -139,43 +139,29 @@ try {
                 $pusher->trigger("partner-$partner_id", 'chat-update', $event_data);
             } catch (Exception $e) { /* Log pusher error but don't fail message insertion */ }
 
-            // ── Send FCM Push Notification ──
+            // ── Send OneSignal Push Notification ──
             try {
                 require_once __DIR__ . '/../includes/notification_helper.php';
                 
-                // Try to find recipient in Partners
-                $stmtToken = $pdo->prepare("SELECT fcm_token FROM partners WHERE id = ?");
-                $stmtToken->execute([$receiver_id]);
-                $recToken = $stmtToken->fetchColumn();
-                
-                // If not found in Partners, try Drivers
-                if (!$recToken) {
-                    $stmtToken = $pdo->prepare("SELECT fcm_token FROM drivers WHERE id = ?");
-                    $stmtToken->execute([$receiver_id]);
-                    $recToken = $stmtToken->fetchColumn();
+                // Identify recipient role to construct External ID
+                $isDriver = false;
+                $stmtCheck = $pdo->prepare("SELECT id FROM drivers WHERE id = ?");
+                $stmtCheck->execute([$receiver_id]);
+                if ($stmtCheck->fetch()) {
+                    $isDriver = true;
                 }
+
+                $externalId = ($isDriver ? "driver_" : "partner_") . $receiver_id;
                 
-                if ($recToken) {
-                    $stName = $pdo->prepare("SELECT full_name FROM partners WHERE id = ?");
-                    $stName->execute([$partner_id]);
-                    $senderName = $stName->fetchColumn() ?: 'Partner';
-                    
-                    NotificationHelper::send($recToken, "New message from $senderName", $message, [
-                        'type' => 'chat',
-                        'booking_id' => $booking_id,
-                        'sender_id' => $partner_id
-                    ]);
-                } else {
-                    // Log the missing token for debugging
-                    $logFile = __DIR__ . '/../../tmp/fcm_v1_log.json';
-                    $logData = [
-                        'timestamp' => date('Y-m-d H:i:s'),
-                        'error' => "Recipient ID $receiver_id not found or has no FCM token in either Partners or Drivers table",
-                        'title' => 'Chat Notification Skipped',
-                        'sender_id' => $partner_id
-                    ];
-                    @file_put_contents($logFile, json_encode($logData, JSON_PRETTY_PRINT) . PHP_EOL . "---" . PHP_EOL, FILE_APPEND);
-                }
+                $stName = $pdo->prepare("SELECT full_name FROM partners WHERE id = ?");
+                $stName->execute([$partner_id]);
+                $senderName = $stName->fetchColumn() ?: 'Partner';
+                
+                NotificationHelper::send($externalId, "New message from $senderName", $message, [
+                    'type' => 'chat',
+                    'booking_id' => $booking_id,
+                    'sender_id' => $partner_id
+                ]);
             } catch (Exception $nf) {}
 
             echo json_encode(['status' => 'success', 'chat' => $event_data]);
