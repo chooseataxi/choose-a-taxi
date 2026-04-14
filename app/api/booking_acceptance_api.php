@@ -139,6 +139,26 @@ try {
                 $pusher->trigger("partner-$partner_id", 'chat-update', $event_data);
             } catch (Exception $e) { /* Log pusher error but don't fail message insertion */ }
 
+            // ── Send FCM Push Notification ──
+            try {
+                require_once __DIR__ . '/../../includes/notification_helper.php';
+                $stmtToken = $pdo->prepare("SELECT fcm_token FROM partners WHERE id = ?");
+                $stmtToken->execute([$receiver_id]);
+                $recToken = $stmtToken->fetchColumn();
+                
+                if ($recToken) {
+                    $stName = $pdo->prepare("SELECT full_name FROM partners WHERE id = ?");
+                    $stName->execute([$partner_id]);
+                    $senderName = $stName->fetchColumn() ?: 'Partner';
+                    
+                    NotificationHelper::send($recToken, "New message from $senderName", $message, [
+                        'type' => 'chat',
+                        'booking_id' => $booking_id,
+                        'sender_id' => $partner_id
+                    ]);
+                }
+            } catch (Exception $nf) {}
+
             echo json_encode(['status' => 'success', 'chat' => $event_data]);
             break;
 

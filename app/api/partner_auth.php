@@ -44,6 +44,11 @@ try {
 } catch(PDOException $e) {
     $pdo->exec("ALTER TABLE partners ADD COLUMN login_otp VARCHAR(10) NULL AFTER mobile");
 }
+try {
+    $pdo->query("SELECT fcm_token FROM partners LIMIT 1");
+} catch(PDOException $e) {
+    $pdo->exec("ALTER TABLE partners ADD COLUMN fcm_token TEXT NULL");
+}
 
 // Ensure CORS headers for mobile app JSON interactions
 header('Content-Type: application/json; charset=utf-8');
@@ -301,6 +306,16 @@ try {
             } else {
                 throw new Exception("Failed to sync DigiLocker status down to database.");
             }
+            break;
+
+        case 'update_fcm_token':
+            $partner_id = $_POST['user_id'] ?? 0;
+            $token = $_POST['fcm_token'] ?? '';
+            if (!$partner_id || !$token) throw new Exception("Partner ID and Token required.");
+
+            $stmt = $pdo->prepare("UPDATE partners SET fcm_token = ? WHERE id = ?");
+            $stmt->execute([$token, $partner_id]);
+            echo json_encode(['success' => true, 'message' => 'FCM Token updated']);
             break;
 
         default:

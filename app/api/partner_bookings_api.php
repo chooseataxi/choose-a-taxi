@@ -131,10 +131,19 @@ if ($action === 'create_booking') {
         ]);
         $bookingId = $pdo->lastInsertId();
         
-        // Broadcast real-time update
+        // Broadcast real-time update via Pusher
         try {
             $pusher->trigger('market-channel', 'list-updated', ['id' => $bookingId]);
         } catch (Exception $e) {}
+
+        // Send Push Notification to All
+        require_once __DIR__ . '/../../includes/notification_helper.php';
+        $title = "New Booking Available!";
+        $body = "From $pickup to $drop for $car_type. Tap to view!";
+        NotificationHelper::broadcastToAll($pdo, $title, $body, [
+            'type' => 'new_booking',
+            'booking_id' => $bookingId
+        ], $partner_id);
 
         echo json_encode(["status" => "success", "message" => "Booking created successfully!", "booking_id" => $bookingId]);
     } catch (PDOException $e) {

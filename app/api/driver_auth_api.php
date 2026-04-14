@@ -8,6 +8,13 @@ try {
     $pdo->exec("ALTER TABLE drivers ADD COLUMN login_otp VARCHAR(10) NULL AFTER phone");
 }
 
+// Lazy Migration: Add fcm_token to drivers if not exists
+try {
+    $pdo->query("SELECT fcm_token FROM drivers LIMIT 1");
+} catch(PDOException $e) {
+    $pdo->exec("ALTER TABLE drivers ADD COLUMN fcm_token TEXT NULL");
+}
+
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
@@ -137,6 +144,16 @@ try {
             } else {
                 throw new Exception("Driver not found");
             }
+            break;
+
+        case 'update_fcm_token':
+            $driver_id = $_POST['user_id'] ?? 0;
+            $token = $_POST['fcm_token'] ?? '';
+            if (!$driver_id || !$token) throw new Exception("Driver ID and Token required.");
+
+            $stmt = $pdo->prepare("UPDATE drivers SET fcm_token = ? WHERE id = ?");
+            $stmt->execute([$token, $driver_id]);
+            echo json_encode(['success' => true, 'message' => 'FCM Token updated']);
             break;
 
         default:
