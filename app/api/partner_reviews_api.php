@@ -71,7 +71,12 @@ try {
             $target = (int)($reviewed_id ?: $partner_id);
             if (!$target) { echo json_encode(['status' => 'error', 'message' => 'reviewed_id required']); exit; }
 
-            // Summary
+            // 1. Target Partner Info (image and name)
+            $nameStmt = $pdo->prepare("SELECT full_name, selfie_link FROM partners WHERE id = :id");
+            $nameStmt->execute([':id' => $target]);
+            $partner = $nameStmt->fetch(PDO::FETCH_ASSOC);
+
+            // 2. Rating Summary
             $sumStmt = $pdo->prepare("
                 SELECT COUNT(*) as total, ROUND(AVG(rating), 1) as avg_rating
                 FROM partner_ratings WHERE reviewed_id = :id
@@ -79,7 +84,26 @@ try {
             $sumStmt->execute([':id' => $target]);
             $summary = $sumStmt->fetch(PDO::FETCH_ASSOC);
 
-            // Individual reviews
+            // 3. Monthly Performance Stats (Current Month)
+            $monthStart = date('Y-m-01');
+            $stats = [];
+            
+            // Total Posted
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM partner_bookings WHERE partner_id = ? AND start_date >= ?");
+            $stmt->execute([$target, $monthStart]);
+            $stats['posted'] = (int)$stmt->fetchColumn();
+
+            // Total Completed
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM partner_bookings WHERE partner_id = ? AND status = 'Completed' AND start_date >= ?");
+            $stmt->execute([$target, $monthStart]);
+            $stats['completed'] = (int)$stmt->fetchColumn();
+
+            // Total Cancelled
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM partner_bookings WHERE partner_id = ? AND status = 'Cancelled' AND start_date >= ?");
+            $stmt->execute([$target, $monthStart]);
+            $stats['cancelled'] = (int)$stmt->fetchColumn();
+
+            // 4. Individual reviews
             $revStmt = $pdo->prepare("
                 SELECT pr.id, pr.rating, pr.review_text, pr.created_at, pr.booking_id,
                        p.full_name as reviewer_name
@@ -92,19 +116,15 @@ try {
             $revStmt->execute([':id' => $target]);
             $reviews = $revStmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // Target Partner name
-            $nameStmt = $pdo->prepare("SELECT full_name FROM partners WHERE id = :id");
-            $nameStmt->execute([':id' => $target]);
-            $partner = $nameStmt->fetch(PDO::FETCH_ASSOC);
-
             echo json_encode([
-                'status'       => 'success',
-                'partner_name' => $partner['full_name']  ?? 'Partner',
-                'avg_rating'   => $summary['avg_rating'] ?? 0,
-                'total'        => (int)($summary['total'] ?? 0),
-                'reviews'      => $reviews ?? [],
-                'debug_file'   => 'partner_reviews_api.php',
-                'debug_id'     => $debug_id
+                'status'        => 'success',
+                'partner_name'  => $partner['full_name']  ?? 'Partner',
+                'partner_image' => $partner['selfie_link'] ?? '',
+                'avg_rating'    => $summary['avg_rating'] ?? 0,
+                'total'         => (int)($summary['total'] ?? 0),
+                'reviews'       => $reviews ?? [],
+                'stats'         => $stats,
+                'debug_id'      => $debug_id
             ]);
             break;
         }
