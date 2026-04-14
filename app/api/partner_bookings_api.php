@@ -91,11 +91,11 @@ if ($action === 'create_booking') {
         $sql = "INSERT INTO partner_bookings (
             partner_id, booking_type, pickup_location, drop_location, stops, 
             car_type, start_date, start_time, end_date, end_time, 
-            pricing_option, total_amount, commission, toll_tax, parking, note, preferences
+            pricing_option, total_amount, commission, toll_tax, parking, note, preferences, status
         ) VALUES (
             ?, ?, ?, ?, ?, 
             ?, ?, ?, ?, ?, 
-            ?, ?, ?, ?, ?, ?, ?
+            ?, ?, ?, ?, ?, ?, ?, 'Posted'
         )";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
@@ -159,7 +159,7 @@ if ($action === 'get_market_bookings') {
                 LEFT JOIN cars c       ON c.id = pb.car_type
                 LEFT JOIN car_types ct ON ct.id = c.type_id
                 LEFT JOIN partners p   ON p.id = pb.partner_id
-                WHERE pb.status = 'Posted'
+                WHERE pb.status IN ('Posted', 'Open', 'Active')
                 ORDER BY pb.start_date ASC, pb.start_time ASC, pb.id DESC
                 LIMIT 50";
         $stmt = $pdo->query($sql);
