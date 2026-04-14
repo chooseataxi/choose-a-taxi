@@ -2,6 +2,7 @@
 error_reporting(0);
 ini_set('display_errors', 0);
 require_once __DIR__ . '/../../includes/db.php';
+require_once __DIR__ . '/../../includes/pusher_config.php';
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
@@ -104,6 +105,12 @@ if ($action === 'create_booking') {
             $pricing_option, $total_amount, $commission, $toll, $parking, $note, $preferences
         ]);
         $bookingId = $pdo->lastInsertId();
+        
+        // Broadcast real-time update
+        try {
+            $pusher->trigger('market-channel', 'list-updated', ['id' => $bookingId]);
+        } catch (Exception $e) {}
+
         echo json_encode(["status" => "success", "message" => "Booking created successfully!", "booking_id" => $bookingId]);
     } catch (PDOException $e) {
         echo json_encode(["status" => "error", "message" => "SQL Error: " . $e->getMessage()]);
@@ -205,6 +212,12 @@ if ($action === 'cancel_booking') {
         $stmt->execute([$booking_id]);
 
         $pdo->commit();
+
+        // Broadcast real-time update
+        try {
+            $pusher->trigger('market-channel', 'list-updated', ['id' => $booking_id, 'action' => 'cancelled']);
+        } catch (Exception $e) {}
+
         echo json_encode(["status" => "success", "message" => "Booking cancelled successfully"]);
     } catch (Exception $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
