@@ -156,6 +156,16 @@ try {
                         'booking_id' => $booking_id,
                         'sender_id' => $partner_id
                     ]);
+                } else {
+                    // Log the missing token for debugging
+                    $logFile = __DIR__ . '/../../tmp/fcm_v1_log.json';
+                    $logData = [
+                        'timestamp' => date('Y-m-d H:i:s'),
+                        'error' => "Recipient ID $receiver_id has no FCM token",
+                        'title' => 'Chat Notification Skipped',
+                        'sender_id' => $partner_id
+                    ];
+                    @file_put_contents($logFile, json_encode($logData, JSON_PRETTY_PRINT) . PHP_EOL . "---" . PHP_EOL, FILE_APPEND);
                 }
             } catch (Exception $nf) {}
 

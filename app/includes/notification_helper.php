@@ -63,7 +63,17 @@ class NotificationHelper {
      * Sends a notification to a specific FCM token
      */
     public static function send($token, $title, $body, $data = []) {
-        if (empty($token)) return false;
+        if (empty($token)) {
+            $logFile = __DIR__ . '/../../tmp/fcm_v1_log.json';
+            $logData = [
+                'timestamp' => date('Y-m-d H:i:s'),
+                'error' => 'FCM Send Failed: Token is empty or null',
+                'title' => $title,
+                'data' => $data
+            ];
+            file_put_contents($logFile, json_encode($logData, JSON_PRETTY_PRINT) . PHP_EOL . "---" . PHP_EOL, FILE_APPEND);
+            return false;
+        }
 
         $projectId = self::getProjectId();
         $url = "https://fcm.googleapis.com/v1/projects/$projectId/messages:send";
