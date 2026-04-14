@@ -106,6 +106,8 @@ if ($action === 'lookup_rc') {
     if (!is_array($data)) $data = $_POST;
 
     $rc_number = strtoupper(trim($data['rc_number'] ?? ''));
+    $partner_id = $data['partner_id'] ?? '';
+
     if (empty($rc_number) || empty($partner_id)) {
         echo json_encode(['status' => 'error', 'message' => 'RC number and partner_id are required']);
         exit;

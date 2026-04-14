@@ -69,7 +69,7 @@ try {
     switch ($action) {
         case 'get_details':
             // 1. Get Booking Main Info with Car Details
-            $stmt = $pdo->prepare("SELECT b.*, p.full_name as poster_name, 
+            $stmt = $pdo->prepare("SELECT b.*, p.full_name as poster_name, p.manual_verification_status as poster_verification,
                                          c.name AS car_name, c.model AS car_model, 
                                          ct.name AS car_type_name, ct.image AS car_type_image,
                                          p.id AS poster_id, p.selfie_link AS poster_image
@@ -83,7 +83,8 @@ try {
             if (!$booking) throw new Exception("Booking not found");
 
             // 2. Check if already accepted
-            $stmt = $pdo->prepare("SELECT a.*, p.full_name as accepter_name, p.id as accepter_id, p.selfie_link as accepter_image 
+            $stmt = $pdo->prepare("SELECT a.*, p.full_name as accepter_name, p.id as accepter_id, p.selfie_link as accepter_image,
+                                         p.manual_verification_status as accepter_verification
                                   FROM accepted_bookings a 
                                   JOIN partners p ON a.partner_id = p.id 
                                   WHERE a.booking_id = ? AND a.status != 'Cancelled' LIMIT 1");
@@ -367,7 +368,7 @@ try {
 
         case 'get_chat_list':
             // ── 1. Posted (My own bookings) ──
-            $sqlPosted = "SELECT BC.booking_id, BC.message, BC.created_at, P.full_name as partner_name, BC.type, P.id as other_id, P.selfie_link as partner_image,
+            $sqlPosted = "SELECT BC.booking_id, BC.message, BC.created_at, P.full_name as partner_name, BC.type, P.id as other_id, P.selfie_link as partner_image, P.manual_verification_status as partner_verification,
                           (SELECT COUNT(*) FROM booking_chats WHERE booking_id = BC.booking_id AND receiver_id = ? AND sender_id = P.id AND is_read = 0) as unread_count
                           FROM booking_chats BC
                           JOIN partner_bookings PB ON BC.booking_id = PB.id
@@ -383,7 +384,7 @@ try {
             $posted = $stmt->fetchAll();
 
             // ── 2. Received (Others' bookings I chatted on / Accepted) ──
-            $sqlReceived = "SELECT BC.booking_id, BC.message, BC.created_at, P.full_name as partner_name, BC.type, PB.partner_id as other_id, P.selfie_link as partner_image,
+            $sqlReceived = "SELECT BC.booking_id, BC.message, BC.created_at, P.full_name as partner_name, BC.type, PB.partner_id as other_id, P.selfie_link as partner_image, P.manual_verification_status as partner_verification,
                             (SELECT COUNT(*) FROM booking_chats WHERE booking_id = BC.booking_id AND receiver_id = ? AND sender_id = P.id AND is_read = 0) as unread_count
                             FROM booking_chats BC
                             JOIN partner_bookings PB ON BC.booking_id = PB.id
