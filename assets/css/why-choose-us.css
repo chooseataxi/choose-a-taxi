@@ -1,42 +1,66 @@
-/* Workflow Section Modern Style */
+/* Workflow Section - ULTRA PROFESSIONAL RE-DESIGN */
 .workflow-section {
-    padding: 100px 0;
+    padding: 120px 0;
     background-color: #ffffff;
+    /* Subtle dot pattern background */
+    background-image: radial-gradient(#28a74520 1px, transparent 1px);
+    background-size: 30px 30px;
+    position: relative;
     overflow: hidden;
     font-family: 'Inter', sans-serif;
 }
 
+/* Large Watermark Logo in center */
+.workflow-section::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60%;
+    height: 60%;
+    background: url('../logo.png') no-repeat center;
+    background-size: contain;
+    opacity: 0.03; /* Barely visible */
+    pointer-events: none;
+    z-index: 0;
+}
+
 .workflow-container {
-    width: 90%;
-    max-width: 1000px;
+    width: 85%;
+    max-width: 1200px;
     margin: 0 auto;
+    position: relative;
+    z-index: 1;
 }
 
 .section-header-modern {
     text-align: center;
-    margin-bottom: 80px;
+    margin-bottom: 100px;
 }
 
 .section-header-modern h2 {
-    font-size: 42px;
+    font-size: 52px;
     font-weight: 800;
     color: #1a1a1a;
+    letter-spacing: -1px;
 }
 
 .section-header-modern h2 span {
-    color: #28a745;
+    color: #20c997; /* Mint theme from image */
 }
 
 .section-header-modern p {
-    color: #888;
-    font-size: 18px;
-    margin-top: 10px;
+    color: #666;
+    font-size: 20px;
+    margin-top: 15px;
+    font-weight: 400;
 }
 
-/* Steps Wrapper */
+/* The Core Wrapper */
 .workflow-steps-wrapper {
     position: relative;
-    padding: 40px 0;
+    min-height: 800px; /* Force height for curves */
 }
 
 .workflow-connector-svg {
@@ -46,137 +70,156 @@
     width: 100%;
     height: 100%;
     z-index: 1;
-    pointer-events: none;
+}
+
+.path-bg {
+    stroke: #f0f0f0;
+    stroke-width: 4;
 }
 
 .path-active {
-    stroke-dasharray: 2000;
-    stroke-dashoffset: 2000;
-    animation: drawPath 4s linear infinite;
+    stroke: #20c997;
+    stroke-width: 4;
+    stroke-dasharray: 10, 10; /* Dashed like many high-end flows */
+    animation: flowDash 30s linear infinite;
 }
 
-@keyframes drawPath {
-    to { stroke-dashoffset: 0; }
+@keyframes flowDash {
+    to { stroke-dashoffset: -1000; }
 }
 
-/* Steps Layout */
+/* Step Styles */
 .workflow-step {
-    position: relative;
+    position: absolute;
+    width: 400px;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 150px; /* Space for the curve */
-    z-index: 2;
-}
-
-.workflow-step:last-child {
-    margin-bottom: 0;
+    flex-direction: column;
+    z-index: 5;
 }
 
 .step-content {
-    width: 35%;
+    background: transparent;
 }
 
 .step-num {
-    font-size: 56px;
+    font-size: 72px;
     font-weight: 800;
-    color: rgba(40, 167, 69, 0.08); /* Watermark effect */
-    display: block;
-    line-height: 1;
-    margin-bottom: -15px;
+    color: #1a1a1a10;
+    position: absolute;
+    top: -40px;
+    left: -10px;
+    z-index: -1;
 }
 
 .workflow-step h3 {
-    font-size: 24px;
+    font-size: 28px;
     font-weight: 700;
-    color: #1a1a1a;
-    margin-bottom: 10px;
+    color: #111;
+    margin-bottom: 12px;
 }
 
 .workflow-step p {
-    color: #666;
-    font-size: 15px;
-    line-height: 1.5;
+    color: #777;
+    font-size: 16px;
+    line-height: 1.7;
+    max-width: 280px;
 }
 
+/* Icons - Styled like reference */
 .step-icon-box {
-    width: 60px;
-    height: 60px;
-    background: #000;
-    color: #fff;
+    width: 54px;
+    height: 54px;
+    background: #0d2c23; /* Very dark teal */
+    color: #20c997;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-    border: 4px solid #fff;
+    font-size: 20px;
     position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+    border: 3px solid #fff;
+    transition: all 0.3s ease;
 }
 
-/* Adjust Positions for S Curve */
-.step-1 .step-icon-box { top: 0; left: 35%; }
-.step-2 .step-icon-box { top: 0; left: 65%; }
-.step-3 .step-icon-box { top: 0; left: 35%; }
-.step-4 .step-icon-box { top: 0; left: 65%; }
-
-.step-2, .step-4 {
-    flex-direction: row-reverse;
+.workflow-step:hover .step-icon-box {
+    transform: scale(1.1);
+    background: #20c997;
+    color: #fff;
 }
 
-.step-2 .step-content, .step-4 .step-content {
-    text-align: left;
-}
+/* Positioning steps exactly on the S-Curve SVG coordinates */
+.step-1 { top: 0%; left: 10%; }
+.step-1 .step-icon-box { top: 10px; right: -80px; }
 
-/* Footer Button */
+.step-2 { top: 25%; right: 5%; text-align: left; }
+.step-2 .step-icon-box { top: 10px; left: -80px; }
+.step-2 .step-num { left: auto; right: -10px; }
+
+.step-3 { top: 55%; left: 5%; }
+.step-3 .step-icon-box { top: 10px; right: -80px; }
+
+.step-4 { top: 80%; right: 5%; text-align: left; }
+.step-4 .step-icon-box { top: 10px; left: -80px; }
+.step-4 .step-num { left: auto; right: -10px; }
+
+/* Call to Action Button */
 .workflow-footer {
     text-align: center;
-    margin-top: 80px;
+    margin-top: 100px;
 }
 
 .btn-get-started {
     display: inline-block;
-    padding: 15px 40px;
-    background: #1a1f36;
+    padding: 18px 45px;
+    background: #1a1a1a;
     color: #fff;
     font-weight: 700;
-    border-radius: 50px;
+    font-size: 18px;
+    border-radius: 12px; /* Squareish rounds like reference */
     text-decoration: none;
-    transition: all 0.3s ease;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
 }
 
 .btn-get-started:hover {
-    background: #28a745;
-    transform: translateY(-5px);
+    background: #20c997;
+    transform: translateY(-10px);
+    box-shadow: 0 30px 60px rgba(32, 201, 151, 0.2);
 }
 
-/* Mobile Responsiveness */
-@media (max-width: 991px) {
-    .workflow-connector-svg {
-        display: none; /* Hide complex path on mobile */
+/* Mobile Responsive */
+@media (max-width: 1024px) {
+    .workflow-connector-svg { display: none; }
+    .workflow-steps-wrapper { 
+        display: flex; 
+        flex-direction: column; 
+        min-height: auto;
+        gap: 80px;
     }
-
-    .workflow-step {
-        flex-direction: column !important;
+    .workflow-step { 
+        position: relative !important; 
+        width: 100% !important; 
+        top: auto !important; 
+        left: auto !important; 
+        right: auto !important;
         text-align: center !important;
-        margin-bottom: 60px;
+        align-items: center;
     }
-
-    .step-content {
-        width: 100%;
-        margin-top: 80px;
-    }
-
     .step-icon-box {
-        top: 0 !important;
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
+        right: auto !important;
+        margin-bottom: 20px;
+    }
+    .step-num {
+        top: 0;
         left: 50% !important;
         transform: translateX(-50%);
     }
-
-    .step-num {
-        margin-bottom: 10px;
+    .workflow-step p {
+        max-width: 100%;
+        margin: 0 auto;
     }
 }
