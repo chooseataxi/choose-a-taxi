@@ -76,6 +76,46 @@ $page_title = "Add Professional Car";
                                             <label class="form-label fw-bold">Variant/Short Model Info</label>
                                             <input type="text" name="model" class="form-control border-2 shadow-sm" placeholder="e.g. 2024 V-Series Hybrid">
                                         </div>
+                                        <div class="col-md-12 mt-4">
+                                            <h6 class="fw-bold text-muted border-bottom pb-2">Service Inclusions/Exclusions</h6>
+                                            <div class="row g-3">
+                                                <div class="col-md-4">
+                                                    <label class="small fw-bold">Toll Charges</label>
+                                                    <select name="include_toll" class="form-select border-2">
+                                                        <option value="Included">Included</option>
+                                                        <option value="Excluded">Excluded</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="small fw-bold">Tax</label>
+                                                    <select name="include_tax" class="form-select border-2">
+                                                        <option value="Included">Included</option>
+                                                        <option value="Excluded">Excluded</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="small fw-bold">Driver Allowance</label>
+                                                    <select name="include_driver_allowance" class="form-select border-2">
+                                                        <option value="Included">Included</option>
+                                                        <option value="Excluded">Excluded</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="small fw-bold">Night Charges</label>
+                                                    <select name="include_night_charges" class="form-select border-2">
+                                                        <option value="Included">Included</option>
+                                                        <option value="Excluded">Excluded</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="small fw-bold">Parking</label>
+                                                    <select name="include_parking" class="form-select border-2">
+                                                        <option value="Included">Included</option>
+                                                        <option value="Excluded">Excluded</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="mt-5 text-end">
                                         <button type="button" class="btn btn-primary px-5 py-2 rounded-pill shadow-sm next-step">Next: Pricing <i class="fas fa-arrow-right ms-2"></i></button>

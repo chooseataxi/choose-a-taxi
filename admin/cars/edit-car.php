@@ -83,6 +83,46 @@ $page_title = "Edit Professional Car";
                                             <label class="form-label fw-bold">Variant/Short Model Info</label>
                                             <input type="text" name="model" id="car_model_info" class="form-control border-2 shadow-sm" placeholder="e.g. 2024 V-Series Hybrid">
                                         </div>
+                                        <div class="col-md-12 mt-4">
+                                            <h6 class="fw-bold text-muted border-bottom pb-2">Service Inclusions/Exclusions</h6>
+                                            <div class="row g-3">
+                                                <div class="col-md-4">
+                                                    <label class="small fw-bold">Toll Charges</label>
+                                                    <select name="include_toll" id="include_toll" class="form-select border-2">
+                                                        <option value="Included">Included</option>
+                                                        <option value="Excluded">Excluded</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="small fw-bold">Tax</label>
+                                                    <select name="include_tax" id="include_tax" class="form-select border-2">
+                                                        <option value="Included">Included</option>
+                                                        <option value="Excluded">Excluded</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="small fw-bold">Driver Allowance</label>
+                                                    <select name="include_driver_allowance" id="include_driver_allowance" class="form-select border-2">
+                                                        <option value="Included">Included</option>
+                                                        <option value="Excluded">Excluded</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="small fw-bold">Night Charges</label>
+                                                    <select name="include_night_charges" id="include_night_charges" class="form-select border-2">
+                                                        <option value="Included">Included</option>
+                                                        <option value="Excluded">Excluded</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="small fw-bold">Parking</label>
+                                                    <select name="include_parking" id="include_parking" class="form-select border-2">
+                                                        <option value="Included">Included</option>
+                                                        <option value="Excluded">Excluded</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="mt-5 text-end">
                                         <button type="button" class="btn btn-primary px-5 py-2 rounded-pill shadow-sm next-step">Next: Pricing <i class="fas fa-arrow-right ms-2"></i></button>
@@ -278,6 +318,13 @@ $(document).ready(function() {
                 $('#seo_description').val(car.seo_description);
                 $('#meta_keywords').val(car.meta_keywords);
                 CKEDITOR.instances.car_description.setData(car.description);
+
+                // Set inclusion fields
+                $('#include_toll').val(car.include_toll);
+                $('#include_tax').val(car.include_tax);
+                $('#include_driver_allowance').val(car.include_driver_allowance);
+                $('#include_night_charges').val(car.include_night_charges);
+                $('#include_parking').val(car.include_parking);
 
                 if (car.image) {
                      $('#image-preview').html(`<img src="../../uploads/cars/${car.image}" style="max-height:100px;" class="rounded shadow-sm">`);

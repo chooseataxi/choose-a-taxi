@@ -23,6 +23,12 @@ try {
             $seo_description = $_POST['seo_description'] ?? '';
             $meta_keywords = $_POST['meta_keywords'] ?? '';
             
+            $include_toll = $_POST['include_toll'] ?? 'Included';
+            $include_tax = $_POST['include_tax'] ?? 'Included';
+            $include_driver_allowance = $_POST['include_driver_allowance'] ?? 'Included';
+            $include_night_charges = $_POST['include_night_charges'] ?? 'Included';
+            $include_parking = $_POST['include_parking'] ?? 'Included';
+            
             // Image Upload
             $image = '';
             
@@ -48,8 +54,8 @@ try {
                  throw new Exception("File upload failed with error code: " . $_FILES['car_image']['error'] . ". Check php.ini upload_max_filesize limit.");
             }
 
-            $stmt = $pdo->prepare("INSERT INTO cars (brand_id, type_id, trip_type_id, name, model, base_fare, min_km, extra_km_price, description, youtube_url, image, seo_title, seo_description, meta_keywords) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$brand_id, $type_id, $trip_type_id, $name, $model, $base_fare, $min_km, $extra_km_price, $description, $youtube_url, $image, $seo_title, $seo_description, $meta_keywords]);
+            $stmt = $pdo->prepare("INSERT INTO cars (brand_id, type_id, trip_type_id, name, model, base_fare, min_km, extra_km_price, description, youtube_url, image, seo_title, seo_description, meta_keywords, include_toll, include_tax, include_driver_allowance, include_night_charges, include_parking) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$brand_id, $type_id, $trip_type_id, $name, $model, $base_fare, $min_km, $extra_km_price, $description, $youtube_url, $image, $seo_title, $seo_description, $meta_keywords, $include_toll, $include_tax, $include_driver_allowance, $include_night_charges, $include_parking]);
 
             echo json_encode(['success' => true, 'message' => 'Car added successfully!']);
             break;
@@ -69,6 +75,12 @@ try {
             $seo_title = $_POST['seo_title'] ?? '';
             $seo_description = $_POST['seo_description'] ?? '';
             $meta_keywords = $_POST['meta_keywords'] ?? '';
+
+            $include_toll = $_POST['include_toll'] ?? 'Included';
+            $include_tax = $_POST['include_tax'] ?? 'Included';
+            $include_driver_allowance = $_POST['include_driver_allowance'] ?? 'Included';
+            $include_night_charges = $_POST['include_night_charges'] ?? 'Included';
+            $include_parking = $_POST['include_parking'] ?? 'Included';
             
             // Handle image update correctly
             $imageColumn = "";
@@ -104,8 +116,8 @@ try {
                  throw new Exception("Image replacement failed with error code: " . $_FILES['car_image']['error'] . ". Check php.ini upload_max_filesize limit.");
             }
 
-            $sql = "UPDATE cars SET brand_id = ?, type_id = ?, trip_type_id = ?, name = ?, model = ?, base_fare = ?, min_km = ?, extra_km_price = ?, description = ?, youtube_url = ?, seo_title = ?, seo_description = ?, meta_keywords = ? $imageColumn WHERE id = ?";
-            $params = array_merge([$brand_id, $type_id, $trip_type_id, $name, $model, $base_fare, $min_km, $extra_km_price, $description, $youtube_url, $seo_title, $seo_description, $meta_keywords], $imageParams, [$id]);
+            $sql = "UPDATE cars SET brand_id = ?, type_id = ?, trip_type_id = ?, name = ?, model = ?, base_fare = ?, min_km = ?, extra_km_price = ?, description = ?, youtube_url = ?, seo_title = ?, seo_description = ?, meta_keywords = ?, include_toll = ?, include_tax = ?, include_driver_allowance = ?, include_night_charges = ?, include_parking = ? $imageColumn WHERE id = ?";
+            $params = array_merge([$brand_id, $type_id, $trip_type_id, $name, $model, $base_fare, $min_km, $extra_km_price, $description, $youtube_url, $seo_title, $seo_description, $meta_keywords, $include_toll, $include_tax, $include_driver_allowance, $include_night_charges, $include_parking], $imageParams, [$id]);
             
             $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
