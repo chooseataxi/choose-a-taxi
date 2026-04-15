@@ -1,110 +1,180 @@
 <?php
 /**
- * Our Fleet Component - Choose A Taxi
- * Showcases the different types of vehicles available.
+ * Professional Horizontal Fleet Component
  */
 ?>
 <section class="fleet-section">
     <div class="fleet-container">
         <div class="fleet-header">
-            <h2>Our <span>Fleet</span></h2>
-            <p>Choose from our wide range of professional, well-maintained vehicles for a safe and comfortable journey.</p>
+            <h2>Our <span>Premium Fleet</span></h2>
         </div>
 
-        <div class="fleet-grid">
-            <!-- Hatchback -->
-            <div class="fleet-card">
-                <div class="fleet-image">
-                    <span class="fleet-badge">Economy</span>
-                    <img src="assets/frontend-images/fleet-hatchback.png" alt="Economy Hatchback">
+        <div class="fleet-list">
+            <!-- Hatchback Card -->
+            <div class="fleet-horizontal-card">
+                <div class="fleet-card-left">
+                    <img src="assets/frontend-images/fleet-hatchback.png" alt="WagonR">
                 </div>
-                <div class="fleet-info">
-                    <h3>Hatchback</h3>
-                    <p class="fleet-models">Swift, WagonR, Ritz, Tiago</p>
-                    <div class="fleet-features">
-                        <div class="feature-item"><i class="fas fa-user-friends"></i> 4+1 Seats</div>
-                        <div class="feature-item"><i class="fas fa-suitcase"></i> 1-2 Bags</div>
-                        <div class="feature-item"><i class="fas fa-snowflake"></i> AC</div>
-                    </div>
-                    <div class="fleet-actions">
-                        <div class="fleet-price-tag">
-                            <span>Starting from</span>
-                            <strong>₹9.00/km</strong>
+                <div class="fleet-card-middle">
+                    <h3>WagonR, Celerio [AC] 4+1</h3>
+                    <div class="details-grid">
+                        <div class="detail-row">
+                            <label>Including Distance:</label>
+                            <span>250 KMs</span>
                         </div>
-                        <a href="login.php" class="btn-book-fleet">Select Ride</a>
+                        <div class="detail-row">
+                            <label>Extra price/ KM:</label>
+                            <span>Rs. 9</span>
+                        </div>
+                        <div class="detail-row">
+                            <label>Toll:</label>
+                            <span>Included</span>
+                        </div>
+                        <div class="detail-row">
+                            <label>Tax:</label>
+                            <span>Included</span>
+                        </div>
+                        <div class="detail-row">
+                            <label>Driver allowance:</label>
+                            <span>Included</span>
+                        </div>
+                        <div class="detail-row">
+                            <label>Night charges:</label>
+                            <span>Included</span>
+                        </div>
+                        <div class="detail-row">
+                            <label>Parking:</label>
+                            <span>Included</span>
+                        </div>
+                        <div class="detail-row">
+                            <label>Seats:</label>
+                            <span class="dark">4</span>
+                        </div>
                     </div>
+                    <div class="cancellation-note">
+                        <i class="fas fa-bolt"></i> Free cancellation until 6 hour before pickup
+                    </div>
+                </div>
+                <div class="fleet-card-right">
+                    <div class="price-area">
+                        <div class="old-price">Rs. 3025</div>
+                        <div class="current-price">Rs. 2750</div>
+                        <div class="discount-badge">10% Off</div>
+                    </div>
+                    <a href="login.php" class="btn-book-now">Book Now @ Rs. 2750</a>
+                    <a href="#" class="terms-link">Terms & Conditions</a>
                 </div>
             </div>
 
-            <!-- Sedan -->
-            <div class="fleet-card">
-                <div class="fleet-image">
-                    <span class="fleet-badge">Comfort</span>
-                    <img src="assets/frontend-images/fleet-sedan.png" alt="Comfort Sedan">
+            <!-- Sedan Card -->
+            <div class="fleet-horizontal-card">
+                <div class="fleet-card-left">
+                    <img src="assets/frontend-images/fleet-sedan.png" alt="Sedan">
                 </div>
-                <div class="fleet-info">
-                    <h3>Sedan</h3>
-                    <p class="fleet-models">Dzire, Etios, Aura, Amaze</p>
-                    <div class="fleet-features">
-                        <div class="feature-item"><i class="fas fa-user-friends"></i> 4+1 Seats</div>
-                        <div class="feature-item"><i class="fas fa-suitcase"></i> 2-3 Bags</div>
-                        <div class="feature-item"><i class="fas fa-snowflake"></i> AC</div>
-                    </div>
-                    <div class="fleet-actions">
-                        <div class="fleet-price-tag">
-                            <span>Starting from</span>
-                            <strong>₹11.00/km</strong>
+                <div class="fleet-card-middle">
+                    <h3>Swift Dzire, Etios [AC] 4+1</h3>
+                    <div class="details-grid">
+                        <div class="detail-row">
+                            <label>Including Distance:</label>
+                            <span>250 KMs</span>
                         </div>
-                        <a href="login.php" class="btn-book-fleet">Select Ride</a>
+                        <div class="detail-row">
+                            <label>Extra price/ KM:</label>
+                            <span>Rs. 11</span>
+                        </div>
+                        <div class="detail-row">
+                            <label>Toll:</label>
+                            <span>Included</span>
+                        </div>
+                        <div class="detail-row">
+                            <label>Tax:</label>
+                            <span>Included</span>
+                        </div>
+                        <div class="detail-row">
+                            <label>Driver allowance:</label>
+                            <span>Included</span>
+                        </div>
+                        <div class="detail-row">
+                            <label>Night charges:</label>
+                            <span>Included</span>
+                        </div>
+                        <div class="detail-row">
+                            <label>Parking:</label>
+                            <span>Included</span>
+                        </div>
+                        <div class="detail-row">
+                            <label>Seats:</label>
+                            <span class="dark">4</span>
+                        </div>
                     </div>
+                    <div class="cancellation-note">
+                        <i class="fas fa-bolt"></i> Free cancellation until 6 hour before pickup
+                    </div>
+                </div>
+                <div class="fleet-card-right">
+                    <div class="price-area">
+                        <div class="old-price">Rs. 3600</div>
+                        <div class="current-price">Rs. 3250</div>
+                        <div class="discount-badge">10% Off</div>
+                    </div>
+                    <a href="login.php" class="btn-book-now">Book Now @ Rs. 3250</a>
+                    <a href="#" class="terms-link">Terms & Conditions</a>
                 </div>
             </div>
 
-            <!-- SUV -->
-            <div class="fleet-card">
-                <div class="fleet-image">
-                    <span class="fleet-badge">Premium</span>
-                    <img src="assets/frontend-images/fleet-suv.png" alt="Premium SUV">
+            <!-- SUV Card -->
+            <div class="fleet-horizontal-card">
+                <div class="fleet-card-left">
+                    <img src="assets/frontend-images/fleet-suv.png" alt="SUV">
                 </div>
-                <div class="fleet-info">
-                    <h3>Prime SUV</h3>
-                    <p class="fleet-models">Innova Crysta, Ertiga, Marazzo</p>
-                    <div class="fleet-features">
-                        <div class="feature-item"><i class="fas fa-user-friends"></i> 6/7 Seats</div>
-                        <div class="feature-item"><i class="fas fa-suitcase"></i> 3-4 Bags</div>
-                        <div class="feature-item"><i class="fas fa-snowflake"></i> Dual AC</div>
-                    </div>
-                    <div class="fleet-actions">
-                        <div class="fleet-price-tag">
-                            <span>Starting from</span>
-                            <strong>₹14.00/km</strong>
+                <div class="fleet-card-middle">
+                    <h3>Innova Crysta, Ertiga [AC] 6+1</h3>
+                    <div class="details-grid">
+                        <div class="detail-row">
+                            <label>Including Distance:</label>
+                            <span>250 KMs</span>
                         </div>
-                        <a href="login.php" class="btn-book-fleet">Select Ride</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- tempo traveler -->
-            <div class="fleet-card">
-                <div class="fleet-image">
-                    <span class="fleet-badge">Large Group</span>
-                    <img src="assets/frontend-images/fleet-traveler.png" alt="Tempo Traveler">
-                </div>
-                <div class="fleet-info">
-                    <h3>Group Traveler</h3>
-                    <p class="fleet-models">Force Tempo Traveler (12/17/26 Seats)</p>
-                    <div class="fleet-features">
-                        <div class="feature-item"><i class="fas fa-user-friends"></i> 12+ Seats</div>
-                        <div class="feature-item"><i class="fas fa-suitcase"></i> 10+ Bags</div>
-                        <div class="feature-item"><i class="fas fa-snowflake"></i> AC</div>
-                    </div>
-                    <div class="fleet-actions">
-                        <div class="fleet-price-tag">
-                            <span>Starting from</span>
-                            <strong>₹22.00/km</strong>
+                        <div class="detail-row">
+                            <label>Extra price/ KM:</label>
+                            <span>Rs. 15</span>
                         </div>
-                        <a href="login.php" class="btn-book-fleet">Select Ride</a>
+                        <div class="detail-row">
+                            <label>Toll:</label>
+                            <span>Included</span>
+                        </div>
+                        <div class="detail-row">
+                            <label>Tax:</label>
+                            <span>Included</span>
+                        </div>
+                        <div class="detail-row">
+                            <label>Driver allowance:</label>
+                            <span>Included</span>
+                        </div>
+                        <div class="detail-row">
+                            <label>Night charges:</label>
+                            <span>Included</span>
+                        </div>
+                        <div class="detail-row">
+                            <label>Parking:</label>
+                            <span>Included</span>
+                        </div>
+                        <div class="detail-row">
+                            <label>Seats:</label>
+                            <span class="dark">6</span>
+                        </div>
                     </div>
+                    <div class="cancellation-note">
+                        <i class="fas fa-bolt"></i> Free cancellation until 6 hour before pickup
+                    </div>
+                </div>
+                <div class="fleet-card-right">
+                    <div class="price-area">
+                        <div class="old-price">Rs. 5000</div>
+                        <div class="current-price">Rs. 4500</div>
+                        <div class="discount-badge">10% Off</div>
+                    </div>
+                    <a href="login.php" class="btn-book-now">Book Now @ Rs. 4500</a>
+                    <a href="#" class="terms-link">Terms & Conditions</a>
                 </div>
             </div>
         </div>
