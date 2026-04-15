@@ -1,52 +1,80 @@
 <?php
 /**
- * Why Choose Us Component - Choose A Taxi
- * Highlights key value propositions of the taxi service.
+ * Workflow Component - Choose A Taxi
+ * Replaces the old Why Choose Us with a dynamic step-by-step design.
  */
 ?>
-<section class="why-choose-us-section">
-    <div class="why-choose-us-container">
-        <div class="section-header">
-            <h2>Why Choose Us</h2>
-            <p>We provide the best cab service across India with a focus on safety, affordability, and customer satisfaction.</p>
+<section class="workflow-section">
+    <div class="workflow-container">
+        <div class="section-header-modern">
+            <h2>Easy. Convenient <span>Quick.</span></h2>
+            <p>The simple & Quick steps to your booking.</p>
         </div>
 
-        <div class="why-choose-grid">
-            <!-- Card 1: Safety -->
-            <div class="choose-card">
-                <div class="choose-icon">
-                    <i class="fas fa-shield-alt"></i>
+        <div class="workflow-steps-wrapper">
+            <!-- Connector Line (SVG) -->
+            <svg class="workflow-connector-svg" viewBox="0 0 1000 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M350 50 H650 C800 50 800 250 650 250 H350 C200 250 200 450 350 450 H650" stroke="#eee" stroke-width="6" stroke-linecap="round" />
+                <path class="path-active" d="M350 50 H650 C800 50 800 250 650 250 H350 C200 250 200 450 350 450 H650" stroke="url(#gradient-green)" stroke-width="6" stroke-linecap="round" />
+                <defs>
+                    <linearGradient id="gradient-green" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#28a745" />
+                        <stop offset="100%" stop-color="#20c997" />
+                    </linearGradient>
+                </defs>
+            </svg>
+
+            <!-- Step 1 -->
+            <div class="workflow-step step-1">
+                <div class="step-content">
+                    <span class="step-num">01</span>
+                    <h3>Searching</h3>
+                    <p>Enter your pickup and drop location with date and time.</p>
                 </div>
-                <h3>Safety & Reliability</h3>
-                <p>Your safety is our priority. We employ professional drivers and maintain well-serviced vehicles for every trip.</p>
+                <div class="step-icon-box">
+                    <i class="fas fa-search-location"></i>
+                </div>
             </div>
 
-            <!-- Card 2: Pricing -->
-            <div class="choose-card">
-                <div class="choose-icon">
-                    <i class="fas fa-tags"></i>
+            <!-- Step 2 -->
+            <div class="workflow-step step-2">
+                <div class="step-icon-box">
+                    <i class="fas fa-car-side"></i>
                 </div>
-                <h3>Best Prices</h3>
-                <p>Enjoy transparent pricing with no hidden charges. We offer the most competitive rates for all types of trips.</p>
+                <div class="step-content">
+                    <span class="step-num">02</span>
+                    <h3>Comparison</h3>
+                    <p>AI matches the best cab at lowest price for your route.</p>
+                </div>
             </div>
 
-            <!-- Card 3: 24/7 Support -->
-            <div class="choose-card">
-                <div class="choose-icon">
-                    <i class="fas fa-clock"></i>
+            <!-- Step 3 -->
+            <div class="workflow-step step-3">
+                <div class="step-content">
+                    <span class="step-num">03</span>
+                    <h3>Booking</h3>
+                    <p>Confirm booking with instant assigning your driver.</p>
                 </div>
-                <h3>24/7 Availability</h3>
-                <p>Need a ride at 3 AM? No problem. Our service and customer support are available around the clock.</p>
+                <div class="step-icon-box">
+                    <i class="fas fa-check-circle"></i>
+                </div>
             </div>
 
-            <!-- Card 4: Wide Coverage -->
-            <div class="choose-card">
-                <div class="choose-icon">
-                    <i class="fas fa-map-marked-alt"></i>
+            <!-- Step 4 -->
+            <div class="workflow-step step-4">
+                <div class="step-icon-box">
+                    <i class="fas fa-smile"></i>
                 </div>
-                <h3>Wide Coverage</h3>
-                <p>From local city rides to long-distance outstation trips, we cover all major cities and routes across India.</p>
+                <div class="step-content">
+                    <span class="step-num">04</span>
+                    <h3>Celebrate</h3>
+                    <p>Sit back and enjoy your comfortable and safe journey.</p>
+                </div>
             </div>
+        </div>
+
+        <div class="workflow-footer">
+            <a href="login.php" class="btn-get-started">Get Started <i class="fas fa-chevron-right"></i></a>
         </div>
     </div>
 </section>

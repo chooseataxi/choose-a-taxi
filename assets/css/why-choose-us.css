@@ -1,111 +1,182 @@
-.why-choose-us-section {
-    padding: 80px 0;
-    background: #f9fafb;
+/* Workflow Section Modern Style */
+.workflow-section {
+    padding: 100px 0;
+    background-color: #ffffff;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
 }
 
-.why-choose-us-container {
+.workflow-container {
     width: 90%;
-    max-width: 1200px;
+    max-width: 1000px;
     margin: 0 auto;
 }
 
-.section-header {
+.section-header-modern {
     text-align: center;
-    margin-bottom: 50px;
+    margin-bottom: 80px;
 }
 
-.section-header h2 {
-    font-size: 32px;
+.section-header-modern h2 {
+    font-size: 42px;
     font-weight: 800;
     color: #1a1a1a;
-    margin-bottom: 15px;
+}
+
+.section-header-modern h2 span {
+    color: #28a745;
+}
+
+.section-header-modern p {
+    color: #888;
+    font-size: 18px;
+    margin-top: 10px;
+}
+
+/* Steps Wrapper */
+.workflow-steps-wrapper {
     position: relative;
-    display: inline-block;
+    padding: 40px 0;
 }
 
-.section-header h2::after {
-    content: '';
+.workflow-connector-svg {
     position: absolute;
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60px;
-    height: 3px;
-    background: var(--primary-green);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
 }
 
-.section-header p {
+.path-active {
+    stroke-dasharray: 2000;
+    stroke-dashoffset: 2000;
+    animation: drawPath 4s linear infinite;
+}
+
+@keyframes drawPath {
+    to { stroke-dashoffset: 0; }
+}
+
+/* Steps Layout */
+.workflow-step {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 150px; /* Space for the curve */
+    z-index: 2;
+}
+
+.workflow-step:last-child {
+    margin-bottom: 0;
+}
+
+.step-content {
+    width: 35%;
+}
+
+.step-num {
+    font-size: 56px;
+    font-weight: 800;
+    color: rgba(40, 167, 69, 0.08); /* Watermark effect */
+    display: block;
+    line-height: 1;
+    margin-bottom: -15px;
+}
+
+.workflow-step h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 10px;
+}
+
+.workflow-step p {
     color: #666;
-    font-size: 16px;
-    max-width: 600px;
-    margin: 20px auto 0;
+    font-size: 15px;
+    line-height: 1.5;
 }
 
-.why-choose-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 30px;
-}
-
-.choose-card {
-    background: #fff;
-    padding: 40px 30px;
-    border-radius: 12px;
-    text-align: center;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
-    border-bottom: 4px solid transparent;
-}
-
-.choose-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
-    border-color: var(--primary-green);
-}
-
-.choose-icon {
-    width: 70px;
-    height: 70px;
-    background: rgba(0, 166, 63, 0.1);
-    color: var(--primary-green);
+.step-icon-box {
+    width: 60px;
+    height: 60px;
+    background: #000;
+    color: #fff;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 25px;
-    font-size: 30px;
+    font-size: 24px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    border: 4px solid #fff;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
-.choose-card h3 {
-    font-size: 20px;
+/* Adjust Positions for S Curve */
+.step-1 .step-icon-box { top: 0; left: 35%; }
+.step-2 .step-icon-box { top: 0; left: 65%; }
+.step-3 .step-icon-box { top: 0; left: 35%; }
+.step-4 .step-icon-box { top: 0; left: 65%; }
+
+.step-2, .step-4 {
+    flex-direction: row-reverse;
+}
+
+.step-2 .step-content, .step-4 .step-content {
+    text-align: left;
+}
+
+/* Footer Button */
+.workflow-footer {
+    text-align: center;
+    margin-top: 80px;
+}
+
+.btn-get-started {
+    display: inline-block;
+    padding: 15px 40px;
+    background: #1a1f36;
+    color: #fff;
     font-weight: 700;
-    color: #1a1a1a;
-    margin-bottom: 15px;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
-.choose-card p {
-    color: #666;
-    font-size: 14px;
-    line-height: 1.6;
+.btn-get-started:hover {
+    background: #28a745;
+    transform: translateY(-5px);
 }
 
 /* Mobile Responsiveness */
 @media (max-width: 991px) {
-    .why-choose-grid {
-        grid-template-columns: repeat(2, 1fr);
+    .workflow-connector-svg {
+        display: none; /* Hide complex path on mobile */
     }
-}
 
-@media (max-width: 576px) {
-    .why-choose-grid {
-        grid-template-columns: 1fr;
+    .workflow-step {
+        flex-direction: column !important;
+        text-align: center !important;
+        margin-bottom: 60px;
     }
-    
-    .why-choose-us-section {
-        padding: 50px 0;
+
+    .step-content {
+        width: 100%;
+        margin-top: 80px;
     }
-    
-    .section-header h2 {
-        font-size: 28px;
+
+    .step-icon-box {
+        top: 0 !important;
+        left: 50% !important;
+        transform: translateX(-50%);
+    }
+
+    .step-num {
+        margin-bottom: 10px;
     }
 }
