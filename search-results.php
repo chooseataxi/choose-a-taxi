@@ -47,7 +47,7 @@ if ($trip_type === 'Round Trip') {
 if ($total_distance_km < 1) $total_distance_km = 1; 
 
 // 3. Fetch Available Cars matching the trip type
-$cars_stmt = $pdo->prepare("SELECT c.*, ct.name as type_name, ct.image as type_image 
+$cars_stmt = $pdo->prepare("SELECT c.*, ct.name as type_name, ct.image as type_image, ct.passengers as max_seats 
                             FROM cars c 
                             JOIN car_types ct ON c.type_id = ct.id 
                             JOIN trip_types tt ON c.trip_type_id = tt.id 
@@ -142,7 +142,7 @@ $cars = $cars_stmt->fetchAll();
                     <img src="<?= $display_image ?>" alt="<?= $display_name ?>">
                 </div>
                 <div class="fleet-card-middle">
-                    <h3 style="font-weight: 800; color: #333; margin-bottom: 15px;"><?= $display_name ?> 【AC】 4+1</h3>
+                    <h3 style="font-weight: 800; color: #333; margin-bottom: 15px;"><?= $display_name ?></h3>
                     <div class="details-grid">
                         <div class="detail-row">
                             <label>Including Distance:</label>
@@ -174,7 +174,7 @@ $cars = $cars_stmt->fetchAll();
                         </div>
                         <div class="detail-row">
                             <label>Seats:</label>
-                            <span style="color: #28a745; font-weight: 800;">4</span>
+                            <span style="color: #28a745; font-weight: 800;"><?= $car['max_seats'] ?></span>
                         </div>
                     </div>
                     <div class="cancellation-note" style="color: #28a745; font-weight: 600; font-size: 14px; margin-top: 10px;">
