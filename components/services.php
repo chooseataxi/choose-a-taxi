@@ -1,0 +1,91 @@
+<?php
+/**
+ * Our Services Component - Choose A Taxi
+ * Displays the different types of trip services available.
+ */
+?>
+<section class="services-section">
+    <div class="services-container">
+        <div class="services-header">
+            <h2>Our <span>Services</span></h2>
+            <p>Comprehensive mobility solutions tailored for your every travel need across India.</p>
+        </div>
+
+        <div class="services-grid">
+            <!-- One Way Trip -->
+            <div class="service-card">
+                <div class="service-img-wrapper">
+                    <img src="assets/service-images/one-way.png" alt="One Way Trip">
+                </div>
+                <div class="service-content">
+                    <h3>One Way Trip</h3>
+                    <p>Pay only for one-sided drop-off. Ideal for travel between cities without the cost of a return journey.</p>
+                    <div class="btn-read-more-wrapper">
+                        <div class="btn-read-more-bg"></div>
+                        <a href="#" class="btn-read-more">Read More</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Round Trip -->
+            <div class="service-card">
+                <div class="service-img-wrapper">
+                    <img src="assets/service-images/round-trip.png" alt="Round Trip">
+                </div>
+                <div class="service-content">
+                    <h3>Round Trip</h3>
+                    <p>Planned weekend getaways or business trips? Book a round-trip and enjoy the convenience of a dedicated cab.</p>
+                    <div class="btn-read-more-wrapper">
+                        <div class="btn-read-more-bg"></div>
+                        <a href="#" class="btn-read-more">Read More</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hourly Rental -->
+            <div class="service-card">
+                <div class="service-img-wrapper">
+                    <img src="assets/service-images/hourly.png" alt="Hourly Rental">
+                </div>
+                <div class="service-content">
+                    <h3>Hourly Rental</h3>
+                    <p>Need a car for a few hours? Book our flexible hourly rentals for shopping, meetings, or short city errands.</p>
+                    <div class="btn-read-more-wrapper">
+                        <div class="btn-read-more-bg"></div>
+                        <a href="#" class="btn-read-more">Read More</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Local Trip -->
+            <div class="service-card">
+                <div class="service-img-wrapper">
+                    <img src="assets/service-images/local.png" alt="Local Trip">
+                </div>
+                <div class="service-content">
+                    <h3>Local Trip</h3>
+                    <p>Reliable and swift city travel. Get picked up and dropped off anywhere within the city limits instantly.</p>
+                    <div class="btn-read-more-wrapper">
+                        <div class="btn-read-more-bg"></div>
+                        <a href="#" class="btn-read-more">Read More</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Airport Transfer -->
+            <div class="service-card">
+                <div class="service-img-wrapper">
+                    <img src="assets/service-images/airport.png" alt="Airport Transfer">
+                </div>
+                <div class="service-content">
+                    <h3>Airport Transfer</h3>
+                    <p>Never miss a flight. 24/7 on-time airport pickups and drop-offs with professional, luggage-ready drivers.</p>
+                    <div class="btn-read-more-wrapper">
+                        <div class="btn-read-more-bg"></div>
+                        <a href="#" class="btn-read-more">Read More</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
