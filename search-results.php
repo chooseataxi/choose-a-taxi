@@ -56,6 +56,7 @@ $cars = $pdo->query("SELECT c.*, ct.name as type_name, ct.image as type_image
 
 <!-- Custom Results CSS -->
 <link rel="stylesheet" href="assets/css/fleet.css">
+<link rel="stylesheet" href="assets/css/footer.css">
 <style>
     .results-page { background: #f4f7f9; padding: 40px 0; min-height: 80vh; font-family: 'Inter', sans-serif; }
     .results-header-card { 
@@ -120,13 +121,21 @@ $cars = $pdo->query("SELECT c.*, ct.name as type_name, ct.image as type_image
                 $random_off = rand(7, 15);
                 $old_price = round($final_price / (1 - ($random_off/100)));
                 
-                // Use Car Type Name and its image as per request
                 $display_name = strtoupper($car['type_name']);
-                $display_image = $car['type_image'] ?: ($car['image'] ?: 'default.png');
+                
+                // Fix: type_image in DB already contains path 'assets/car_types/...'
+                // car['image'] in DB is filename only, requires 'uploads/cars/'
+                if (!empty($car['type_image'])) {
+                    $display_image = $car['type_image'];
+                } else if (!empty($car['image'])) {
+                    $display_image = 'uploads/cars/' . $car['image'];
+                } else {
+                    $display_image = 'assets/frontend-images/hero-new-bg.jpeg'; // fallback
+                }
             ?>
             <div class="fleet-horizontal-card">
                 <div class="fleet-card-left">
-                    <img src="uploads/cars/<?= $display_image ?>" alt="<?= $display_name ?>">
+                    <img src="<?= $display_image ?>" alt="<?= $display_name ?>">
                 </div>
                 <div class="fleet-card-middle">
                     <h3 style="font-weight: 800; color: #333; margin-bottom: 15px;"><?= $display_name ?> 【AC】 4+1</h3>
