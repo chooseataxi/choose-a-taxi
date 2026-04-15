@@ -13,7 +13,8 @@
             <!-- Hatchback Card -->
             <div class="fleet-horizontal-card">
                 <div class="fleet-card-left">
-                    <img src="assets/frontend-images/fleet-hatchback.png" alt="WagonR">
+                    <img src="https://s3.ap-south-1.amazonaws.com/chooseataxi.in-media/15008/conversions/1001200696-x400.webp"
+                        alt="WagonR">
                 </div>
                 <div class="fleet-card-middle">
                     <h3>WagonR, Celerio [AC] 4+1</h3>
@@ -69,7 +70,8 @@
             <!-- Sedan Card -->
             <div class="fleet-horizontal-card">
                 <div class="fleet-card-left">
-                    <img src="assets/frontend-images/fleet-sedan.png" alt="Sedan">
+                    <img src="https://s3.ap-south-1.amazonaws.com/chooseataxi.in-media/31438/conversions/1002368028-x400.webp"
+                        alt="Sedan">
                 </div>
                 <div class="fleet-card-middle">
                     <h3>Swift Dzire, Etios [AC] 4+1</h3>
@@ -125,7 +127,8 @@
             <!-- SUV Card -->
             <div class="fleet-horizontal-card">
                 <div class="fleet-card-left">
-                    <img src="assets/frontend-images/fleet-suv.png" alt="SUV">
+                    <img src="https://chooseataxi.in/storage/313/conversions/20201015102234_2021-Toyota-Innova-Crysta-facelift-white-studio-x400.webp"
+                        alt="SUV">
                 </div>
                 <div class="fleet-card-middle">
                     <h3>Innova Crysta, Ertiga [AC] 6+1</h3>
