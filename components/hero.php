@@ -23,13 +23,14 @@
             </div>
 
             <div class="form-body">
-                <form action="#" method="POST">
+                <form action="search-results.php" method="GET" id="searchCabForm">
                     <!-- Trip Type Toggle -->
                     <div class="trip-type">
-                        <div class="trip-option active">
+                        <input type="hidden" name="trip_type" id="trip_type" value="One Way">
+                        <div class="trip-option active" data-type="One Way">
                             <i class="fas fa-dot-circle"></i> One Way Trip
                         </div>
-                        <div class="trip-option">
+                        <div class="trip-option" data-type="Round Trip">
                             <i class="far fa-circle"></i> Round Trip
                         </div>
                     </div>
@@ -38,17 +39,24 @@
                     <div class="form-group">
                         <label>PICK-UP ADDRESS</label>
                         <div class="form-input-wrapper">
-                            <input type="text" id="pickup_address" placeholder="City, Airport, Station, etc." required>
+                            <input type="text" name="pickup" id="pickup_address" placeholder="City, Airport, Station, etc." required>
                         </div>
                     </div>
 
-                    <!-- Stop Address -->
+                    <!-- Drop Address -->
                     <div class="form-group">
-                        <label>STOP ADDRESS</label>
+                        <label>DROP ADDRESS</label>
                         <div class="form-input-wrapper">
-                            <input type="text" id="stop_address" placeholder="NEXT STOP ADDRESS">
+                            <input type="text" name="drop" id="drop_address" placeholder="DESTINATION CITY" required>
                         </div>
-                        <button type="button" class="add-stop-btn">+ Add Stop Address</button>
+                    </div>
+
+                    <!-- Stop Records Container -->
+                    <div id="stops-container"></div>
+
+                    <!-- Add Stop Button -->
+                    <div class="form-group">
+                        <button type="button" class="add-stop-btn" id="btn-add-stop">+ Add Stop Address</button>
                     </div>
 
                     <!-- Contact No -->
@@ -59,7 +67,7 @@
                                 <img src="https://flagcdn.com/w20/in.png" srcset="https://flagcdn.com/w40/in.png 2x" width="20" alt="India">
                                 +91 <i class="fas fa-chevron-down" style="font-size: 10px;"></i>
                             </span>
-                            <input type="tel" placeholder="CONTACT NO." required>
+                            <input type="tel" name="phone" placeholder="CONTACT NO." required>
                         </div>
                     </div>
 
@@ -68,15 +76,13 @@
                         <div class="form-group">
                             <label>Start date</label>
                             <div class="form-input-wrapper">
-                                <input type="text" value="24-03-2026" id="start-date" required>
-                                <i class="far fa-calendar-alt" style="color: #666;"></i>
+                                <input type="date" name="date" id="start-date" required>
                             </div>
                         </div>
                         <div class="form-group">
                             <label>Start time</label>
                             <div class="form-input-wrapper">
-                                <input type="text" value="23:17" id="start-time" required>
-                                <i class="far fa-clock" style="color: #666;"></i>
+                                <input type="time" name="time" id="start-time" required>
                             </div>
                         </div>
                     </div>
@@ -91,24 +97,75 @@
 
 <!-- Google Places API Integration -->
 <script>
-    function initAutocomplete() {
-        if (!google || !google.maps || !google.maps.places) return;
+    let autocompleteOptions = {
+        componentRestrictions: { country: "in" },
+        fields: ["formatted_address", "geometry"],
+    };
 
-        const options = {
-            componentRestrictions: { country: "in" },
-            fields: ["address_components", "geometry", "icon", "name"],
-            strictBounds: false,
-        };
+    function initAutocomplete() {
+        if (typeof google === 'undefined') return;
 
         const pickupInput = document.getElementById("pickup_address");
-        const stopInput = document.getElementById("stop_address");
+        const dropInput = document.getElementById("drop_address");
 
-        if (pickupInput) {
-            new google.maps.places.Autocomplete(pickupInput, options);
+        if (pickupInput) new google.maps.places.Autocomplete(pickupInput, autocompleteOptions);
+        if (dropInput) new google.maps.places.Autocomplete(dropInput, autocompleteOptions);
+    }
+
+    // Handle Trip Type Selection
+    document.querySelectorAll('.trip-option').forEach(opt => {
+        opt.addEventListener('click', function() {
+            document.querySelectorAll('.trip-option').forEach(x => {
+                x.classList.remove('active');
+                x.querySelector('i').className = 'far fa-circle';
+            });
+            this.classList.add('active');
+            this.querySelector('i').className = 'fas fa-dot-circle';
+            document.getElementById('trip_type').value = this.dataset.type;
+        });
+    });
+
+    // Add Stop Functionality
+    const stopsContainer = document.getElementById('stops-container');
+    const addStopBtn = document.getElementById('btn-add-stop');
+    let stopCount = 0;
+
+    addStopBtn.addEventListener('click', () => {
+        if (stopCount >= 3) {
+            alert("Maximum 3 stops allowed");
+            return;
         }
-        if (stopInput) {
-            new google.maps.places.Autocomplete(stopInput, options);
-        }
+        stopCount++;
+        const stopId = `stop_${stopCount}`;
+        const div = document.createElement('div');
+        div.className = 'form-group mb-3';
+        div.id = `wrapper_${stopId}`;
+        div.innerHTML = `
+            <label class="d-flex justify-content-between">
+                STOP ${stopCount}
+                <span class="text-danger" style="cursor:pointer" onclick="removeStop('${stopId}')">Remove</span>
+            </label>
+            <div class="form-input-wrapper">
+                <input type="text" name="stops[]" id="${stopId}" placeholder="Stop Address" required>
+            </div>
+        `;
+        stopsContainer.appendChild(div);
+        new google.maps.places.Autocomplete(document.getElementById(stopId), autocompleteOptions);
+    });
+
+    function removeStop(id) {
+        document.getElementById(`wrapper_${id}`).remove();
+        stopCount--;
+    }
+
+    // Set Default Date/Time
+    window.onload = () => {
+        const now = new Date();
+        document.getElementById('start-date').value = now.toISOString().split('T')[0];
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        document.getElementById('start-time').value = `${hours}:${minutes}`;
+        initAutocomplete();
     }
 </script>
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCT5jMYUaHtsT2Z2IzkQgl-8TsIw_946VY&libraries=places&callback=initAutocomplete" async defer></script>
