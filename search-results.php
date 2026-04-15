@@ -46,12 +46,16 @@ if ($trip_type === 'Round Trip') {
 // Final sanity check
 if ($total_distance_km < 1) $total_distance_km = 1; 
 
-// 3. Fetch Available Cars
-$cars = $pdo->query("SELECT c.*, ct.name as type_name, ct.image as type_image 
-                     FROM cars c 
-                     JOIN car_types ct ON c.type_id = ct.id 
-                     WHERE c.status = 'Active'")->fetchAll();
-
+// 3. Fetch Available Cars matching the trip type
+$cars_stmt = $pdo->prepare("SELECT c.*, ct.name as type_name, ct.image as type_image 
+                            FROM cars c 
+                            JOIN car_types ct ON c.type_id = ct.id 
+                            JOIN trip_types tt ON c.trip_type_id = tt.id 
+                            WHERE c.status = 'Active' AND tt.name LIKE ?");
+// The trip_type from GET is "One Way" or "Round Trip"
+// We use LIKE to match "One Way Trip" or "Round Trip" in case of slightly different naming
+$cars_stmt->execute(['%' . $trip_type . '%']);
+$cars = $cars_stmt->fetchAll();
 ?>
 
 <!-- Custom Results CSS -->
