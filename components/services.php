@@ -99,7 +99,7 @@
                     <img src="https://intercity.indrive.com/_next/image?url=%2Fassets%2Fimages%2Flanding%2Fwe_care_safety_in.png&w=3840&q=75"
                         alt="Taxi Booking Banner" style="height: 100%; object-fit: cover; border-radius: 12px;">
                     <div
-                        style="position: absolute; bottom: 20px; left: 20px; right: 20px; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); padding: 15px; border-radius: 8px; color: #fff;">
+                        style="position: absolute; bottom: 20px; left: 20px; right: 20px; background: none; backdrop-filter: blur(5px); padding: 15px; border-radius: 8px; color: #fff;">
                         <h4 style="margin: 0; font-size: 16px; font-weight: 700;">Safe & Reliable Rides</h4>
                         <p style="margin: 5px 0 0; font-size: 12px; opacity: 0.9;">Across all major cities in India.</p>
                     </div>
