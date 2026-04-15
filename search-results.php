@@ -119,59 +119,65 @@ $cars = $pdo->query("SELECT c.*, ct.name as type_name, ct.image as type_image
                 $final_price = round($final_price);
                 $random_off = rand(7, 15);
                 $old_price = round($final_price / (1 - ($random_off/100)));
+                
+                // Use Car Type Name and its image as per request
+                $display_name = strtoupper($car['type_name']);
+                $display_image = $car['type_image'] ?: ($car['image'] ?: 'default.png');
             ?>
             <div class="fleet-horizontal-card">
                 <div class="fleet-card-left">
-                    <img src="uploads/cars/<?= $car['image'] ?: 'default.png' ?>" alt="<?= $car['type_name'] ?>">
+                    <img src="uploads/cars/<?= $display_image ?>" alt="<?= $display_name ?>">
                 </div>
                 <div class="fleet-card-middle">
-                    <h3><?= htmlspecialchars($car['name']) ?> [AC]</h3>
+                    <h3 style="font-weight: 800; color: #333; margin-bottom: 15px;"><?= $display_name ?> 【AC】 4+1</h3>
                     <div class="details-grid">
                         <div class="detail-row">
                             <label>Including Distance:</label>
-                            <span><?= round($total_distance_km) ?> KMs</span>
+                            <span style="color: #28a745; font-weight: 800;"><?= round($total_distance_km) ?> KMs</span>
                         </div>
                         <div class="detail-row">
                             <label>Extra price/ KM:</label>
-                            <span>Rs. <?= $extra_km_price ?></span>
+                            <span style="color: #28a745; font-weight: 800;">Rs. <?= $extra_km_price ?></span>
                         </div>
                         <div class="detail-row">
                             <label>Toll:</label>
-                            <span><?= $car['include_toll'] ?></span>
+                            <span style="color: #28a745; font-weight: 800;"><?= $car['include_toll'] ?></span>
                         </div>
                         <div class="detail-row">
                             <label>Tax:</label>
-                            <span><?= $car['include_tax'] ?></span>
+                            <span style="color: #28a745; font-weight: 800;"><?= $car['include_tax'] ?></span>
                         </div>
                         <div class="detail-row">
                             <label>Driver allowance:</label>
-                            <span><?= $car['include_driver_allowance'] ?></span>
+                            <span style="color: #28a745; font-weight: 800;"><?= $car['include_driver_allowance'] ?></span>
                         </div>
                         <div class="detail-row">
                             <label>Night charges:</label>
-                            <span><?= $car['include_night_charges'] ?></span>
+                            <span style="color: #28a745; font-weight: 800;"><?= $car['include_night_charges'] ?></span>
                         </div>
                         <div class="detail-row">
                             <label>Parking:</label>
-                            <span><?= $car['include_parking'] ?></span>
+                            <span style="color: #d9534f; font-weight: 800;"><?= $car['include_parking'] ?></span>
                         </div>
                         <div class="detail-row">
                             <label>Seats:</label>
-                            <span class="dark">4</span>
+                            <span style="color: #28a745; font-weight: 800;">4</span>
                         </div>
                     </div>
-                    <div class="cancellation-note">
+                    <div class="cancellation-note" style="color: #28a745; font-weight: 600; font-size: 14px; margin-top: 10px;">
                         <i class="fas fa-bolt"></i> Free cancellation until 6 hour before pickup
                     </div>
                 </div>
                 <div class="fleet-card-right">
-                    <div class="price-area">
-                        <div class="old-price">Rs. <?= $old_price ?></div>
-                        <div class="current-price">Rs. <?= $final_price ?></div>
-                        <div class="discount-badge"><?= $random_off ?>% Off</div>
+                    <div class="price-area" style="text-align: right; margin-bottom: 20px;">
+                        <div class="old-price" style="text-decoration: line-through; color: #28a745; font-size: 18px; display: inline-block; margin-right: 10px;">Rs. <?= $old_price ?></div>
+                        <div class="current-price" style="color: #28a745; font-size: 32px; font-weight: 900; display: inline-block; vertical-align: middle;">Rs. <?= $final_price ?></div>
+                        <div class="discount-badge" style="background: #006b52; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 14px; font-weight: 700; display: inline-block; margin-left: 10px;"><?= $random_off ?>% Off</div>
                     </div>
-                    <a href="login.php?booking_request=1&car_id=<?= $car['id'] ?>&dist=<?= $total_distance_km ?>" class="btn-book-now">Book Now @ Rs. <?= $final_price ?></a>
-                    <a href="#" class="terms-link">Terms & Conditons</a>
+                    <a href="login.php?booking_request=1&car_id=<?= $car['id'] ?>&dist=<?= $total_distance_km ?>" class="btn-book-now" style="background: #e3342f; color: #fff; padding: 12px; border-radius: 4px; text-decoration: none; display: block; text-align: center; font-weight: 700; font-size: 18px; margin-bottom: 15px;">Book Now @ Rs. <?= $final_price ?></a>
+                    <div style="text-align: center;">
+                        <a href="#" class="terms-link" style="color: #28a745; text-decoration: none; font-weight: 600;">Terms & Conditons</a>
+                    </div>
                 </div>
             </div>
             <?php endforeach; ?>
