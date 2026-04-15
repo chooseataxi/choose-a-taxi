@@ -16,12 +16,15 @@
 <link rel="stylesheet" href="assets/css/services.css">
 <!-- Custom Fleet CSS -->
 <link rel="stylesheet" href="assets/css/fleet.css">
+<!-- Custom Testimonials CSS -->
+<link rel="stylesheet" href="assets/css/testimonials.css">
 
 <?php include 'components/hero.php'; ?>
 <?php include 'components/services.php'; ?>
 <?php include 'components/price-list.php'; ?>
 <?php include 'components/fleet.php'; ?>
 <?php include 'components/stats.php'; ?>
+<?php include 'components/testimonials.php'; ?>
 <?php include 'components/why-choose-us.php'; ?>
 <?php include 'components/app-download.php'; ?>
 
