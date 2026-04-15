@@ -92,6 +92,17 @@
                     </div>
                 </div>
             </div>
+
+            <!-- New Promotional Banner Card (to fill space) -->
+            <div class="service-card promo-card">
+                <div class="service-img-wrapper" style="height: 100%; position: relative;">
+                    <img src="assets/frontend-images/service-banner.png" alt="Taxi Booking Banner" style="height: 100%; object-fit: cover; border-radius: 12px;">
+                    <div style="position: absolute; bottom: 20px; left: 20px; right: 20px; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); padding: 15px; border-radius: 8px; color: #fff;">
+                        <h4 style="margin: 0; font-size: 16px; font-weight: 700;">Safe & Reliable Rides</h4>
+                        <p style="margin: 5px 0 0; font-size: 12px; opacity: 0.9;">Across all major cities in India.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </section>
