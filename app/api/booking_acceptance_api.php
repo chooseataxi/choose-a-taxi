@@ -1,4 +1,10 @@
 <?php
+// require_once __DIR__ . '/../../includes/db.php';
+set_exception_handler(function($e) {
+    header("Content-Type: application/json");
+    echo json_encode(["status" => "error", "message" => "Critical Error: " . $e->getMessage()]);
+    exit;
+});
 require_once __DIR__ . '/../../includes/db.php';
 require_once __DIR__ . '/../../includes/pusher_config.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
@@ -392,7 +398,7 @@ try {
             break;
 
         case 'get_chat_list':
-            // ── 1. Posted (My own bookings) ──
+            // ── 1. Open (My own bookings) ──
             $sqlPosted = "SELECT BC.booking_id, BC.message, BC.created_at, P.full_name as partner_name, BC.type, P.id as other_id, P.selfie_link as partner_image, P.manual_verification_status as partner_verification,
                           (SELECT COUNT(*) FROM booking_chats WHERE booking_id = BC.booking_id AND receiver_id = ? AND sender_id = P.id AND is_read = 0) as unread_count
                           FROM booking_chats BC
@@ -427,7 +433,7 @@ try {
 
             echo json_encode([
                 'status' => 'success',
-                'posted' => $posted,
+                'open' => $posted,
                 'received' => $received
             ]);
             break;
