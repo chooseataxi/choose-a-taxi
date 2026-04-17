@@ -177,6 +177,84 @@ if ($action === 'create_booking') {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
+// ACTION: update_booking
+// ──────────────────────────────────────────────────────────────────────────────
+if ($action === 'update_booking') {
+    $raw = file_get_contents("php://input");
+    $data = json_decode($raw, true);
+    if (!is_array($data)) {
+        $data = $_POST;
+    }
+
+    $booking_id = $data['booking_id'] ?? '';
+    $partner_id = $data['partner_id'] ?? 1;
+
+    if (empty($booking_id)) {
+        echo json_encode(["status" => "error", "message" => "Booking ID is required"]);
+        exit;
+    }
+
+    $booking_type = $data['booking_type'] ?? '';
+    if ($booking_type === 'One Way Trip') {
+        $booking_type = 'One Way';
+    }
+    $pickup = $data['pickup_location'] ?? '';
+    $drop = $data['drop_location'] ?? '';
+    $stops = isset($data['stops']) && is_string($data['stops']) ? $data['stops'] : json_encode($data['stops'] ?? []);
+    $car_type = $data['car_type'] ?? '';
+    $start_date = !empty($data['start_date']) ? $data['start_date'] : null;
+    $start_time = !empty($data['start_time']) ? $data['start_time'] : null;
+    $end_date = !empty($data['end_date']) ? $data['end_date'] : null;
+    $end_time = !empty($data['end_time']) ? $data['end_time'] : null;
+    $pricing_option = $data['pricing_option'] ?? 'quote';
+    $total_amount = !empty($data['total_amount']) ? $data['total_amount'] : null;
+    $commission = !empty($data['commission']) ? $data['commission'] : null;
+    $toll = $data['toll_tax'] ?? 'Included';
+    $parking = $data['parking'] ?? 'Included';
+    $note = $data['note'] ?? '';
+    $preferences = isset($data['preferences']) && is_string($data['preferences']) ? $data['preferences'] : json_encode($data['preferences'] ?? []);
+
+    try {
+        $sql = "UPDATE partner_bookings SET
+            booking_type = ?, pickup_location = ?, drop_location = ?, stops = ?, 
+            car_type = ?, start_date = ?, start_time = ?, end_date = ?, end_time = ?, 
+            pricing_option = ?, total_amount = ?, commission = ?, toll_tax = ?, parking = ?, note = ?, preferences = ?
+            WHERE id = ? AND partner_id = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            $booking_type,
+            $pickup,
+            $drop,
+            $stops,
+            $car_type,
+            $start_date,
+            $start_time,
+            $end_date,
+            $end_time,
+            $pricing_option,
+            $total_amount,
+            $commission,
+            $toll,
+            $parking,
+            $note,
+            $preferences,
+            $booking_id,
+            $partner_id
+        ]);
+
+        // Broadcast real-time update via Pusher
+        try {
+            $pusher->trigger('market-channel', 'list-updated', ['id' => $booking_id, 'action' => 'updated']);
+        } catch (Exception $e) {}
+
+        echo json_encode(["status" => "success", "message" => "Booking updated successfully!", "booking_id" => $booking_id]);
+    } catch (PDOException $e) {
+        echo json_encode(["status" => "error", "message" => "SQL Error: " . $e->getMessage()]);
+    }
+    exit;
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 // ACTION: get_bookings  — partner's own bookings (My Bookings tab)
 // ──────────────────────────────────────────────────────────────────────────────
 if ($action === 'get_bookings') {
