@@ -191,6 +191,7 @@ if ($action === 'get_bookings') {
                     c.model AS car_model,
                     ct.name  AS car_type_name,
                     ct.image AS car_type_image,
+                    p.full_name AS partner_name,
                     p.selfie_link AS partner_image
                 FROM partner_bookings pb
                 LEFT JOIN cars c  ON c.id = pb.car_type
