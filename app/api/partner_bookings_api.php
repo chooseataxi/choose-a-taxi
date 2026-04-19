@@ -316,6 +316,52 @@ if ($action === 'get_market_bookings') {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
+// ACTION: delete_booking
+// ──────────────────────────────────────────────────────────────────────────────
+if ($action === 'delete_booking') {
+    $booking_id = $_REQUEST['booking_id'] ?? '';
+    $partner_id = $_REQUEST['partner_id'] ?? '';
+
+    if (empty($booking_id) || empty($partner_id)) {
+        echo json_encode(["status" => "error", "message" => "Booking ID and Partner ID are required"]);
+        exit;
+    }
+
+    try {
+        $pdo->beginTransaction();
+
+        $stmt = $pdo->prepare("SELECT partner_id FROM partner_bookings WHERE id = ?");
+        $stmt->execute([$booking_id]);
+        $booking = $stmt->fetch();
+
+        if (!$booking)
+            throw new Exception("Booking not found");
+        if ($booking['partner_id'] != $partner_id)
+            throw new Exception("You are not authorized to delete this booking");
+
+        $stmt = $pdo->prepare("DELETE FROM booking_acceptance WHERE booking_id = ?");
+        $stmt->execute([$booking_id]);
+
+        $stmt = $pdo->prepare("DELETE FROM partner_bookings WHERE id = ?");
+        $stmt->execute([$booking_id]);
+
+        $pdo->commit();
+
+        try {
+            $pusher->trigger('market-channel', 'list-updated', ['id' => $booking_id, 'action' => 'deleted']);
+        } catch (Exception $e) {}
+
+        echo json_encode(["status" => "success", "message" => "Booking deleted successfully"]);
+    } catch (Exception $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        echo json_encode(["status" => "error", "message" => "Error: " . $e->getMessage()]);
+    }
+    exit;
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 // ACTION: cancel_booking
 // ──────────────────────────────────────────────────────────────────────────────
 if ($action === 'cancel_booking') {
