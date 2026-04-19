@@ -30,6 +30,8 @@ $options = [
 
 try {
      $pdo = new PDO($dsn, $user, $pass, $options);
+     date_default_timezone_set('Asia/Kolkata');
+     $pdo->exec("SET time_zone = '+05:30'");
 } catch (\PDOException $e) {
      // Log DB error for debugging
      error_log("Database Connection Failed: " . $e->getMessage());
