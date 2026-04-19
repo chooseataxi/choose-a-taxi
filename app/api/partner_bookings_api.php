@@ -339,7 +339,7 @@ if ($action === 'delete_booking') {
         if ($booking['partner_id'] != $partner_id)
             throw new Exception("You are not authorized to delete this booking");
 
-        $stmt = $pdo->prepare("DELETE FROM booking_acceptance WHERE booking_id = ?");
+        $stmt = $pdo->prepare("DELETE FROM accepted_bookings WHERE booking_id = ?");
         $stmt->execute([$booking_id]);
 
         $stmt = $pdo->prepare("DELETE FROM partner_bookings WHERE id = ?");
