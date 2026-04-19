@@ -195,6 +195,45 @@ try {
             echo json_encode(['status' => 'success']);
             break;
 
+        case 'accepter_cancel_booking':
+            // Accepter cancels the booking they already accepted
+            $stmt = $pdo->prepare("SELECT * FROM accepted_bookings WHERE booking_id = ? AND partner_id = ? AND status = 'Accepted'");
+            $stmt->execute([$booking_id, $partner_id]);
+            $accepted = $stmt->fetch();
+            
+            if (!$accepted) throw new Exception("You have not active acceptance for this booking");
+
+            $pdo->beginTransaction();
+            try {
+                // 1. Delete acceptance entirely
+                $stmt = $pdo->prepare("DELETE FROM accepted_bookings WHERE id = ?");
+                $stmt->execute([$accepted['id']]);
+
+                // 2. Set partner_bookings back to Open
+                $stmt = $pdo->prepare("UPDATE partner_bookings SET status = 'Open' WHERE id = ?");
+                $stmt->execute([$booking_id]);
+
+                // 3. Refund commission if > 0 (always refund to wallet as Credits)
+                $commission = (float)$accepted['commission'];
+                if ($commission > 0) {
+                    if (!updateWallet($pdo, $partner_id, $commission, 'Credit', 'Refund', $accepted['id'], "Refund for Cancelling Booking #$booking_id")) {
+                        throw new Exception("Refund failed");
+                    }
+                }
+                
+                $pdo->commit();
+                
+                try {
+                    $pusher->trigger('market-channel', 'list-updated', ['id' => $booking_id, 'action' => 'updated']);
+                } catch (Exception $e) {}
+
+                echo json_encode(['status' => 'success', 'message' => 'Booking cancelled and is now Open again. Commission has been refunded natively to your Wallet.']);
+            } catch (Exception $e) {
+                $pdo->rollBack();
+                throw $e;
+            }
+            break;
+
         case 'accept_booking':
             throw new Exception("Use accept_with_wallet or accept_create_razorpay_order instead");
             break;
