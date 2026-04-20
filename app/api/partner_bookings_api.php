@@ -264,6 +264,15 @@ if ($action === 'get_bookings') {
         exit;
     }
     try {
+        $pdo->exec("UPDATE partner_bookings 
+                    SET status = 'Expired' 
+                    WHERE status = 'Open' 
+                    AND (
+                        STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') < NOW()
+                        OR STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') < NOW()
+                        OR STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') < NOW()
+                        OR STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') < NOW()
+                    )");
         $sql = "SELECT pb.*,
                     c.name  AS car_name,
                     c.model AS car_model,
@@ -292,6 +301,17 @@ if ($action === 'get_bookings') {
 // ──────────────────────────────────────────────────────────────────────────────
 if ($action === 'get_market_bookings') {
     try {
+        // Auto-expire open bookings that are past their start time
+        // Using %h:%i %p for `10:00 PM` format. If it's `22:00` format, %H:%i is used.
+        $pdo->exec("UPDATE partner_bookings 
+                    SET status = 'Expired' 
+                    WHERE status = 'Open' 
+                    AND (
+                        STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') < NOW()
+                        OR STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') < NOW()
+                        OR STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') < NOW()
+                        OR STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') < NOW()
+                    )");
         $sql = "SELECT pb.*,
                     c.name   AS car_name,
                     c.model  AS car_model,
@@ -303,7 +323,7 @@ if ($action === 'get_market_bookings') {
                 LEFT JOIN cars c       ON c.id = pb.car_type
                 LEFT JOIN car_types ct ON ct.id = c.type_id
                 LEFT JOIN partners p   ON p.id = pb.partner_id
-                WHERE pb.status IN ('Open', 'Posted', 'Active')
+                WHERE pb.status IN ('Open', 'Active')
                 ORDER BY pb.start_date ASC, pb.start_time ASC, pb.id DESC
                 LIMIT 50";
         $stmt = $pdo->query($sql);
