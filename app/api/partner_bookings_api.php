@@ -266,7 +266,7 @@ if ($action === 'get_bookings') {
     try {
         $pdo->exec("UPDATE partner_bookings 
                     SET status = 'Expired' 
-                    WHERE status = 'Open' 
+                    WHERE status IN ('Open', 'Posted') 
                     AND (
                         STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') < NOW()
                         OR STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') < NOW()
@@ -305,7 +305,7 @@ if ($action === 'get_market_bookings') {
         // Using %h:%i %p for `10:00 PM` format. If it's `22:00` format, %H:%i is used.
         $pdo->exec("UPDATE partner_bookings 
                     SET status = 'Expired' 
-                    WHERE status = 'Open' 
+                    WHERE status IN ('Open', 'Posted') 
                     AND (
                         STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') < NOW()
                         OR STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') < NOW()
@@ -323,7 +323,7 @@ if ($action === 'get_market_bookings') {
                 LEFT JOIN cars c       ON c.id = pb.car_type
                 LEFT JOIN car_types ct ON ct.id = c.type_id
                 LEFT JOIN partners p   ON p.id = pb.partner_id
-                WHERE pb.status IN ('Open', 'Active')
+                WHERE pb.status IN ('Open', 'Posted', 'Active')
                 ORDER BY pb.start_date ASC, pb.start_time ASC, pb.id DESC
                 LIMIT 50";
         $stmt = $pdo->query($sql);
