@@ -443,7 +443,8 @@ try {
             if (empty($partner_id)) throw new Exception("Partner ID required");
             $stmt = $pdo->prepare("SELECT a.id as acceptance_id, a.booking_id, a.status as acceptance_status, a.driver_id,
                                   b.pickup_location, b.drop_location, b.start_date, b.start_time, b.status as booking_status,
-                                  b.total_amount, b.commission, b.booking_type,
+                                  a.total_fare as total_amount, a.commission as commission, 
+                                  b.booking_type, 'fixed' as pricing_option, b.toll_tax, b.parking, b.note,
                                   p.full_name as partner_name, 
                                   ct.name as car_type_name, ct.image as car_type_image, 
                                   c.name as car_name, c.model as car_model
