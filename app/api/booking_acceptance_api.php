@@ -205,15 +205,37 @@ try {
 
             $pdo->beginTransaction();
             try {
-                // 1. Delete acceptance entirely
+                // 1. Calculate Penalty based on time elapsed since acceptance
+                $acceptedAt = strtotime($accepted['accepted_at']);
+                $currentTime = time();
+                $diffMinutes = ($currentTime - $acceptedAt) / 60;
+                
+                $penalty = 0;
+                if ($diffMinutes > 30) {
+                    $penalty = 1500;
+                } elseif ($diffMinutes > 15) {
+                    $penalty = 500;
+                } elseif ($diffMinutes > 5) {
+                    $penalty = 100;
+                }
+                
+                $penaltyMsg = "";
+                if ($penalty > 0) {
+                    if (!updateWallet($pdo, $partner_id, $penalty, 'Debit', 'Penalty', $accepted['id'], "Penalty for Cancelling Booking #$booking_id after " . ceil($diffMinutes) . " minutes")) {
+                        throw new Exception("Penalty deduction failed");
+                    }
+                    $penaltyMsg = " A penalty of ₹$penalty has been deducted from your wallet as per the policy.";
+                }
+
+                // 2. Delete acceptance entirely (so it can be accepted again)
                 $stmt = $pdo->prepare("DELETE FROM accepted_bookings WHERE id = ?");
                 $stmt->execute([$accepted['id']]);
 
-                // 2. Set partner_bookings back to Open
+                // 3. Set partner_bookings back to Open
                 $stmt = $pdo->prepare("UPDATE partner_bookings SET status = 'Open' WHERE id = ?");
                 $stmt->execute([$booking_id]);
 
-                // 3. Refund commission if > 0 (always refund to wallet as Credits)
+                // 4. Refund commission if > 0 (always refund to wallet as Credits)
                 $commission = (float)$accepted['commission'];
                 if ($commission > 0) {
                     if (!updateWallet($pdo, $partner_id, $commission, 'Credit', 'Refund', $accepted['id'], "Refund for Cancelling Booking #$booking_id")) {
@@ -227,7 +249,7 @@ try {
                     $pusher->trigger('market-channel', 'list-updated', ['id' => $booking_id, 'action' => 'updated']);
                 } catch (Exception $e) {}
 
-                echo json_encode(['status' => 'success', 'message' => 'Booking cancelled and is now Open again. Commission has been refunded natively to your Wallet.']);
+                echo json_encode(['status' => 'success', 'message' => 'Booking cancelled and is now Open again. Commission has been refunded.' . $penaltyMsg]);
             } catch (Exception $e) {
                 $pdo->rollBack();
                 throw $e;
