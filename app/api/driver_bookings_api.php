@@ -55,11 +55,61 @@ try {
 
             if (empty($acceptance_id) || empty($status)) throw new Exception("Acceptance ID and Status required");
 
-            $stmt = $pdo->prepare("UPDATE accepted_bookings SET trip_status = ? WHERE id = ?");
-            if ($stmt->execute([$status, $acceptance_id])) {
+            // 1. Get current status and commission details
+            $stmt = $pdo->prepare("
+                SELECT ab.trip_status, ab.commission, ab.booking_id, pb.partner_id as poster_id 
+                FROM accepted_bookings ab 
+                JOIN partner_bookings pb ON ab.booking_id = pb.id 
+                WHERE ab.id = ?
+            ");
+            $stmt->execute([$acceptance_id]);
+            $trip = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$trip) throw new Exception("Trip acceptance record not found");
+            
+            // Avoid double completion logic
+            if ($trip['trip_status'] === 'Completed') {
+                echo json_encode(['success' => true, 'message' => "Trip is already completed"]);
+                exit;
+            }
+
+            $pdo->beginTransaction();
+            try {
+                // 2. Update trip status
+                $stmt = $pdo->prepare("UPDATE accepted_bookings SET trip_status = ? WHERE id = ?");
+                $stmt->execute([$status, $acceptance_id]);
+
+                // 3. If completed, credit the poster
+                if ($status === 'Completed') {
+                    $poster_id = $trip['poster_id'];
+                    $commission = (float)$trip['commission'];
+                    $booking_id = $trip['booking_id'];
+
+                    // Update main booking status too
+                    $stmt = $pdo->prepare("UPDATE partner_bookings SET status = 'Completed' WHERE id = ?");
+                    $stmt->execute([$booking_id]);
+
+                    if ($commission > 0) {
+                        // Ensure poster wallet exists
+                        $stmt = $pdo->prepare("INSERT IGNORE INTO partner_wallet (partner_id, balance) VALUES (?, 0)");
+                        $stmt->execute([$poster_id]);
+
+                        // Credit the commission
+                        $stmt = $pdo->prepare("UPDATE partner_wallet SET balance = balance + ? WHERE partner_id = ?");
+                        $stmt->execute([$commission, $poster_id]);
+
+                        // Log transaction
+                        $stmt = $pdo->prepare("INSERT INTO partner_transactions (partner_id, type, amount, source, source_id, description) 
+                                               VALUES (?, 'Credit', ?, 'Booking Commission', ?, ?)");
+                        $stmt->execute([$poster_id, $commission, $acceptance_id, "Commission for Booking #$booking_id (Trip Completed)"]);
+                    }
+                }
+
+                $pdo->commit();
                 echo json_encode(['success' => true, 'message' => "Trip status updated to $status"]);
-            } else {
-                throw new Exception("Failed to update status");
+            } catch (Exception $e) {
+                $pdo->rollBack();
+                throw $e;
             }
             break;
 
