@@ -446,6 +446,7 @@ try {
                                   a.total_fare as total_amount, a.commission as commission, 
                                   b.booking_type, 'fixed' as pricing_option, b.toll_tax, b.parking, b.note,
                                   p.full_name as partner_name, 
+                                  p.mobile as partner_phone,
                                   ct.name as car_type_name, ct.image as car_type_image, 
                                   c.name as car_name, c.model as car_model
                                   FROM accepted_bookings a 
