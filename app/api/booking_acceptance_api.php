@@ -20,7 +20,7 @@ $action = $_REQUEST['action'] ?? '';
 $partner_id = $_REQUEST['partner_id'] ?? '';
 $booking_id = $_REQUEST['booking_id'] ?? '';
 
-$no_booking_id_actions = ['get_chat_list', 'get_my_received', 'options'];
+$no_booking_id_actions = ['get_chat_list', 'get_my_received', 'options', 'get_latest_quote_request', 'get_latest_completed_booking'];
 if (empty($partner_id) || (empty($booking_id) && !in_array($action, $no_booking_id_actions))) {
     echo json_encode(['status' => 'error', 'message' => 'Partner ID (and Booking ID if required) is missing']);
     exit;
