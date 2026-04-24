@@ -522,7 +522,8 @@ try {
         case 'get_latest_completed_booking':
             if (empty($partner_id)) throw new Exception("Partner ID required");
             // Find bookings posted by this partner that are now completed
-            $stmt = $pdo->prepare("SELECT pb.*, ct.name as car_type_name, ab.partner_id as accepter_id
+            $stmt = $pdo->prepare("SELECT pb.*, ct.name as car_type_name, ab.partner_id as accepter_id,
+                                          COALESCE(NULLIF(ab.total_fare, 0), pb.total_amount) as display_amount
                                    FROM partner_bookings pb
                                    JOIN accepted_bookings ab ON pb.id = ab.booking_id
                                    LEFT JOIN cars c ON pb.car_type = c.id

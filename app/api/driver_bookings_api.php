@@ -1,5 +1,6 @@
-<?php
 require_once __DIR__ . '/../../includes/db.php';
+require_once __DIR__ . '/../../includes/pusher_config.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 // Lazy Migration: Add trip_status to accepted_bookings if not exists
 try {
@@ -106,6 +107,16 @@ try {
                 }
 
                 $pdo->commit();
+
+                // 4. Trigger Real-time Notification for Poster
+                try {
+                    $pusher->trigger("partner-$poster_id", 'chat-update', [
+                        'type' => 'status_update',
+                        'booking_id' => $booking_id,
+                        'new_status' => $status
+                    ]);
+                } catch (Exception $e) {}
+
                 echo json_encode(['success' => true, 'message' => "Trip status updated to $status"]);
             } catch (Exception $e) {
                 $pdo->rollBack();
