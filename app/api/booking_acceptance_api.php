@@ -501,6 +501,24 @@ try {
             ]);
             break;
 
+        case 'get_latest_quote_request':
+            if (empty($partner_id)) throw new Exception("Partner ID required");
+            $stmt = $pdo->prepare("SELECT bc.*, pb.pickup_location, pb.drop_location, pb.start_date, pb.start_time, 
+                                          pb.status as booking_status, pb.booking_type, pb.note,
+                                          p.full_name as sender_name, p.selfie_link as sender_image,
+                                          ct.name as car_type_name
+                                   FROM booking_chats bc
+                                   JOIN partner_bookings pb ON bc.booking_id = pb.id
+                                   JOIN partners p ON bc.sender_id = p.id
+                                   LEFT JOIN cars c ON pb.car_type = c.id
+                                   LEFT JOIN car_types ct ON c.type_id = ct.id
+                                   WHERE bc.receiver_id = ? AND bc.type = 'quote_request' AND pb.status IN ('Open', 'Posted')
+                                   ORDER BY bc.id DESC LIMIT 1");
+            $stmt->execute([$partner_id]);
+            $request = $stmt->fetch();
+            echo json_encode(['status' => 'success', 'request' => $request]);
+            break;
+
         default:
             throw new Exception("Invalid action");
     }
