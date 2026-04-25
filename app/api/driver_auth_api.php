@@ -27,35 +27,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
 
-// SMS API Config (Same as partner_auth.php)
+// SMS API Config (Synced with partner_auth.php)
 define('BULK_SMS_API_URL', $_ENV['SMS_API_URL'] ?? 'https://sms.bulksmsserviceproviders.com/api/send_http.php');
 define('BULK_SMS_AUTH_KEY', $_ENV['SMS_KEY'] ?? 'fa233ee27ba952ccb7f416e13d7cf532');
 define('BULK_SMS_SENDER_ID', $_ENV['SENDER_ID'] ?? 'CHSTXI');
-define('BULK_SMS_SENDER_TEMPLATE_ID', '1407171048438404190');
+define('BULK_SMS_ROUTE_TR', $_ENV['SMS_ROUTE_TR'] ?? 'B');
+define('BULK_SMS_ENTITY_ID', $_ENV['DLT_ENTITY_ID'] ?? '1407171048438404190');
 
-function sendSms($mobile, $message) {
+function sendSms($mobile, $message, $templateId = '') {
     $mobile = preg_replace('/[^0-9]/', '', $mobile);
     if (strlen($mobile) !== 10) return ['success' => false, 'error' => "Invalid mobile number."];
 
-    $templateId = BULK_SMS_SENDER_ID === 'CHSTXI' ? '1407171048438404190' : '';
+    $templateId = !empty($templateId) ? $templateId : '1407171048438404190';
+    $curl = curl_init();
+
     $params = [
         "authkey" => BULK_SMS_AUTH_KEY,
         "mobiles" => $mobile,
         "message" => $message,
         "sender" => BULK_SMS_SENDER_ID,
-        "route" => "B",
+        "route" => BULK_SMS_ROUTE_TR,
+        "campaign_name" => "OTP Verification",
         "DLT_TE_ID" => $templateId,
+        "template_id" => $templateId,
+        "Template_ID" => $templateId,
+        "tid" => $templateId,
+        "PE_ID" => BULK_SMS_ENTITY_ID,
+        "DLT_ENT_ID" => BULK_SMS_ENTITY_ID,
+        "entity_id" => BULK_SMS_ENTITY_ID
     ];
 
     $apiUrl = BULK_SMS_API_URL . "?" . http_build_query($params);
-    $ch = curl_init($apiUrl);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-    $response = curl_exec($ch);
-    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $err = curl_error($ch);
-    curl_close($ch);
+    
+    curl_setopt_array($curl, [
+        CURLOPT_URL => $apiUrl,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 30,
+        CURLOPT_CUSTOMREQUEST => 'GET',
+        CURLOPT_FOLLOWLOCATION => true,
+    ]);
+
+    $response = curl_exec($curl);
+    $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    $err = curl_error($curl);
+    curl_close($curl);
+
+    // Logging for debugging
+    $log_file = realpath(__DIR__ . '/../../') . '/tmp/driver_sms_log.txt';
+    $log_dir = dirname($log_file);
+    if (!is_dir($log_dir)) mkdir($log_dir, 0777, true);
+    file_put_contents($log_file, "[" . date('Y-m-d H:i:s') . "] API URL: $apiUrl\nHTTP: $http_code\nResp: $response\nErr: $err\n-----\n", FILE_APPEND);
 
     if ($err || $http_code !== 200) {
         return ['success' => false, 'error' => "SMS Gateway Error: " . ($err ?: "HTTP $http_code")];
@@ -84,6 +105,7 @@ try {
             $stmt = $pdo->prepare("UPDATE drivers SET login_otp = ? WHERE id = ?");
             $stmt->execute([$otp, $driver['id']]);
 
+            // Sync the SMS template exactly with partner_auth.php for DLT compliance
             $msg = "Dear Driver Your OTP for login to Choose A Taxi Driver app is $otp. Don't Share OTP with Anyone. Regard's- Choose A Taxi Team";
             $smsRes = sendSms($mobile, $msg);
             if ($smsRes['success'] !== true) {
@@ -128,7 +150,7 @@ try {
                     'name' => $driver['full_name'],
                     'mobile' => $driver['phone'],
                     'status' => $driver['status'] ?? 'Active',
-                    'verification' => 'Approved' // Drivers are already verified by partners
+                    'verification' => 'Approved' 
                 ]
             ]);
             break;
