@@ -101,6 +101,10 @@ try {
             // Generate OTP
             $otp = rand(1000, 9999);
             
+            // DLT Template Requirement: The message must EXACTLY match the approved template.
+            // We use the "Partner" template for BOTH because that is the one approved on the DLT portal.
+            $msg = "Dear Partner Your OTP for login to Choose A Taxi Partner app is $otp. Don't Share OTP with Anyone. Regard's- Choose A Taxi Team";
+
             if ($role === 'driver') {
                 // Check if driver exists
                 $stmt = $pdo->prepare("SELECT id FROM drivers WHERE phone = ? LIMIT 1");
@@ -111,7 +115,6 @@ try {
                 }
                 $update = $pdo->prepare("UPDATE drivers SET login_otp = ? WHERE id = ?");
                 $update->execute([$otp, $user['id']]);
-                $msg = "Dear Driver Your OTP for login to Choose A Taxi Driver app is $otp. Don't Share OTP with Anyone. Regard's- Choose A Taxi Team";
             } else {
                 // Check if partner exists
                 $stmt = $pdo->prepare("SELECT id FROM partners WHERE mobile = ? LIMIT 1");
@@ -128,7 +131,6 @@ try {
                     $update = $pdo->prepare("UPDATE partners SET login_otp = ? WHERE id = ?");
                     $update->execute([$otp, $user['id']]);
                 }
-                $msg = "Dear Partner Your OTP for login to Choose A Taxi Partner app is $otp. Don't Share OTP with Anyone. Regard's- Choose A Taxi Team";
             }
 
             // Send actual SMS
@@ -140,7 +142,7 @@ try {
             echo json_encode([
                 'success' => true,
                 'message' => 'OTP sent successfully',
-                'is_new_user' => ($role === 'partner' && empty($user['id'])) // Simplified for partner
+                'is_new_user' => ($role === 'partner' && empty($user['id'])) 
             ]);
             break;
 
@@ -259,7 +261,7 @@ try {
             if (!$user_id || !$token) throw new Exception("User ID and Token required.");
             $table = ($role === 'driver') ? 'drivers' : 'partners';
             $stmt = $pdo->prepare("UPDATE $table SET fcm_token = ? WHERE id = ?");
-            $stmt->execute([$token, $user_id]);
+            $stmt->execute([token, $user_id]);
             echo json_encode(['success' => true, 'message' => 'FCM Token updated']);
             break;
 
