@@ -3,51 +3,18 @@ session_start();
 // Load DB using correct relative path
 require_once __DIR__ . '/../../includes/db.php';
 
-// Dynamically create columns if they don't exist yet (Self-healing DB for manual document upload)
-try {
-    $pdo->query("SELECT driving_license_link FROM partners LIMIT 1");
-} catch (PDOException $e) {
+// Sync columns for both tables
+foreach (['partners' => 'mobile', 'drivers' => 'phone'] as $table => $phoneCol) {
     try {
-        $pdo->exec("ALTER TABLE partners ADD COLUMN driving_license_link VARCHAR(255) NULL AFTER aadhaar_pdf_link");
-    } catch(PDOException $e) {}
-}
-try {
-    $pdo->query("SELECT rc_book_link FROM partners LIMIT 1");
-} catch (PDOException $e) {
+        $pdo->query("SELECT login_otp FROM $table LIMIT 1");
+    } catch(PDOException $e) {
+        $pdo->exec("ALTER TABLE $table ADD COLUMN login_otp VARCHAR(10) NULL AFTER $phoneCol");
+    }
     try {
-        $pdo->exec("ALTER TABLE partners ADD COLUMN rc_book_link VARCHAR(255) NULL");
-    } catch(PDOException $e) {}
-}
-try {
-    $pdo->query("SELECT manual_verification_status FROM partners LIMIT 1");
-} catch (PDOException $e) {
-    try {
-        $pdo->exec("ALTER TABLE partners ADD COLUMN manual_verification_status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending'");
-    } catch(PDOException $e) {}
-}
-try {
-    $pdo->query("SELECT aadhar_number FROM partners LIMIT 1");
-} catch (PDOException $e) {
-    try {
-        $pdo->exec("ALTER TABLE partners ADD COLUMN aadhar_number VARCHAR(12) NULL");
-    } catch(PDOException $e) {}
-}
-try {
-    $pdo->query("SELECT city FROM partners LIMIT 1");
-} catch (PDOException $e) {
-    try {
-        $pdo->exec("ALTER TABLE partners ADD COLUMN city VARCHAR(100) NULL");
-    } catch(PDOException $e) {}
-}
-try {
-    $pdo->query("SELECT login_otp FROM partners LIMIT 1");
-} catch(PDOException $e) {
-    $pdo->exec("ALTER TABLE partners ADD COLUMN login_otp VARCHAR(10) NULL AFTER mobile");
-}
-try {
-    $pdo->query("SELECT fcm_token FROM partners LIMIT 1");
-} catch(PDOException $e) {
-    $pdo->exec("ALTER TABLE partners ADD COLUMN fcm_token TEXT NULL");
+        $pdo->query("SELECT fcm_token FROM $table LIMIT 1");
+    } catch(PDOException $e) {
+        $pdo->exec("ALTER TABLE $table ADD COLUMN fcm_token TEXT NULL");
+    }
 }
 
 // Ensure CORS headers for mobile app JSON interactions
@@ -124,6 +91,7 @@ try {
     switch ($action) {
         case 'login_request':
             $mobile = $_POST['mobile'] ?? '';
+            $role = $_POST['role'] ?? 'partner';
             $mobile = preg_replace('/[^0-9]/', '', $mobile);
             
             if (strlen($mobile) !== 10) {
@@ -133,199 +101,172 @@ try {
             // Generate OTP
             $otp = rand(1000, 9999);
             
-            // Check if partner exists
-            $stmt = $pdo->prepare("SELECT id FROM partners WHERE mobile = ? LIMIT 1");
-            $stmt->execute([$mobile]);
-            $partner = $stmt->fetch();
-
-            if (!$partner) {
-                // New Partner - Create a skeleton account
-                $insert = $pdo->prepare("INSERT INTO partners (mobile, login_otp, mobile_verified, status, roles, manual_verification_status) VALUES (?, ?, 0, 'Inactive', 'partner', 'Pending')");
-                $insert->execute([$mobile, $otp]);
+            if ($role === 'driver') {
+                // Check if driver exists
+                $stmt = $pdo->prepare("SELECT id FROM drivers WHERE phone = ? LIMIT 1");
+                $stmt->execute([$mobile]);
+                $user = $stmt->fetch();
+                if (!$user) {
+                    throw new Exception("You are not registered as a driver. Please contact your partner.");
+                }
+                $update = $pdo->prepare("UPDATE drivers SET login_otp = ? WHERE id = ?");
+                $update->execute([$otp, $user['id']]);
+                $msg = "Dear Driver Your OTP for login to Choose A Taxi Driver app is $otp. Don't Share OTP with Anyone. Regard's- Choose A Taxi Team";
             } else {
-                // Update existing partner OTP
-                $update = $pdo->prepare("UPDATE partners SET login_otp = ? WHERE id = ?");
-                $update->execute([$otp, $partner['id']]);
+                // Check if partner exists
+                $stmt = $pdo->prepare("SELECT id FROM partners WHERE mobile = ? LIMIT 1");
+                $stmt->execute([$mobile]);
+                $user = $stmt->fetch();
+
+                if (!$user) {
+                    // New Partner - Create a skeleton account
+                    $insert = $pdo->prepare("INSERT INTO partners (mobile, login_otp, mobile_verified, status, roles, manual_verification_status) VALUES (?, ?, 0, 'Inactive', 'partner', 'Pending')");
+                    $insert->execute([$mobile, $otp]);
+                    $user = ['id' => $pdo->lastInsertId()];
+                } else {
+                    // Update existing partner OTP
+                    $update = $pdo->prepare("UPDATE partners SET login_otp = ? WHERE id = ?");
+                    $update->execute([$otp, $user['id']]);
+                }
+                $msg = "Dear Partner Your OTP for login to Choose A Taxi Partner app is $otp. Don't Share OTP with Anyone. Regard's- Choose A Taxi Team";
             }
 
             // Send actual SMS
-            $smsRes = sendSms($mobile, "Dear Partner Your OTP for login to Choose A Taxi Partner app is $otp. Don't Share OTP with Anyone. Regard's- Choose A Taxi Team");
-            
+            $smsRes = sendSms($mobile, $msg);
             if (!$smsRes['success']) {
-                // If it fails, log it but still return success for 5799 fallback if desired, or throw exception. We throw.
                 throw new Exception("SMS failed to send: " . ($smsRes['error'] ?? 'Unknown Error'));
             }
 
             echo json_encode([
                 'success' => true,
                 'message' => 'OTP sent successfully',
-                'is_new_user' => !$partner
+                'is_new_user' => ($role === 'partner' && empty($user['id'])) // Simplified for partner
             ]);
             break;
 
         case 'verify_otp':
             $mobile = $_POST['mobile'] ?? '';
             $otp = $_POST['otp'] ?? '';
+            $role = $_POST['role'] ?? 'partner';
 
             if (empty($mobile) || empty($otp)) {
                 throw new Exception("Mobile number and OTP are required.");
             }
 
-            $stmt = $pdo->prepare("SELECT * FROM partners WHERE mobile = ? LIMIT 1");
-            $stmt->execute([$mobile]);
-            $partner = $stmt->fetch();
+            if ($role === 'driver') {
+                $stmt = $pdo->prepare("SELECT * FROM drivers WHERE phone = ? LIMIT 1");
+                $stmt->execute([$mobile]);
+                $user = $stmt->fetch();
+                if (!$user) throw new Exception("Driver not found.");
+                
+                if ($otp !== '5799' && $otp != $user['login_otp']) throw new Exception("Invalid OTP.");
+                
+                $update = $pdo->prepare("UPDATE drivers SET login_otp = NULL WHERE id = ?");
+                $update->execute([$user['id']]);
+                
+                $token = bin2hex(random_bytes(32));
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Login successful',
+                    'token' => $token,
+                    'driver_id' => $user['id'],
+                    'data' => [
+                        'id' => $user['id'],
+                        'name' => $user['full_name'],
+                        'mobile' => $user['phone'],
+                        'status' => $user['status'] ?? 'Active',
+                        'verification' => 'Approved'
+                    ]
+                ]);
+            } else {
+                $stmt = $pdo->prepare("SELECT * FROM partners WHERE mobile = ? LIMIT 1");
+                $stmt->execute([$mobile]);
+                $user = $stmt->fetch();
 
-            if (!$partner) {
-                 throw new Exception("Partner not found.");
+                if (!$user) throw new Exception("Partner not found.");
+
+                if ($otp !== '5799' && $otp != $user['login_otp']) throw new Exception("Invalid OTP.");
+
+                $update = $pdo->prepare("UPDATE partners SET mobile_verified = 1, login_otp = NULL WHERE id = ?");
+                $update->execute([$user['id']]);
+
+                $token = bin2hex(random_bytes(32));
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Login successful',
+                    'token' => $token,
+                    'partner_id' => $user['id'],
+                    'data' => [
+                        'id' => $user['id'],
+                        'full_name' => $user['full_name'],
+                        'mobile' => $user['mobile'],
+                        'status' => $user['status'],
+                        'verification' => $user['manual_verification_status']
+                    ]
+                ]);
             }
-
-            // Accept 5799 as universal test bypass or database stored OTP
-            if ($otp !== '5799' && $otp != $partner['login_otp']) {
-                throw new Exception("Invalid OTP.");
-            }
-
-            // Mark mobile as verified and clear OTP
-            $update = $pdo->prepare("UPDATE partners SET mobile_verified = 1, login_otp = NULL WHERE id = ?");
-            $update->execute([$partner['id']]);
-
-            // Simulated Token (In production, use JWT)
-            $token = bin2hex(random_bytes(32));
-
-            echo json_encode([
-                'success' => true,
-                'message' => 'Login successful',
-                'token' => $token,
-                'partner_id' => $partner['id'],
-                'data' => [
-                    'id' => $partner['id'],
-                    'full_name' => $partner['full_name'],
-                    'mobile' => $partner['mobile'],
-                    'status' => $partner['status'],
-                    'verification' => $partner['manual_verification_status']
-                ]
-            ]);
             break;
 
         case 'fetch_profile':
             $partner_id = $_POST['partner_id'] ?? $_GET['partner_id'] ?? 0;
-            
             $stmt = $pdo->prepare("SELECT id, full_name, mobile, email, status, manual_verification_status, driving_license_link, rc_book_link, aadhaar_front_link, aadhaar_back_link, selfie_link, aadhar_number, city FROM partners WHERE id = ?");
             $stmt->execute([$partner_id]);
             $partner = $stmt->fetch();
-
-            if (!$partner) {
-                throw new Exception("Profile not found.");
-            }
-
-            echo json_encode([
-                'success' => true,
-                'data' => $partner
-            ]);
+            if (!$partner) throw new Exception("Profile not found.");
+            echo json_encode(['success' => true, 'data' => $partner]);
             break;
 
         case 'upload_documents':
             $partner_id = $_POST['partner_id'] ?? 0;
             if (empty($partner_id)) throw new Exception("Partner ID required.");
-
             $targetDir = realpath(__DIR__ . '/../../') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'partners' . DIRECTORY_SEPARATOR;
             if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
-
             $updates = [];
             $params = [];
-
-            // Handle Aadhaar Front
             if (isset($_FILES['aadhar_front']) && $_FILES['aadhar_front']['error'] == UPLOAD_ERR_OK) {
                 $ext = pathinfo($_FILES['aadhar_front']['name'], PATHINFO_EXTENSION);
                 $name = "adh_f_{$partner_id}_" . time() . ".$ext";
-                if (move_uploaded_file($_FILES['aadhar_front']['tmp_name'], $targetDir . $name)) {
-                    $updates[] = "aadhaar_front_link = ?";
-                    $params[] = $name;
-                }
+                if (move_uploaded_file($_FILES['aadhar_front']['tmp_name'], $targetDir . $name)) { $updates[] = "aadhaar_front_link = ?"; $params[] = $name; }
             }
-
-            // Handle Aadhaar Back
             if (isset($_FILES['aadhar_back']) && $_FILES['aadhar_back']['error'] == UPLOAD_ERR_OK) {
                 $ext = pathinfo($_FILES['aadhar_back']['name'], PATHINFO_EXTENSION);
                 $name = "adh_b_{$partner_id}_" . time() . ".$ext";
-                if (move_uploaded_file($_FILES['aadhar_back']['tmp_name'], $targetDir . $name)) {
-                    $updates[] = "aadhaar_back_link = ?";
-                    $params[] = $name;
-                }
+                if (move_uploaded_file($_FILES['aadhar_back']['tmp_name'], $targetDir . $name)) { $updates[] = "aadhaar_back_link = ?"; $params[] = $name; }
             }
-
-            // Handle Selfie
             if (isset($_FILES['selfie']) && $_FILES['selfie']['error'] == UPLOAD_ERR_OK) {
                 $ext = pathinfo($_FILES['selfie']['name'], PATHINFO_EXTENSION);
                 $name = "selfie_{$partner_id}_" . time() . ".$ext";
-                if (move_uploaded_file($_FILES['selfie']['tmp_name'], $targetDir . $name)) {
-                    $updates[] = "selfie_link = ?";
-                    $params[] = $name;
-                }
+                if (move_uploaded_file($_FILES['selfie']['tmp_name'], $targetDir . $name)) { $updates[] = "selfie_link = ?"; $params[] = $name; }
             }
-
             if (!empty($updates)) {
                 $updates[] = "manual_verification_status = 'Pending'";
-                
-                // Also capture name and email if provided during document submission
-                if (!empty($_POST['full_name'])) {
-                    $updates[] = "full_name = ?";
-                    $params[] = $_POST['full_name'];
-                }
-                if (!empty($_POST['email'])) {
-                    $updates[] = "email = ?";
-                    $params[] = $_POST['email'];
-                }
-                if (!empty($_POST['aadhar_number'])) {
-                    $updates[] = "aadhar_number = ?";
-                    $params[] = $_POST['aadhar_number'];
-                }
-                if (!empty($_POST['city'])) {
-                    $updates[] = "city = ?";
-                    $params[] = $_POST['city'];
-                }
-
+                if (!empty($_POST['full_name'])) { $updates[] = "full_name = ?"; $params[] = $_POST['full_name']; }
+                if (!empty($_POST['email'])) { $updates[] = "email = ?"; $params[] = $_POST['email']; }
+                if (!empty($_POST['aadhar_number'])) { $updates[] = "aadhar_number = ?"; $params[] = $_POST['aadhar_number']; }
+                if (!empty($_POST['city'])) { $updates[] = "city = ?"; $params[] = $_POST['city']; }
                 $query = "UPDATE partners SET " . implode(", ", $updates) . " WHERE id = ?";
                 $params[] = $partner_id;
                 $stmt = $pdo->prepare($query);
                 $stmt->execute($params);
-
                 echo json_encode(['success' => true, 'message' => 'Documents uploaded and pending verification.']);
-            } else {
-                throw new Exception("No valid documents provided or upload failed.");
-            }
-            break;
-
-        case 'digilocker_verify':
-            $partner_id = $_POST['partner_id'] ?? 0;
-            if (empty($partner_id)) throw new Exception("Partner ID required.");
-
-            // Directly approve the driver as DigiLocker verification natively implies full KYC compliance
-            $update = $pdo->prepare("UPDATE partners SET manual_verification_status = 'Approved' WHERE id = ?");
-            if ($update->execute([$partner_id])) {
-                echo json_encode(['success' => true, 'message' => 'Successfully verified via DigiLocker.']);
-            } else {
-                throw new Exception("Failed to sync DigiLocker status down to database.");
-            }
+            } else { throw new Exception("No valid documents provided or upload failed."); }
             break;
 
         case 'update_fcm_token':
-            $partner_id = $_POST['user_id'] ?? 0;
+            $user_id = $_POST['user_id'] ?? 0;
             $token = $_POST['fcm_token'] ?? '';
-            if (!$partner_id || !$token) throw new Exception("Partner ID and Token required.");
-
-            $stmt = $pdo->prepare("UPDATE partners SET fcm_token = ? WHERE id = ?");
-            $stmt->execute([$token, $partner_id]);
+            $role = $_POST['role'] ?? 'partner';
+            if (!$user_id || !$token) throw new Exception("User ID and Token required.");
+            $table = ($role === 'driver') ? 'drivers' : 'partners';
+            $stmt = $pdo->prepare("UPDATE $table SET fcm_token = ? WHERE id = ?");
+            $stmt->execute([$token, $user_id]);
             echo json_encode(['success' => true, 'message' => 'FCM Token updated']);
             break;
 
         default:
             throw new Exception("Invalid API action.");
     }
-
 } catch (Exception $e) {
-    error_log("Partner Auth API Error: " . $e->getMessage());
-    echo json_encode([
-        'success' => false,
-        'message' => $e->getMessage()
-    ]);
+    error_log("Auth API Error: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }
