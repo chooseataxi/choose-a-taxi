@@ -44,23 +44,16 @@ if ($action === 'get_trip_types') {
 // ACTION: get_cars  — for create booking dropdown
 // ──────────────────────────────────────────────────────────────────────────────
 if ($action === 'get_cars') {
-    $trip_type = $_GET['trip_type'] ?? '';
     try {
-        $sql = "SELECT MIN(c.id) as id, ct.name AS type_name, ct.image AS type_image
-                FROM cars c 
-                JOIN trip_types t ON c.trip_type_id = t.id 
-                LEFT JOIN car_types ct ON c.type_id = ct.id
-                WHERE c.status = 'Active' AND t.name LIKE ?
-                GROUP BY ct.name";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute(["%$trip_type%"]);
+        $sql = "SELECT id, name, image AS type_image FROM car_types WHERE status = 'Active'";
+        $stmt = $pdo->query($sql);
         $cars = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         if (empty($cars)) {
             echo json_encode([
                 "status" => "success",
                 "cars" => [],
-                "message" => "No cars are currently added for the trip type"
+                "message" => "No car types found"
             ]);
             exit;
         }
@@ -68,8 +61,8 @@ if ($action === 'get_cars') {
         $formatted = array_map(function ($c) {
             return [
                 'id' => $c['id'],
-                'name' => $c['type_name'] ?? 'Unknown Type',
-                'type_name' => $c['type_name'] ?? '',
+                'name' => $c['name'] ?? 'Unknown Type',
+                'type_name' => $c['name'] ?? '',
                 'type_image' => $c['type_image'] ?? '',
             ];
         }, $cars);
@@ -80,7 +73,7 @@ if ($action === 'get_cars') {
         echo json_encode([
             "status" => "success",
             "cars" => [],
-            "message" => "No cars are currently added for the trip type"
+            "message" => "Error fetching car types: " . $e->getMessage()
         ]);
         exit;
     }
