@@ -101,8 +101,7 @@ try {
             // Generate OTP
             $otp = rand(1000, 9999);
             
-            // DLT Template Requirement: The message must EXACTLY match the approved template.
-            // We use the "Partner" template for BOTH because that is the one approved on the DLT portal.
+            // DLT Template Requirement: Message MUST match exactly.
             $msg = "Dear Partner Your OTP for login to Choose A Taxi Partner app is $otp. Don't Share OTP with Anyone. Regard's- Choose A Taxi Team";
 
             if ($role === 'driver') {
@@ -111,7 +110,7 @@ try {
                 $stmt->execute([$mobile]);
                 $user = $stmt->fetch();
                 if (!$user) {
-                    throw new Exception("You are not registered as a driver. Please contact your partner.");
+                    throw new Exception("Driver profile not found for $mobile. Please contact your partner.");
                 }
                 $update = $pdo->prepare("UPDATE drivers SET login_otp = ? WHERE id = ?");
                 $update->execute([$otp, $user['id']]);
@@ -261,7 +260,7 @@ try {
             if (!$user_id || !$token) throw new Exception("User ID and Token required.");
             $table = ($role === 'driver') ? 'drivers' : 'partners';
             $stmt = $pdo->prepare("UPDATE $table SET fcm_token = ? WHERE id = ?");
-            $stmt->execute([token, $user_id]);
+            $stmt->execute([$token, $user_id]);
             echo json_encode(['success' => true, 'message' => 'FCM Token updated']);
             break;
 
