@@ -20,13 +20,15 @@ try {
                    acc_p.full_name AS acceptor_name,
                    acc_p.mobile AS acceptor_mobile,
                    acc.status AS acceptance_status,
-                   ct.name AS car_type_name,
-                   ct.image AS car_type_image
+                   COALESCE(ct_v.name, ct_d.name) AS car_type_name,
+                   COALESCE(ct_v.image, ct_d.image) AS car_type_image
             FROM partner_bookings pb
             LEFT JOIN partners p ON p.id = pb.partner_id
             LEFT JOIN accepted_bookings acc ON acc.booking_id = pb.id AND acc.status != 'Cancelled'
             LEFT JOIN partners acc_p ON acc_p.id = acc.partner_id
-            LEFT JOIN car_types ct ON (ct.id = pb.car_type OR ct.name = pb.car_type)
+            LEFT JOIN cars c ON c.id = pb.car_type
+            LEFT JOIN car_types ct_v ON ct_v.id = c.type_id
+            LEFT JOIN car_types ct_d ON (ct_d.id = pb.car_type OR ct_d.name = pb.car_type)
             ORDER BY pb.id DESC
             LIMIT $limit OFFSET $offset";
     $stmt = $pdo->query($sql);
@@ -123,7 +125,7 @@ $status_badges = [
                                     <div class="d-flex align-items-center">
                                         <div class="me-2" style="width: 50px; height: 35px;">
                                             <?php if (!empty($b['car_type_image'])): ?>
-                                                <img src="../../uploads/car_types/<?= $b['car_type_image'] ?>" class="img-fluid rounded shadow-sm" style="object-fit: contain; width: 100%; height: 100%;">
+                                                <img src="../../<?= $b['car_type_image'] ?>" class="img-fluid rounded shadow-sm" style="object-fit: contain; width: 100%; height: 100%;">
                                             <?php else: ?>
                                                 <div class="bg-light d-flex align-items-center justify-content-center h-100 rounded">
                                                     <i class="fas fa-car text-muted small"></i>

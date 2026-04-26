@@ -16,16 +16,17 @@ try {
                    acc_p.selfie_link AS acceptor_image,
                    acc.status AS acceptance_status,
                    acc.accepted_at,
-                   ct.name AS car_type_name,
-                   ct.image AS car_type_image,
+                   COALESCE(ct_v.name, ct_d.name) AS car_type_name,
+                   COALESCE(ct_v.image, ct_d.image) AS car_type_image,
                    c.name AS car_specific_name,
                    c.model AS car_model
             FROM partner_bookings pb
             LEFT JOIN partners p ON p.id = pb.partner_id
             LEFT JOIN accepted_bookings acc ON acc.booking_id = pb.id AND acc.status != 'Cancelled'
             LEFT JOIN partners acc_p ON acc_p.id = acc.partner_id
-            LEFT JOIN car_types ct ON (ct.id = pb.car_type OR ct.name = pb.car_type)
             LEFT JOIN cars c ON c.id = pb.car_type
+            LEFT JOIN car_types ct_v ON ct_v.id = c.type_id
+            LEFT JOIN car_types ct_d ON (ct_d.id = pb.car_type OR ct_d.name = pb.car_type)
             WHERE pb.id = ?";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$id]);
@@ -135,7 +136,7 @@ $color = $status_colors[$booking['status']] ?? 'dark';
                                         <div class="d-flex align-items-center">
                                             <div class="me-3" style="width: 80px;">
                                                 <?php if (!empty($booking['car_type_image'])): ?>
-                                                    <img src="../../uploads/car_types/<?= $booking['car_type_image'] ?>" class="img-fluid rounded shadow-sm">
+                                                    <img src="../../<?= $booking['car_type_image'] ?>" class="img-fluid rounded shadow-sm">
                                                 <?php else: ?>
                                                     <div class="bg-white rounded d-flex align-items-center justify-content-center" style="height: 60px;">
                                                         <i class="fas fa-car fa-2x text-light"></i>
