@@ -47,7 +47,6 @@ try {
                                     <th>Partner Name</th>
                                     <th>Contact</th>
                                     <th>Verification</th>
-                                    <th>Account Status</th>
                                     <th width="120" class="text-center">Actions</th>
                                 </tr>
                             </thead>
@@ -86,14 +85,6 @@ try {
                                             if ($vStatus === 'Rejected') $vClass = 'bg-danger text-white';
                                             ?>
                                             <span class="badge <?= $vClass ?> rounded-pill px-3 py-2 border"><i class="fas <?= $vStatus==='Approved' ? 'fa-check-circle' : 'fa-clock' ?> me-1"></i> <?= $vStatus ?></span>
-                                        </td>
-                                        <td>
-                                            <div class="d-flex align-items-center" style="min-height: 24px;">
-                                                <div class="form-check form-switch m-0 p-0" style="display: inline-block;">
-                                                    <input class="form-check-input status-toggle m-0" type="checkbox" role="switch" <?= $partner['status'] === 'Active' ? 'checked' : '' ?> data-id="<?= $partner['id'] ?>" style="cursor: pointer; width: 32px; height: 16px; float: none; vertical-align: middle;">
-                                                </div>
-                                                <span class="badge <?= $partner['status'] === 'Active' ? 'bg-success' : 'bg-secondary' ?> ms-2 status-label" style="font-size: 0.7rem; vertical-align: middle;"><?= $partner['status'] ?></span>
-                                            </div>
                                         </td>
                                         <td class="text-center">
                                             <div class="btn-group shadow-sm">
