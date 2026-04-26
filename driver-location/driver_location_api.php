@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../includes/db.php';
+require_once __DIR__ . '/../includes/db.php';
 
 // Lazy Migration: Add driver_locations table
 try {

@@ -82,7 +82,7 @@ function initMap() {
 
 function getTaxiIcon(isDark) {
     return {
-        url: isDark ? '../../assets/driver-icon.png' : '../../assets/driver-icon.png',
+        url: isDark ? '../assets/driver-icon.png' : '../assets/driver-icon.png',
         scaledSize: new google.maps.Size(46, 46),
         anchor: new google.maps.Point(23, 23)
     };

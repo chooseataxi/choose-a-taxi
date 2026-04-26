@@ -90,7 +90,7 @@
 
     <div class="header">
         <div style="display:flex; align-items:center;">
-            <img src="../../assets/logo.png" alt="Logo" class="logo" id="main-logo">
+            <img src="../assets/logo.png" alt="Logo" class="logo" id="main-logo">
             <button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()" title="Switch Theme">
                 <!-- Sun/Moon SVG will be updated by script -->
                 <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
