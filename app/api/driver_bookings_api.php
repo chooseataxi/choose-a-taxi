@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../includes/pusher_config.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 
     try {
-        $pdo->exec("ALTER TABLE accepted_bookings MODIFY COLUMN trip_status ENUM('Pending', 'OnWayToPickup', 'Started', 'Completed') DEFAULT 'Pending'");
+        $pdo->exec("ALTER TABLE accepted_bookings MODIFY COLUMN trip_status ENUM('Pending', 'OnWayToPickup', 'Arrived', 'Started', 'Completed') DEFAULT 'Pending'");
     } catch(PDOException $e) {}
 
 header('Content-Type: application/json; charset=utf-8');
@@ -90,7 +90,7 @@ try {
                     $tracking_url = "https://chooseataxi.com/driver-location/track_trip.php?booking_id=$booking_id";
                     $msg = "Driver is on the way to Pickup point. Track live here: $tracking_url";
                     
-                    $stmt = $pdo->prepare("INSERT INTO booking_chats (booking_id, sender_id, receiver_id, message, type) VALUES (?, ?, ?, ?, 'text')");
+                    $stmt = $pdo->prepare("INSERT INTO booking_chats (booking_id, sender_id, receiver_id, message, type) VALUES (?, ?, ?, ?, 'tracking_link')");
                     $stmt->execute([$booking_id, $sender_id, $poster_id, $msg]);
 
                     // Trigger pusher for chat update
@@ -98,7 +98,7 @@ try {
                         $pusher->trigger("chat-$booking_id", 'new-message', [
                             'message' => $msg,
                             'sender_id' => $sender_id,
-                            'type' => 'text'
+                            'type' => 'tracking_link'
                         ]);
                     } catch (Exception $e) {}
                 }
