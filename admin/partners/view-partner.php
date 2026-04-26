@@ -137,7 +137,7 @@ $page_title = "Partner Details - " . ($partner['full_name'] ?? 'N/A');
                 <div class="row g-4">
                     <!-- Wallet Summary Card -->
                     <div class="col-md-5">
-                        <div class="card wallet-card shadow-sm rounded-4 h-100 position-relative overflow-hidden">
+                        <div class="card wallet-card shadow-sm rounded-4 position-relative overflow-hidden">
                             <div class="card-body p-4 position-relative" style="z-index: 1;">
                                 <div class="d-flex justify-content-between align-items-center mb-4">
                                     <h6 class="text-uppercase fw-bold opacity-75 mb-0" style="letter-spacing: 1px;">Partner Wallet</h6>
@@ -164,13 +164,13 @@ $page_title = "Partner Details - " . ($partner['full_name'] ?? 'N/A');
 
                     <!-- Transaction History -->
                     <div class="col-md-7">
-                        <div class="card shadow-sm border-0 rounded-4 h-100 overflow-hidden">
+                        <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
                             <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0 fw-bold"><i class="fas fa-history me-2 text-primary"></i>Recent Transactions</h6>
                                 <a href="#" class="text-primary small text-decoration-none fw-bold">View All</a>
                             </div>
                             <div class="card-body p-0">
-                                <div class="table-responsive border-0">
+                                <div class="table-responsive border-0" style="max-height: 200px; overflow-y: auto;">
                                     <table class="table transaction-table mb-0" style="table-layout: fixed;">
                                         <thead>
                                             <tr>
@@ -180,7 +180,7 @@ $page_title = "Partner Details - " . ($partner['full_name'] ?? 'N/A');
                                                 <th class="pe-3 text-end" style="width: 90px;">Date</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
+                                        <tbody class="border-top-0">
                                             <?php if (empty($transactions)): ?>
                                                 <tr><td colspan="4" class="text-center py-4 text-muted">No transactions yet</td></tr>
                                             <?php else: ?>
