@@ -24,6 +24,16 @@ try {
     $stmt->execute([$id]);
     $transactions = $stmt->fetchAll();
 
+    // Fetch Added Drivers
+    $stmt = $pdo->prepare("SELECT * FROM drivers WHERE partner_id = ? ORDER BY id DESC");
+    $stmt->execute([$id]);
+    $drivers = $stmt->fetchAll();
+
+    // Fetch Added Vehicles
+    $stmt = $pdo->prepare("SELECT * FROM partner_vehicles WHERE partner_id = ? ORDER BY id DESC");
+    $stmt->execute([$id]);
+    $vehicles = $stmt->fetchAll();
+
 } catch (Exception $e) {
     die("<div class='container mt-5'><div class='alert alert-danger'>".$e->getMessage()."</div><a href='partner-management.php' class='btn btn-primary'>Go Back</a></div>");
 }
@@ -198,6 +208,93 @@ $page_title = "Partner Details - " . ($partner['full_name'] ?? 'N/A');
                                             <?php endif; ?>
                                         </tbody>
                                     </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Asset Section: Drivers & Vehicles -->
+            <div class="col-lg-12">
+                <div class="row g-4">
+                    <!-- Added Drivers List -->
+                    <div class="col-md-6">
+                        <div class="card shadow-sm border-0 rounded-4 overflow-hidden h-100">
+                            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 fw-bold"><i class="fas fa-users-cog me-2 text-primary"></i>Registered Drivers (<?= count($drivers) ?>)</h6>
+                                <span class="badge bg-light text-primary border rounded-pill">Total: <?= count($drivers) ?></span>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="list-group list-group-flush" style="max-height: 250px; overflow-y: auto;">
+                                    <?php if (empty($drivers)): ?>
+                                        <div class="text-center py-5 text-muted">
+                                            <i class="fas fa-user-slash fa-2x opacity-25 mb-2"></i>
+                                            <p class="small mb-0">No drivers registered yet</p>
+                                        </div>
+                                    <?php else: ?>
+                                        <?php foreach ($drivers as $dr): ?>
+                                            <div class="list-group-item px-4 py-3 border-0 border-bottom">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-3 position-relative">
+                                                        <img src="<?= htmlspecialchars($dr['profile_image_path'] ?: '../../assets/driver-icon.png') ?>" 
+                                                             class="rounded-circle border" style="width: 45px; height: 45px; object-fit: cover;">
+                                                        <span class="position-absolute bottom-0 end-0 bg-<?= $dr['status'] === 'Active' ? 'success' : 'danger' ?> border border-white rounded-circle" style="width: 10px; height: 10px;"></span>
+                                                    </div>
+                                                    <div class="flex-fill">
+                                                        <div class="h6 mb-0 fw-bold small"><?= htmlspecialchars($dr['full_name']) ?></div>
+                                                        <div class="text-muted text-xs">DL: <?= htmlspecialchars($dr['license_number']) ?></div>
+                                                    </div>
+                                                    <div class="text-end">
+                                                        <div class="small fw-bold text-dark"><?= htmlspecialchars($dr['phone']) ?></div>
+                                                        <span class="badge bg-<?= $dr['status'] === 'Active' ? 'success' : 'secondary' ?>-light text-<?= $dr['status'] === 'Active' ? 'success' : 'secondary' ?> py-1 px-2" style="font-size: 9px;"><?= $dr['status'] ?></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Added Vehicles List -->
+                    <div class="col-md-6">
+                        <div class="card shadow-sm border-0 rounded-4 overflow-hidden h-100">
+                            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 fw-bold"><i class="fas fa-car me-2 text-primary"></i>Registered Vehicles (<?= count($vehicles) ?>)</h6>
+                                <span class="badge bg-light text-primary border rounded-pill">Total: <?= count($vehicles) ?></span>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="list-group list-group-flush" style="max-height: 250px; overflow-y: auto;">
+                                    <?php if (empty($vehicles)): ?>
+                                        <div class="text-center py-5 text-muted">
+                                            <i class="fas fa-car-crash fa-2x opacity-25 mb-2"></i>
+                                            <p class="small mb-0">No vehicles registered yet</p>
+                                        </div>
+                                    <?php else: ?>
+                                        <?php foreach ($vehicles as $vh): ?>
+                                            <div class="list-group-item px-4 py-3 border-0 border-bottom">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-3">
+                                                        <div class="rounded border bg-light overflow-hidden shadow-sm" style="width: 55px; height: 35px;">
+                                                            <img src="../../<?= htmlspecialchars($vh['front_image']) ?>" 
+                                                                 class="w-100 h-100" style="object-fit: cover;"
+                                                                 onerror="this.src='../../assets/car_types/default.png'">
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex-fill">
+                                                        <div class="h6 mb-0 fw-bold small"><?= htmlspecialchars($vh['maker_model']) ?></div>
+                                                        <div class="text-muted text-xs"><?= htmlspecialchars($vh['rc_number']) ?></div>
+                                                    </div>
+                                                    <div class="text-end">
+                                                        <div class="small fw-bold text-dark"><?= htmlspecialchars($vh['color'] ?: 'N/A') ?></div>
+                                                        <span class="badge bg-<?= $vh['status'] === 'Active' ? 'success' : 'secondary' ?>-light text-<?= $vh['status'] === 'Active' ? 'success' : 'secondary' ?> py-1 px-2" style="font-size: 9px;"><?= $vh['status'] ?></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
