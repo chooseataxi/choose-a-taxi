@@ -261,10 +261,12 @@ if ($action === 'get_bookings') {
                     SET status = 'Expired' 
                     WHERE status IN ('Open', 'Posted') 
                     AND (
-                        STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') < NOW()
-                        OR STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') < NOW()
-                        OR STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') < NOW()
-                        OR STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') < NOW()
+                        (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') < NOW())
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') < NOW())
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') < NOW())
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') < NOW())
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%e-%c-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%e-%c-%Y %h:%i %p') < NOW())
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') < NOW())
                     )");
         $sql = "SELECT pb.*,
                     c.name  AS car_name,
@@ -306,10 +308,12 @@ if ($action === 'get_market_bookings') {
                     SET status = 'Expired' 
                     WHERE status IN ('Open', 'Posted') 
                     AND (
-                        STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') < NOW()
-                        OR STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') < NOW()
-                        OR STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') < NOW()
-                        OR STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') < NOW()
+                        (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') < NOW())
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') < NOW())
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') < NOW())
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') < NOW())
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%e-%c-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%e-%c-%Y %h:%i %p') < NOW())
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') < NOW())
                     )");
         $sql = "SELECT pb.*,
                     c.name   AS car_name,
