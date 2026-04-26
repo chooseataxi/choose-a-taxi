@@ -121,6 +121,13 @@ $page_title = "Manage Mobile Hero Slides";
 
 <script>
 $(document).ready(function() {
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000
+    });
+
     // Image Preview
     $('#heroImage').change(function() {
         const file = this.files[0];
@@ -147,6 +154,7 @@ $(document).ready(function() {
             data: formData,
             processData: false,
             contentType: false,
+            dataType: 'json',
             success: function(res) {
                 if (res.success) {
                     Swal.fire('Success!', res.message, 'success').then(() => location.reload());
@@ -155,8 +163,9 @@ $(document).ready(function() {
                     btn.prop('disabled', false).text('Upload Slide');
                 }
             },
-            error: function() {
-                Swal.fire('Error', 'Something went wrong', 'error');
+            error: function(xhr) {
+                console.error(xhr.responseText);
+                Swal.fire('Error', 'Server error or session expired. Please try again.', 'error');
                 btn.prop('disabled', false).text('Upload Slide');
             }
         });
@@ -177,7 +186,7 @@ $(document).ready(function() {
                 $.post('api/hero_actions.php', { action: 'delete', id: id }, function(res) {
                     if (res.success) Swal.fire('Deleted!', res.message, 'success').then(() => location.reload());
                     else Swal.fire('Error', res.message, 'error');
-                });
+                }, 'json');
             }
         });
     });
@@ -188,18 +197,11 @@ $(document).ready(function() {
         $.post('api/hero_actions.php', { action: 'toggle_status', id: id }, function(res) {
             if (res.success) {
                 Toast.fire({ icon: 'success', title: res.message });
-                location.reload();
+                setTimeout(() => location.reload(), 1000);
             } else {
                 Swal.fire('Error', res.message, 'error');
             }
-        });
-    });
-
-    const Toast = Swal.mixin({
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 3000
+        }, 'json');
     });
 });
 </script>
