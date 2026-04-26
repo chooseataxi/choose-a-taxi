@@ -257,6 +257,7 @@ if ($action === 'get_bookings') {
         exit;
     }
     try {
+        // 1. Auto-expire open bookings that are past their start time
         $pdo->exec("UPDATE partner_bookings 
                     SET status = 'Expired' 
                     WHERE status IN ('Open', 'Posted') 
@@ -267,6 +268,19 @@ if ($action === 'get_bookings') {
                         OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') < NOW())
                         OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%e-%c-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%e-%c-%Y %h:%i %p') < NOW())
                         OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') < NOW())
+                    )");
+
+        // 2. Self-heal: Un-expire bookings that are actually in the future (one-time fix for past bugs)
+        $pdo->exec("UPDATE partner_bookings 
+                    SET status = 'Open' 
+                    WHERE status = 'Expired' 
+                    AND (
+                        (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') > NOW())
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') > NOW())
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') > NOW())
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') > NOW())
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%e-%c-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%e-%c-%Y %h:%i %p') > NOW())
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') > NOW())
                     )");
         $sql = "SELECT pb.*,
                     c.name  AS car_name,
@@ -304,6 +318,7 @@ if ($action === 'get_market_bookings') {
     try {
         // Auto-expire open bookings that are past their start time
         // Using %h:%i %p for `10:00 PM` format. If it's `22:00` format, %H:%i is used.
+        // 1. Auto-expire open bookings that are past their start time
         $pdo->exec("UPDATE partner_bookings 
                     SET status = 'Expired' 
                     WHERE status IN ('Open', 'Posted') 
@@ -314,6 +329,19 @@ if ($action === 'get_market_bookings') {
                         OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') < NOW())
                         OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%e-%c-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%e-%c-%Y %h:%i %p') < NOW())
                         OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') < NOW())
+                    )");
+
+        // 2. Self-heal: Un-expire bookings that are actually in the future
+        $pdo->exec("UPDATE partner_bookings 
+                    SET status = 'Open' 
+                    WHERE status = 'Expired' 
+                    AND (
+                        (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') > NOW())
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') > NOW())
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') > NOW())
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') > NOW())
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%e-%c-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%e-%c-%Y %h:%i %p') > NOW())
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') > NOW())
                     )");
         $sql = "SELECT pb.*,
                     c.name   AS car_name,
