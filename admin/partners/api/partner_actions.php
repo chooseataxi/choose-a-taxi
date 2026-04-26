@@ -104,6 +104,22 @@ try {
             echo json_encode(['success' => true, 'message' => "Verification updated to $verify_status!"]);
             break;
 
+        case 'approve':
+            $id = $_POST['id'] ?? 0;
+            if (empty($id)) throw new Exception("Partner ID missing.");
+            $stmt = $pdo->prepare("UPDATE partners SET manual_verification_status = 'Approved', status = 'Active' WHERE id = ?");
+            $stmt->execute([$id]);
+            echo json_encode(['success' => true, 'message' => 'Partner approved and activated!']);
+            break;
+
+        case 'reject':
+            $id = $_POST['id'] ?? 0;
+            if (empty($id)) throw new Exception("Partner ID missing.");
+            $stmt = $pdo->prepare("UPDATE partners SET manual_verification_status = 'Rejected' WHERE id = ?");
+            $stmt->execute([$id]);
+            echo json_encode(['success' => true, 'message' => 'Partner verification rejected.']);
+            break;
+
         default:
             throw new Exception("Invalid action.");
     }

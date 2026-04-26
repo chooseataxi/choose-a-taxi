@@ -12,12 +12,35 @@ try {
     if (!$partner) {
         throw new Exception("Partner not found or deleted.");
     }
+
+    // Fetch Wallet Balance
+    $stmt = $pdo->prepare("SELECT balance FROM partner_wallet WHERE partner_id = ?");
+    $stmt->execute([$id]);
+    $wallet = $stmt->fetch();
+    $balance = $wallet ? $wallet['balance'] : 0.00;
+
+    // Fetch Recent Transactions
+    $stmt = $pdo->prepare("SELECT * FROM partner_transactions WHERE partner_id = ? ORDER BY id DESC LIMIT 10");
+    $stmt->execute([$id]);
+    $transactions = $stmt->fetchAll();
+
 } catch (Exception $e) {
     die("<div class='container mt-5'><div class='alert alert-danger'>".$e->getMessage()."</div><a href='partner-management.php' class='btn btn-primary'>Go Back</a></div>");
 }
 
 $page_title = "Partner Details - " . ($partner['full_name'] ?? 'N/A');
 ?>
+<style>
+    .img-preview { transition: transform .3s ease; cursor: zoom-in; }
+    .img-preview:hover { transform: scale(1.02); }
+    .btn-xs { padding: 0.1rem 0.4rem; font-size: 0.75rem; }
+    .document-card h6 { color: #555; }
+    .wallet-card { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; border: none; }
+    .transaction-table th { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #888; background: #f8f9fa; border: none; }
+    .transaction-table td { font-size: 13px; vertical-align: middle; border-bottom: 1px solid #eee; }
+    .badge-soft-success { background-color: rgba(40, 167, 69, 0.1); color: #28a745; }
+    .badge-soft-danger { background-color: rgba(220, 53, 69, 0.1); color: #dc3545; }
+</style>
 
 <div class="content-header">
     <div class="container-fluid">
@@ -99,95 +122,174 @@ $page_title = "Partner Details - " . ($partner['full_name'] ?? 'N/A');
                 </div>
             </div>
 
-            <!-- Right Column: Documents -->
+            <!-- Right Column: Wallet Management -->
             <div class="col-lg-8">
-                <div class="card shadow-sm border-0 rounded-4">
-                    <div class="card-header bg-white border-bottom py-3">
-                        <h5 class="card-title mb-0 fw-bold"><i class="fas fa-file-alt me-2 text-warning"></i>KYC Documents</h5>
+                <div class="row g-4">
+                    <!-- Wallet Summary Card -->
+                    <div class="col-md-5">
+                        <div class="card wallet-card shadow-sm rounded-4 h-100 position-relative overflow-hidden">
+                            <div class="card-body p-4 position-relative" style="z-index: 1;">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h6 class="text-uppercase fw-bold opacity-75 mb-0" style="letter-spacing: 1px;">Partner Wallet</h6>
+                                    <i class="fas fa-wallet fa-2x opacity-25"></i>
+                                </div>
+                                <h1 class="fw-bold mb-1">₹<?= number_format($balance, 2) ?></h1>
+                                <p class="small opacity-75 mb-4">Available Balance</p>
+                                
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-light btn-sm flex-fill fw-bold rounded-pill" data-bs-toggle="modal" data-bs-target="#walletModal" onclick="setWalletAction('Credit')">
+                                        <i class="fas fa-plus-circle me-1 text-success"></i> Add Funds
+                                    </button>
+                                    <button class="btn btn-light btn-sm flex-fill fw-bold rounded-pill" data-bs-toggle="modal" data-bs-target="#walletModal" onclick="setWalletAction('Debit')">
+                                        <i class="fas fa-minus-circle me-1 text-danger"></i> Deduct
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Background Decoration -->
+                            <div class="position-absolute" style="right: -20px; bottom: -20px; opacity: 0.1;">
+                                <i class="fas fa-coins fa-8x"></i>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-body p-4">
+
+                    <!-- Transaction History -->
+                    <div class="col-md-7">
+                        <div class="card shadow-sm border-0 rounded-4 h-100 overflow-hidden">
+                            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 fw-bold"><i class="fas fa-history me-2 text-primary"></i>Recent Transactions</h6>
+                                <a href="#" class="text-primary small text-decoration-none fw-bold">View All</a>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table transaction-table mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th class="ps-4">Type</th>
+                                                <th>Amount</th>
+                                                <th>Description</th>
+                                                <th class="pe-4 text-end">Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php if (empty($transactions)): ?>
+                                                <tr><td colspan="4" class="text-center py-4 text-muted">No transactions yet</td></tr>
+                                            <?php else: ?>
+                                                <?php foreach ($transactions as $tx): ?>
+                                                    <tr>
+                                                        <td class="ps-4">
+                                                            <span class="badge rounded-pill <?= $tx['type'] === 'Credit' ? 'badge-soft-success' : 'badge-soft-danger' ?>">
+                                                                <i class="fas fa-<?= $tx['type'] === 'Credit' ? 'arrow-down' : 'arrow-up' ?> me-1"></i> <?= $tx['type'] ?>
+                                                            </span>
+                                                        </td>
+                                                        <td class="fw-bold <?= $tx['type'] === 'Credit' ? 'text-success' : 'text-danger' ?>">
+                                                            <?= $tx['type'] === 'Credit' ? '+' : '-' ?> ₹<?= number_format($tx['amount'], 2) ?>
+                                                        </td>
+                                                        <td>
+                                                            <div class="text-truncate" style="max-width: 150px;" title="<?= $tx['description'] ?>">
+                                                                <?= htmlspecialchars($tx['description']) ?>
+                                                            </div>
+                                                            <small class="text-muted d-block text-xs"><?= $tx['source'] ?></small>
+                                                        </td>
+                                                        <td class="pe-4 text-end text-muted small">
+                                                            <?= date('d M, y', strtotime($tx['created_at'])) ?>
+                                                        </td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            <?php endif; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Full Width Bottom Row: Documents -->
+            <div class="col-lg-12">
+                <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+                    <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
+                        <h5 class="card-title mb-0 fw-bold"><i class="fas fa-file-alt me-2 text-warning"></i>KYC Verification Documents</h5>
+                        <div class="d-flex gap-2">
+                             <?php 
+                                $vStatus = $partner['manual_verification_status'];
+                                if ($vStatus !== 'Approved'): 
+                            ?>
+                                <button class="btn btn-success btn-sm px-4 rounded-pill shadow-sm" onclick="approvePartner()">
+                                    <i class="fas fa-check-circle me-1"></i> Verify & Approve Now
+                                </button>
+                            <?php endif; ?>
+                            <button class="btn btn-outline-danger btn-sm px-4 rounded-pill delete-btn" data-id="<?= $partner['id'] ?>">
+                                <i class="fas fa-trash-alt me-1"></i> Delete Partner
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body p-4 bg-light">
                         <div class="row g-4">
                             <!-- Aadhaar Front -->
-                            <div class="col-md-6">
-                                <div class="document-card border rounded-4 p-3 h-100 bg-light">
-                                    <h6 class="fw-bold mb-3 d-flex justify-content-between align-items-center">
-                                        Aadhar Card (Front)
+                            <div class="col-md-4">
+                                <div class="document-card border-0 shadow-sm rounded-4 p-3 h-100 bg-white">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <label class="small text-muted fw-bold text-uppercase">Aadhar Front</label>
                                         <?php if (!empty($partner['aadhaar_front_link'])): ?>
-                                            <a href="../../uploads/partners/<?= $partner['aadhaar_front_link'] ?>" target="_blank" class="btn btn-xs btn-outline-primary rounded-pill"><i class="fas fa-expand"></i></a>
+                                            <a href="../../uploads/partners/<?= $partner['aadhaar_front_link'] ?>" target="_blank" class="text-primary small"><i class="fas fa-external-link-alt"></i></a>
                                         <?php endif; ?>
-                                    </h6>
+                                    </div>
                                     <?php if (!empty($partner['aadhaar_front_link'])): ?>
-                                        <div class="ratio ratio-16x9 rounded-3 overflow-hidden shadow-sm bg-white">
+                                        <div class="ratio ratio-16x9 rounded-3 overflow-hidden bg-light">
                                             <img src="../../uploads/partners/<?= $partner['aadhaar_front_link'] ?>" style="width:100%; height:100%; object-fit:contain;" class="img-preview">
                                         </div>
                                     <?php else: ?>
-                                        <div class="text-center py-5 border border-dashed rounded-3 bg-white">
-                                            <i class="fas fa-image fa-3x text-light mb-2"></i>
-                                            <div class="small fw-bold text-danger">Not Uploaded</div>
+                                        <div class="text-center py-4 border border-dashed rounded-3">
+                                            <i class="fas fa-image fa-2x text-light mb-1"></i>
+                                            <div class="small text-danger">Pending</div>
                                         </div>
                                     <?php endif; ?>
                                 </div>
                             </div>
 
                             <!-- Aadhaar Back -->
-                            <div class="col-md-6">
-                                <div class="document-card border rounded-4 p-3 h-100 bg-light">
-                                    <h6 class="fw-bold mb-3 d-flex justify-content-between align-items-center">
-                                        Aadhar Card (Back)
+                            <div class="col-md-4">
+                                <div class="document-card border-0 shadow-sm rounded-4 p-3 h-100 bg-white">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <label class="small text-muted fw-bold text-uppercase">Aadhar Back</label>
                                         <?php if (!empty($partner['aadhaar_back_link'])): ?>
-                                            <a href="../../uploads/partners/<?= $partner['aadhaar_back_link'] ?>" target="_blank" class="btn btn-xs btn-outline-primary rounded-pill"><i class="fas fa-expand"></i></a>
+                                            <a href="../../uploads/partners/<?= $partner['aadhaar_back_link'] ?>" target="_blank" class="text-primary small"><i class="fas fa-external-link-alt"></i></a>
                                         <?php endif; ?>
-                                    </h6>
+                                    </div>
                                     <?php if (!empty($partner['aadhaar_back_link'])): ?>
-                                        <div class="ratio ratio-16x9 rounded-3 overflow-hidden shadow-sm bg-white">
+                                        <div class="ratio ratio-16x9 rounded-3 overflow-hidden bg-light">
                                             <img src="../../uploads/partners/<?= $partner['aadhaar_back_link'] ?>" style="width:100%; height:100%; object-fit:contain;" class="img-preview">
                                         </div>
                                     <?php else: ?>
-                                        <div class="text-center py-5 border border-dashed rounded-3 bg-white">
-                                            <i class="fas fa-image fa-3x text-light mb-2"></i>
-                                            <div class="small fw-bold text-danger">Not Uploaded</div>
+                                        <div class="text-center py-4 border border-dashed rounded-3">
+                                            <i class="fas fa-image fa-2x text-light mb-1"></i>
+                                            <div class="small text-danger">Pending</div>
                                         </div>
                                     <?php endif; ?>
                                 </div>
                             </div>
 
                             <!-- Live Selfie -->
-                            <div class="col-md-12">
-                                <div class="document-card border rounded-4 p-3 bg-light">
-                                    <h6 class="fw-bold mb-3 d-flex justify-content-between align-items-center">
-                                        Live Selfie Verification
+                            <div class="col-md-4">
+                                <div class="document-card border-0 shadow-sm rounded-4 p-3 h-100 bg-white">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <label class="small text-muted fw-bold text-uppercase">Selfie</label>
                                         <?php if (!empty($partner['selfie_link'])): ?>
-                                            <a href="../../uploads/partners/<?= $partner['selfie_link'] ?>" target="_blank" class="btn btn-xs btn-outline-primary rounded-pill"><i class="fas fa-expand"></i></a>
+                                            <a href="../../uploads/partners/<?= $partner['selfie_link'] ?>" target="_blank" class="text-primary small"><i class="fas fa-external-link-alt"></i></a>
                                         <?php endif; ?>
-                                    </h6>
+                                    </div>
                                     <?php if (!empty($partner['selfie_link'])): ?>
-                                        <div class="d-flex justify-content-center">
-                                            <div class="ratio ratio-1x1 rounded-3 overflow-hidden shadow-sm bg-white" style="max-width: 400px;">
-                                                <img src="../../uploads/partners/<?= $partner['selfie_link'] ?>" style="width:100%; height:100%; object-fit:contain;" class="img-preview">
-                                            </div>
+                                        <div class="ratio ratio-16x9 rounded-3 overflow-hidden bg-light">
+                                            <img src="../../uploads/partners/<?= $partner['selfie_link'] ?>" style="width:100%; height:100%; object-fit:contain;" class="img-preview">
                                         </div>
                                     <?php else: ?>
-                                        <div class="text-center py-5 border border-dashed rounded-3 bg-white">
-                                            <i class="fas fa-user-circle fa-4x text-light mb-2"></i>
-                                            <div class="small fw-bold text-danger">Selfie Not Uploaded</div>
+                                        <div class="text-center py-4 border border-dashed rounded-3">
+                                            <i class="fas fa-user-circle fa-2x text-light mb-1"></i>
+                                            <div class="small text-danger">Pending</div>
                                         </div>
                                     <?php endif; ?>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-footer bg-white border-top p-4">
-                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
-                            <div class="mb-3 mb-md-0">
-                                <span class="text-muted small"><i class="fas fa-info-circle me-1 text-primary"></i> <b>Note:</b> Verify KYC before approval.</span>
-                            </div>
-                            <div class="d-flex align-items-center">
-                                <button class="btn btn-sm btn-outline-danger px-3 rounded-2 delete-btn me-2" data-id="<?= $partner['id'] ?>">
-                                    <i class="fas fa-trash-alt me-1"></i> Delete
-                                </button>
-                                <a href="edit-partner.php?id=<?= $partner['id'] ?>" class="btn btn-sm btn-primary px-3 rounded-2 shadow-sm">
-                                    <i class="fas fa-user-check me-1"></i> Verify & Approve
-                                </a>
                             </div>
                         </div>
                     </div>
@@ -197,25 +299,97 @@ $page_title = "Partner Details - " . ($partner['full_name'] ?? 'N/A');
     </div>
 </div>
 
-<style>
-    .img-preview { transition: transform .3s ease; cursor: zoom-in; }
-    .img-preview:hover { transform: scale(1.02); }
-    .btn-xs { padding: 0.1rem 0.4rem; font-size: 0.75rem; }
-    .document-card h6 { color: #555; }
-</style>
+    </div>
+</div>
+
+<!-- Wallet Management Modal -->
+<div class="modal fade" id="walletModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold" id="walletModalTitle">Manage Wallet</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="walletForm">
+                <input type="hidden" name="partner_id" value="<?= $partner['id'] ?>">
+                <input type="hidden" name="action" value="manage_wallet">
+                <input type="hidden" name="type" id="walletType">
+                <div class="modal-body py-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Adjustment Amount (₹)</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-white border-end-0 text-muted">₹</span>
+                            <input type="number" step="0.01" name="amount" class="form-control border-start-0" placeholder="0.00" required>
+                        </div>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Remark / Description</label>
+                        <textarea name="description" class="form-control" rows="2" placeholder="Enter reason for adjustment..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4" id="walletSubmitBtn">Confirm Transaction</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <script>
+function setWalletAction(type) {
+    $('#walletType').val(type);
+    $('#walletModalTitle').text(type === 'Credit' ? 'Add Funds to Wallet' : 'Deduct Funds from Wallet');
+    $('#walletSubmitBtn').removeClass('btn-primary btn-success btn-danger')
+        .addClass(type === 'Credit' ? 'btn-success' : 'btn-danger')
+        .text(type === 'Credit' ? 'Add Money' : 'Deduct Money');
+}
+
+function approvePartner() {
+    Swal.fire({
+        title: 'Approve this partner?',
+        text: "Partner will be verified and marked as Approved.",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        confirmButtonText: 'Yes, Approve!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.post('api/partner_actions.php', { action: 'approve', id: <?= $partner['id'] ?> }, function(res) {
+                if (res.success) Swal.fire('Approved!', res.message, 'success').then(() => location.reload());
+                else Swal.fire('Error', res.message, 'error');
+            });
+        }
+    });
+}
+
 $(document).ready(function() {
+    // Wallet Form Submission
+    $('#walletForm').submit(function(e) {
+        e.preventDefault();
+        const btn = $('#walletSubmitBtn');
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Processing...');
+
+        $.post('api/wallet_actions.php', $(this).serialize(), function(res) {
+            if (res.success) {
+                Swal.fire('Success!', res.message, 'success').then(() => location.reload());
+            } else {
+                Swal.fire('Error', res.message, 'error');
+                btn.prop('disabled', false).text('Confirm Transaction');
+            }
+        });
+    });
+
     // Delete Action
     $('.delete-btn').click(function() {
         const id = $(this).data('id');
         Swal.fire({
             title: 'Delete this partner?',
-            text: "This action cannot be undone.",
+            text: "This action cannot be undone and will remove all associated data.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!'
+            confirmButtonText: 'Yes, delete forever!'
         }).then((result) => {
             if (result.isConfirmed) {
                 $.post('api/partner_actions.php', { action: 'delete', id: id }, function(res) {
@@ -232,3 +406,4 @@ $(document).ready(function() {
 </script>
 
 <?php require_once __DIR__ . '/../footer.php'; ?>
+
