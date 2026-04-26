@@ -5,6 +5,25 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 
     try {
         $pdo->exec("ALTER TABLE accepted_bookings MODIFY COLUMN trip_status ENUM('Pending', 'OnWayToPickup', 'Arrived', 'Started', 'Completed') DEFAULT 'Pending'");
+        
+        $pdo->exec("CREATE TABLE IF NOT EXISTS driver_trip_logs (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            acceptance_id INT NOT NULL,
+            booking_id INT NOT NULL,
+            start_selfie VARCHAR(255),
+            start_time DATETIME,
+            start_location TEXT,
+            start_odometer_reading INT,
+            start_odometer_image VARCHAR(255),
+            end_time DATETIME,
+            end_location TEXT,
+            end_odometer_reading INT,
+            end_odometer_image VARCHAR(255),
+            total_km DECIMAL(10,2),
+            collect_amount DECIMAL(10,2),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(acceptance_id)
+        )");
     } catch(PDOException $e) {}
 
 header('Content-Type: application/json; charset=utf-8');
@@ -15,6 +34,21 @@ header('Access-Control-Allow-Headers: Content-Type, Authorization');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
+}
+
+function uploadTripImage($file, $prefix, $booking_id) {
+    if (!isset($file['tmp_name']) || empty($file['tmp_name'])) return null;
+    $targetDir = __DIR__ . '/../uploads/trips/';
+    if (!file_exists($targetDir)) mkdir($targetDir, 0777, true);
+    
+    $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+    $filename = $prefix . "_" . $booking_id . "_" . time() . "." . $ext;
+    $targetFile = $targetDir . $filename;
+    
+    if (move_uploaded_file($file['tmp_name'], $targetFile)) {
+        return "app/uploads/trips/" . $filename;
+    }
+    return null;
 }
 
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
@@ -76,9 +110,24 @@ try {
                 $stmt = $pdo->prepare("UPDATE accepted_bookings SET trip_status = ? WHERE id = ?");
                 $stmt->execute([$status, $acceptance_id]);
 
+                $booking_id = $trip['booking_id'];
+
+                // 2.A Handle Logging Trip Details
+                if ($status === 'Started') {
+                    $selfie = uploadTripImage($_FILES['start_selfie'] ?? null, 'selfie', $booking_id);
+                    $odo_img = uploadTripImage($_FILES['start_odometer_image'] ?? null, 'odo_start', $booking_id);
+                    $odo_reading = $_POST['start_odometer_reading'] ?? 0;
+                    $location = $_POST['start_location'] ?? '';
+                    $now = date('Y-m-d H:i:s');
+
+                    $stmt = $pdo->prepare("INSERT INTO driver_trip_logs (acceptance_id, booking_id, start_selfie, start_time, start_location, start_odometer_reading, start_odometer_image) 
+                                           VALUES (?, ?, ?, ?, ?, ?, ?)
+                                           ON DUPLICATE KEY UPDATE start_selfie = VALUES(start_selfie), start_time = VALUES(start_time), start_location = VALUES(start_location), start_odometer_reading = VALUES(start_odometer_reading), start_odometer_image = VALUES(start_odometer_image)");
+                    $stmt->execute([$acceptance_id, $booking_id, $selfie, $now, $location, $odo_reading, $odo_img]);
+                }
+
                 // 2.1 If OnWayToPickup, send tracking link to chat
                 if ($status === 'OnWayToPickup') {
-                    $booking_id = $trip['booking_id'];
                     $poster_id = $trip['poster_id']; // This is the partner who POSTED the booking
                     
                     // The sender of the tracking link should be the one who ACCEPTED the booking
@@ -107,7 +156,17 @@ try {
                 if ($status === 'Completed') {
                     $poster_id = $trip['poster_id'];
                     $commission = (float)$trip['commission'];
-                    $booking_id = $trip['booking_id'];
+                    
+                    // Log End Details
+                    $odo_img = uploadTripImage($_FILES['end_odometer_image'] ?? null, 'odo_end', $booking_id);
+                    $odo_reading = $_POST['end_odometer_reading'] ?? 0;
+                    $location = $_POST['end_location'] ?? '';
+                    $total_km = $_POST['total_km'] ?? 0;
+                    $collect_amount = $_POST['collect_amount'] ?? 0;
+                    $now = date('Y-m-d H:i:s');
+
+                    $stmt = $pdo->prepare("UPDATE driver_trip_logs SET end_time = ?, end_location = ?, end_odometer_reading = ?, end_odometer_image = ?, total_km = ?, collect_amount = ? WHERE acceptance_id = ?");
+                    $stmt->execute([$now, $location, $odo_reading, $odo_img, $total_km, $collect_amount, $acceptance_id]);
 
                     // Update main booking status too
                     $stmt = $pdo->prepare("UPDATE partner_bookings SET status = 'Completed' WHERE id = ?");
