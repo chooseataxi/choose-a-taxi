@@ -257,6 +257,10 @@ if ($action === 'get_bookings') {
         exit;
     }
     try {
+        $now = $pdo->query("SELECT NOW()")->fetchColumn();
+        // Log for debugging
+        error_log("Booking Expiry Check - Partner ID: $partner_id, DB Now: $now");
+
         // 1. Auto-expire open bookings that are past their start time
         $pdo->exec("UPDATE partner_bookings 
                     SET status = 'Expired' 
