@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 function uploadTripImage($file, $prefix, $booking_id) {
     if (!isset($file['tmp_name']) || empty($file['tmp_name'])) return null;
-    $targetDir = __DIR__ . '/../uploads/trips/';
+    $targetDir = __DIR__ . '/../../uploads/trips/';
     if (!file_exists($targetDir)) mkdir($targetDir, 0777, true);
     
     $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
@@ -46,7 +46,7 @@ function uploadTripImage($file, $prefix, $booking_id) {
     $targetFile = $targetDir . $filename;
     
     if (move_uploaded_file($file['tmp_name'], $targetFile)) {
-        return "app/uploads/trips/" . $filename;
+        return "uploads/trips/" . $filename;
     }
     return null;
 }
