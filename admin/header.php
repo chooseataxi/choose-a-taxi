@@ -502,6 +502,11 @@ if (!empty($headerAdmin['profile_picture'])) {
                 display: none; /* Hide admin name beside avatar on tiny screens */
             }
         }
+
+        /* Content Area Padding */
+        .content {
+            padding-bottom: 40px !important;
+        }
     </style>
 </head>
 
