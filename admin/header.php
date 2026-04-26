@@ -59,6 +59,13 @@ $menuItems = [
             ["title" => "Manage Plans", "url" => "partner-subscription-plans/plan-management.php"],
             ["title" => "Add New Plan", "url" => "partner-subscription-plans/add-plan.php"]
         ],
+    ],
+    [
+        "menuTitle" => "Mobile App",
+        "icon" => "fas fa-mobile-alt",
+        "pages" => [
+            ["title" => "Hero Slides", "url" => "mobile-app/manage-hero.php"]
+        ],
     ]
 ];
 
