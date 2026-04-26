@@ -65,7 +65,9 @@ try {
                                                      <?php endif; ?>
                                                  </div>
                                                 <div>
-                                                    <h6 class="mb-0 fw-bold"><?= htmlspecialchars($partner['full_name'] ?? 'N/A') ?></h6>
+                                                    <a href="view-partner.php?id=<?= $partner['id'] ?>" class="text-decoration-none">
+                                                        <h6 class="mb-0 fw-bold text-dark hover-primary"><?= htmlspecialchars($partner['full_name'] ?? 'N/A') ?></h6>
+                                                    </a>
                                                 </div>
                                             </div>
                                         </td>
@@ -86,13 +88,16 @@ try {
                                             <span class="badge <?= $vClass ?> rounded-pill px-3 py-2 border"><i class="fas <?= $vStatus==='Approved' ? 'fa-check-circle' : 'fa-clock' ?> me-1"></i> <?= $vStatus ?></span>
                                         </td>
                                         <td>
-                                            <div class="form-check form-switch p-0" style="min-height: auto;">
-                                                <input class="form-check-input ms-0 status-toggle" type="checkbox" role="switch" <?= $partner['status'] === 'Active' ? 'checked' : '' ?> data-id="<?= $partner['id'] ?>">
-                                                <label class="form-check-label ms-2 small fw-semibold status-label"><?= $partner['status'] ?></label>
+                                            <div class="d-flex align-items-center">
+                                                <div class="form-check form-switch p-0 m-0" style="min-height: auto;">
+                                                    <input class="form-check-input ms-0 status-toggle" type="checkbox" role="switch" <?= $partner['status'] === 'Active' ? 'checked' : '' ?> data-id="<?= $partner['id'] ?>" style="cursor: pointer;">
+                                                </div>
+                                                <span class="ms-2 small fw-semibold status-label <?= $partner['status'] === 'Active' ? 'text-success' : 'text-danger' ?>"><?= $partner['status'] ?></span>
                                             </div>
                                         </td>
                                         <td class="text-center">
                                             <div class="btn-group shadow-sm">
+                                                <a href="view-partner.php?id=<?= $partner['id'] ?>" class="btn btn-white btn-sm" title="View Partner Details"><i class="fas fa-eye text-info"></i></a>
                                                 <a href="edit-partner.php?id=<?= $partner['id'] ?>" class="btn btn-white btn-sm" title="Edit & Verify Partner"><i class="fas fa-edit text-primary"></i></a>
                                                 <button class="btn btn-white btn-sm delete-btn" data-id="<?= $partner['id'] ?>" title="Delete Partner"><i class="fas fa-trash-alt text-danger"></i></button>
                                             </div>
@@ -122,6 +127,7 @@ try {
     .btn-white:hover { background: #f8f9fa; }
     .status-toggle { width: 40px !important; height: 20px !important; cursor: pointer; }
     .dataTables_wrapper .dataTables_paginate .paginate_button { margin-top: 10px; }
+    .hover-primary:hover { color: #0d6efd !important; text-decoration: underline; }
 </style>
 
 <!-- DataTables Scripts -->
@@ -146,6 +152,11 @@ $(document).ready(function() {
         $.post('api/partner_actions.php', { action: 'toggle_status', id: id }, function(res) {
             if (res.success) {
                 label.text(res.new_status);
+                if (res.new_status === 'Active') {
+                    label.removeClass('text-danger').addClass('text-success');
+                } else {
+                    label.removeClass('text-success').addClass('text-danger');
+                }
             } else {
                 Swal.fire('Error', res.message, 'error');
             }
