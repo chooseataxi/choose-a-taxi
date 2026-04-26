@@ -3,14 +3,9 @@ require_once __DIR__ . '/../../includes/db.php';
 require_once __DIR__ . '/../../includes/pusher_config.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 
-// Lazy Migration: Add trip_status to accepted_bookings if not exists
-try {
-    $pdo->query("SELECT trip_status FROM accepted_bookings LIMIT 1");
-} catch(PDOException $e) {
     try {
-        $pdo->exec("ALTER TABLE accepted_bookings ADD COLUMN trip_status ENUM('Pending', 'Started', 'Completed') DEFAULT 'Pending'");
+        $pdo->exec("ALTER TABLE accepted_bookings MODIFY COLUMN trip_status ENUM('Pending', 'OnWayToPickup', 'Started', 'Completed') DEFAULT 'Pending'");
     } catch(PDOException $e) {}
-}
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
@@ -80,6 +75,33 @@ try {
                 // 2. Update trip status
                 $stmt = $pdo->prepare("UPDATE accepted_bookings SET trip_status = ? WHERE id = ?");
                 $stmt->execute([$status, $acceptance_id]);
+
+                // 2.1 If OnWayToPickup, send tracking link to chat
+                if ($status === 'OnWayToPickup') {
+                    $booking_id = $trip['booking_id'];
+                    $poster_id = $trip['poster_id']; // This is the partner who POSTED the booking
+                    
+                    // The sender of the tracking link should be the one who ACCEPTED the booking
+                    $stmt = $pdo->prepare("SELECT partner_id FROM accepted_bookings WHERE id = ?");
+                    $stmt->execute([$acceptance_id]);
+                    $accepter = $stmt->fetch();
+                    $sender_id = $accepter['partner_id'];
+
+                    $tracking_url = "https://chooseataxi.com/driver-location/track_trip.php?booking_id=$booking_id";
+                    $msg = "Driver is on the way to Pickup point. Track live here: $tracking_url";
+                    
+                    $stmt = $pdo->prepare("INSERT INTO booking_chats (booking_id, sender_id, receiver_id, message, type) VALUES (?, ?, ?, ?, 'text')");
+                    $stmt->execute([$booking_id, $sender_id, $poster_id, $msg]);
+
+                    // Trigger pusher for chat update
+                    try {
+                        $pusher->trigger("chat-$booking_id", 'new-message', [
+                            'message' => $msg,
+                            'sender_id' => $sender_id,
+                            'type' => 'text'
+                        ]);
+                    } catch (Exception $e) {}
+                }
 
                 // 3. If completed, credit the poster
                 if ($status === 'Completed') {
