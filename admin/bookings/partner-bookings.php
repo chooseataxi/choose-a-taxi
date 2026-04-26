@@ -7,10 +7,38 @@ $limit = 10;
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $offset = ($page - 1) * $limit;
 
+// Filter & Search parameters
+$search = $_GET['q'] ?? '';
+$status_filter = $_GET['status'] ?? '';
+$type_filter = $_GET['type'] ?? '';
+
+$where_clauses = [];
+$query_params = [];
+
+if (!empty($search)) {
+    $q = "%$search%";
+    $where_clauses[] = "(pb.id LIKE ? OR pb.pickup_location LIKE ? OR pb.drop_location LIKE ? OR p.full_name LIKE ? OR p.mobile LIKE ?)";
+    array_push($query_params, $q, $q, $q, $q, $q);
+}
+
+if (!empty($status_filter)) {
+    $where_clauses[] = "pb.status = ?";
+    $query_params[] = $status_filter;
+}
+
+if (!empty($type_filter)) {
+    $where_clauses[] = "pb.booking_type = ?";
+    $query_params[] = $type_filter;
+}
+
+$where_sql = !empty($where_clauses) ? "WHERE " . implode(" AND ", $where_clauses) : "";
+
 // Fetch bookings with partner names, car types, and images
 try {
-    // Total count for pagination
-    $total_stmt = $pdo->query("SELECT COUNT(*) FROM partner_bookings");
+    // Total count for pagination (with filters)
+    $total_sql = "SELECT COUNT(*) FROM partner_bookings pb LEFT JOIN partners p ON p.id = pb.partner_id $where_sql";
+    $total_stmt = $pdo->prepare($total_sql);
+    $total_stmt->execute($query_params);
     $total_records = $total_stmt->fetchColumn();
     $total_pages = ceil($total_records / $limit);
 
@@ -29,9 +57,12 @@ try {
             LEFT JOIN cars c ON c.id = pb.car_type
             LEFT JOIN car_types ct_v ON ct_v.id = c.type_id
             LEFT JOIN car_types ct_d ON (ct_d.id = pb.car_type OR ct_d.name = pb.car_type)
+            $where_sql
             ORDER BY pb.id DESC
             LIMIT $limit OFFSET $offset";
-    $stmt = $pdo->query($sql);
+    
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($query_params);
     $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     $error = "Error fetching bookings: " . $e->getMessage();
@@ -72,6 +103,48 @@ $status_badges = [
             </div>
         <?php endif; ?>
 
+        <!-- Filters Section -->
+        <div class="card shadow-sm border-0 rounded-4 mb-4">
+            <div class="card-body p-3">
+                <form method="GET" action="" id="filterForm">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label class="small fw-bold text-muted mb-1">Search Anything</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
+                                <input type="text" name="q" class="form-control border-start-0 ps-0" placeholder="ID, Location, Partner Name/Mobile..." value="<?= htmlspecialchars($search) ?>">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="small fw-bold text-muted mb-1">Trip Type</label>
+                            <select name="type" class="form-select form-select-sm shadow-none">
+                                <option value="">All Types</option>
+                                <option value="One Way" <?= $type_filter == 'One Way' ? 'selected' : '' ?>>One Way</option>
+                                <option value="Round Trip" <?= $type_filter == 'Round Trip' ? 'selected' : '' ?>>Round Trip</option>
+                                <option value="Local" <?= $type_filter == 'Local' ? 'selected' : '' ?>>Local</option>
+                                <option value="Airport" <?= $type_filter == 'Airport' ? 'selected' : '' ?>>Airport</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="small fw-bold text-muted mb-1">Status</label>
+                            <select name="status" class="form-select form-select-sm shadow-none">
+                                <option value="">All Status</option>
+                                <?php foreach ($status_badges as $status => $badge): ?>
+                                    <option value="<?= $status ?>" <?= $status_filter == $status ? 'selected' : '' ?>><?= $status ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <div class="btn-group btn-group-sm w-100 w-md-auto">
+                                <button type="submit" class="btn btn-primary px-4"><i class="fas fa-filter me-1"></i> Apply</button>
+                                <a href="partner-bookings.php" class="btn btn-outline-secondary px-3" title="Clear Filters"><i class="fas fa-times"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
             <div class="card-header bg-white py-3 border-bottom">
                 <div class="d-flex align-items-center justify-content-between">
@@ -91,7 +164,7 @@ $status_badges = [
                             <tr>
                                 <th class="ps-4" style="width: 120px;">Booking</th>
                                 <th>Route & Schedule</th>
-                                <th>Vehicle & Requirements</th>
+                                <th>Vehicle Info</th>
                                 <th>Commercials</th>
                                 <th>Partner (Post/Accept)</th>
                                 <th>Status</th>
@@ -195,20 +268,22 @@ $status_badges = [
             </div>
             
             <!-- Pagination -->
-            <?php if ($total_pages > 1): ?>
+            <?php if ($total_pages > 1): 
+                $query_str = http_build_query(array_merge($_GET, ['page' => '']));
+            ?>
             <div class="card-footer bg-white border-top py-3">
                 <nav aria-label="Page navigation">
                     <ul class="pagination pagination-sm justify-content-center mb-0">
                         <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>">
-                            <a class="page-link shadow-none" href="?page=<?= $page - 1 ?>" tabindex="-1">Previous</a>
+                            <a class="page-link shadow-none" href="?<?= $query_str . ($page - 1) ?>" tabindex="-1">Previous</a>
                         </li>
                         <?php for ($i = 1; $i <= $total_pages; $i++): ?>
                             <li class="page-item <?= ($page == $i) ? 'active' : '' ?>">
-                                <a class="page-link shadow-none" href="?page=<?= $i ?>"><?= $i ?></a>
+                                <a class="page-link shadow-none" href="?<?= $query_str . $i ?>"><?= $i ?></a>
                             </li>
                         <?php endfor; ?>
                         <li class="page-item <?= ($page >= $total_pages) ? 'disabled' : '' ?>">
-                            <a class="page-link shadow-none" href="?page=<?= $page + 1 ?>">Next</a>
+                            <a class="page-link shadow-none" href="?<?= $query_str . ($page + 1) ?>">Next</a>
                         </li>
                     </ul>
                 </nav>
