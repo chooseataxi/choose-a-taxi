@@ -24,8 +24,8 @@ try {
             LEFT JOIN partners p ON p.id = pb.partner_id
             LEFT JOIN accepted_bookings acc ON acc.booking_id = pb.id AND acc.status != 'Cancelled'
             LEFT JOIN partners acc_p ON acc_p.id = acc.partner_id
+            LEFT JOIN car_types ct ON (ct.id = pb.car_type OR ct.name = pb.car_type)
             LEFT JOIN cars c ON c.id = pb.car_type
-            LEFT JOIN car_types ct ON ct.id = c.type_id
             WHERE pb.id = ?";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$id]);

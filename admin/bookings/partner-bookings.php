@@ -26,8 +26,7 @@ try {
             LEFT JOIN partners p ON p.id = pb.partner_id
             LEFT JOIN accepted_bookings acc ON acc.booking_id = pb.id AND acc.status != 'Cancelled'
             LEFT JOIN partners acc_p ON acc_p.id = acc.partner_id
-            LEFT JOIN cars c ON c.id = pb.car_type
-            LEFT JOIN car_types ct ON ct.id = c.type_id
+            LEFT JOIN car_types ct ON (ct.id = pb.car_type OR ct.name = pb.car_type)
             ORDER BY pb.id DESC
             LIMIT $limit OFFSET $offset";
     $stmt = $pdo->query($sql);
@@ -133,19 +132,6 @@ $status_badges = [
                                         </div>
                                         <div>
                                             <div class="small fw-bold text-dark"><?= htmlspecialchars($b['car_type_name'] ?? $b['car_type']) ?></div>
-                                            <?php 
-                                                $prefs = json_decode($b['preferences'], true);
-                                                if (!empty($prefs)): 
-                                            ?>
-                                                <div class="d-flex flex-wrap gap-1 mt-1">
-                                                    <?php foreach (array_slice($prefs, 0, 2) as $p): ?>
-                                                        <span class="badge bg-gray-200 text-muted fw-normal" style="font-size: 0.6rem;"><?= htmlspecialchars($p) ?></span>
-                                                    <?php endforeach; ?>
-                                                    <?php if (count($prefs) > 2): ?>
-                                                        <span class="text-muted small" style="font-size: 0.6rem;">+<?= count($prefs) - 2 ?></span>
-                                                    <?php endif; ?>
-                                                </div>
-                                            <?php endif; ?>
                                         </div>
                                     </div>
                                 </td>
