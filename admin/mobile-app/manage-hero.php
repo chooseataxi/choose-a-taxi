@@ -100,11 +100,11 @@ $page_title = "Manage Mobile Hero Slides";
 
                     <div class="mb-0">
                         <label class="form-label small fw-bold text-muted text-uppercase">Banner Image (Required)</label>
-                        <div class="upload-box" onclick="$('#heroImage').click()">
+                        <label for="heroImage" class="upload-box d-block mb-0 click-trigger">
                             <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-2"></i>
                             <p class="mb-0 small text-muted">Click to upload 1200x600 image</p>
-                            <input type="file" name="image" id="heroImage" class="d-none" accept="image/*" required>
-                        </div>
+                            <input type="file" name="image" id="heroImage" style="opacity: 0; position: absolute; z-index: -1;" accept="image/*" required>
+                        </label>
                         <div id="imagePreviewContainer" class="mt-3 d-none">
                             <img id="imgPreview" src="#" class="img-fluid rounded-3 border">
                         </div>
