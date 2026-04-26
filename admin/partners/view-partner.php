@@ -160,14 +160,14 @@ $page_title = "Partner Details - " . ($partner['full_name'] ?? 'N/A');
                                 <a href="#" class="text-primary small text-decoration-none fw-bold">View All</a>
                             </div>
                             <div class="card-body p-0">
-                                <div class="table-responsive">
-                                    <table class="table transaction-table mb-0">
+                                <div class="table-responsive border-0">
+                                    <table class="table transaction-table mb-0" style="table-layout: fixed;">
                                         <thead>
                                             <tr>
-                                                <th class="ps-4">Type</th>
-                                                <th>Amount</th>
+                                                <th class="ps-3" style="width: 80px;">Type</th>
+                                                <th style="width: 90px;">Amount</th>
                                                 <th>Description</th>
-                                                <th class="pe-4 text-end">Date</th>
+                                                <th class="pe-3 text-end" style="width: 90px;">Date</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -176,21 +176,21 @@ $page_title = "Partner Details - " . ($partner['full_name'] ?? 'N/A');
                                             <?php else: ?>
                                                 <?php foreach ($transactions as $tx): ?>
                                                     <tr>
-                                                        <td class="ps-4">
-                                                            <span class="badge rounded-pill <?= $tx['type'] === 'Credit' ? 'badge-soft-success' : 'badge-soft-danger' ?>">
-                                                                <i class="fas fa-<?= $tx['type'] === 'Credit' ? 'arrow-down' : 'arrow-up' ?> me-1"></i> <?= $tx['type'] ?>
+                                                        <td class="ps-3">
+                                                            <span class="badge rounded-pill <?= $tx['type'] === 'Credit' ? 'badge-soft-success' : 'badge-soft-danger' ?> px-2 py-1" style="font-size: 10px;">
+                                                                <i class="fas fa-<?= $tx['type'] === 'Credit' ? 'arrow-down' : 'arrow-up' ?>"></i> <?= $tx['type'] ?>
                                                             </span>
                                                         </td>
-                                                        <td class="fw-bold <?= $tx['type'] === 'Credit' ? 'text-success' : 'text-danger' ?>">
-                                                            <?= $tx['type'] === 'Credit' ? '+' : '-' ?> ₹<?= number_format($tx['amount'], 2) ?>
+                                                        <td class="fw-bold <?= $tx['type'] === 'Credit' ? 'text-success' : 'text-danger' ?>" style="font-size: 12px;">
+                                                            <?= $tx['type'] === 'Credit' ? '+' : '-' ?>₹<?= number_format($tx['amount'], 2) ?>
                                                         </td>
-                                                        <td>
-                                                            <div class="text-truncate" style="max-width: 150px;" title="<?= $tx['description'] ?>">
+                                                        <td style="line-height: 1.2;">
+                                                            <div class="text-truncate small fw-semibold text-dark" title="<?= $tx['description'] ?>">
                                                                 <?= htmlspecialchars($tx['description']) ?>
                                                             </div>
-                                                            <small class="text-muted d-block text-xs"><?= $tx['source'] ?></small>
+                                                            <span class="text-muted text-xs" style="font-size: 10px;"><?= $tx['source'] ?></span>
                                                         </td>
-                                                        <td class="pe-4 text-end text-muted small">
+                                                        <td class="pe-3 text-end text-muted" style="font-size: 11px;">
                                                             <?= date('d M, y', strtotime($tx['created_at'])) ?>
                                                         </td>
                                                     </tr>
