@@ -152,7 +152,8 @@ $status_badges = [
                         <h5 class="mb-0 fw-bold text-dark">Trip Marketplace History</h5>
                         <p class="text-muted small mb-0">Overview of all bookings shared by partners</p>
                     </div>
-                    <div class="btn-group">
+                    <div class="btn-group gap-2">
+                        <a href="add-booking.php" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm"><i class="fas fa-plus me-1"></i> Add New Booking</a>
                         <button class="btn btn-outline-primary btn-sm rounded-pill px-3" onclick="window.location.reload()"><i class="fas fa-sync-alt me-1"></i> Refresh</button>
                     </div>
                 </div>
