@@ -88,9 +88,11 @@ try {
                                             <span class="badge <?= $vClass ?> rounded-pill px-3 py-2 border"><i class="fas <?= $vStatus==='Approved' ? 'fa-check-circle' : 'fa-clock' ?> me-1"></i> <?= $vStatus ?></span>
                                         </td>
                                         <td>
-                                            <div class="form-check form-switch p-0 m-0 d-flex align-items-center" style="min-height: auto;">
-                                                <input class="form-check-input ms-0 status-toggle" type="checkbox" role="switch" <?= $partner['status'] === 'Active' ? 'checked' : '' ?> data-id="<?= $partner['id'] ?>" style="cursor: pointer; width: 35px; height: 18px;">
-                                                <span class="badge <?= $partner['status'] === 'Active' ? 'bg-success' : 'bg-secondary' ?> ms-2 status-label" style="font-size: 0.75rem;"><?= $partner['status'] ?></span>
+                                            <div class="d-flex align-items-center" style="min-height: 24px;">
+                                                <div class="form-check form-switch m-0 p-0" style="display: inline-block;">
+                                                    <input class="form-check-input status-toggle m-0" type="checkbox" role="switch" <?= $partner['status'] === 'Active' ? 'checked' : '' ?> data-id="<?= $partner['id'] ?>" style="cursor: pointer; width: 32px; height: 16px; float: none; vertical-align: middle;">
+                                                </div>
+                                                <span class="badge <?= $partner['status'] === 'Active' ? 'bg-success' : 'bg-secondary' ?> ms-2 status-label" style="font-size: 0.7rem; vertical-align: middle;"><?= $partner['status'] ?></span>
                                             </div>
                                         </td>
                                         <td class="text-center">

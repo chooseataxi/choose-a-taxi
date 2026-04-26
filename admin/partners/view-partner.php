@@ -177,15 +177,15 @@ $page_title = "Partner Details - " . ($partner['full_name'] ?? 'N/A');
                         </div>
                     </div>
                     <div class="card-footer bg-white border-top p-4">
-                        <div class="row align-items-center">
-                            <div class="col-md-7 mb-3 mb-md-0">
-                                <span class="text-muted small"><i class="fas fa-info-circle me-1 text-primary"></i> <b>Admin Note:</b> Please verify all uploaded KYC documents (Aadhar & Selfie) carefully before approving this partner account.</span>
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
+                            <div class="mb-3 mb-md-0">
+                                <span class="text-muted small"><i class="fas fa-info-circle me-1 text-primary"></i> <b>Note:</b> Verify KYC before approval.</span>
                             </div>
-                            <div class="col-md-5 text-md-end">
-                                <button class="btn btn-outline-danger px-4 rounded-3 delete-btn me-2" data-id="<?= $partner['id'] ?>">
-                                    <i class="fas fa-trash-alt me-1"></i> Delete Partner
+                            <div class="d-flex align-items-center">
+                                <button class="btn btn-sm btn-outline-danger px-3 rounded-2 delete-btn me-2" data-id="<?= $partner['id'] ?>">
+                                    <i class="fas fa-trash-alt me-1"></i> Delete
                                 </button>
-                                <a href="edit-partner.php?id=<?= $partner['id'] ?>" class="btn btn-primary px-4 rounded-3 shadow-sm">
+                                <a href="edit-partner.php?id=<?= $partner['id'] ?>" class="btn btn-sm btn-primary px-3 rounded-2 shadow-sm">
                                     <i class="fas fa-user-check me-1"></i> Verify & Approve
                                 </a>
                             </div>
