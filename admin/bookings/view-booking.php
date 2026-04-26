@@ -5,6 +5,13 @@ require_once __DIR__ . '/../header.php';
 $id = $_GET['id'] ?? 0;
 
 try {
+    // Lazy Migration: Add vehicle_id to accepted_bookings if not exists
+    try {
+        $pdo->exec("ALTER TABLE accepted_bookings ADD COLUMN vehicle_id INT NULL AFTER driver_id");
+    } catch (PDOException $e) {
+        // Column probably already exists
+    }
+
     $sql = "SELECT pb.*, 
                    p.full_name AS poster_name, 
                    p.mobile AS poster_mobile,
@@ -19,7 +26,17 @@ try {
                    COALESCE(ct_v.name, ct_d.name) AS car_type_name,
                    COALESCE(ct_v.image, ct_d.image) AS car_type_image,
                    c.name AS car_specific_name,
-                   c.model AS car_model
+                   c.model AS car_model,
+                   -- Driver Info
+                   d.full_name AS driver_name,
+                   d.phone AS driver_phone,
+                   d.profile_image_path AS driver_image,
+                   d.license_number AS driver_license,
+                   -- Vehicle Info
+                   pv.rc_number AS vehicle_rc,
+                   pv.maker_model AS vehicle_model,
+                   pv.front_image AS vehicle_image,
+                   pv.color AS vehicle_color
             FROM partner_bookings pb
             LEFT JOIN partners p ON p.id = pb.partner_id
             LEFT JOIN accepted_bookings acc ON acc.booking_id = pb.id AND acc.status != 'Cancelled'
@@ -27,6 +44,8 @@ try {
             LEFT JOIN cars c ON c.id = pb.car_type
             LEFT JOIN car_types ct_v ON ct_v.id = c.type_id
             LEFT JOIN car_types ct_d ON (ct_d.id = pb.car_type OR ct_d.name = pb.car_type)
+            LEFT JOIN drivers d ON d.id = acc.driver_id
+            LEFT JOIN partner_vehicles pv ON pv.id = acc.vehicle_id
             WHERE pb.id = ?";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$id]);
@@ -234,11 +253,71 @@ $color = $status_colors[$booking['status']] ?? 'dark';
                                 </div>
                             <?php endif; ?>
                         </div>
-                        <h5 class="fw-bold text-dark mb-1"><?= htmlspecialchars($booking['acceptor_name']) ?></h5>
-                        <p class="text-muted small mb-1"><i class="fas fa-phone-alt me-1 text-success"></i> <?= $booking['acceptor_mobile'] ?></p>
-                        <div class="small text-muted mb-3"><i class="far fa-clock me-1"></i> Accepted at: <?= date('d M, Y h:i A', strtotime($booking['accepted_at'])) ?></div>
-                        <div class="d-grid gap-2">
-                            <a href="../partners/view-partner.php?id=<?= $booking['accepted_partner_id'] ?>" class="btn btn-outline-success btn-sm rounded-pill">View Profile</a>
+                        <h6 class="fw-bold text-dark mb-1"><?= htmlspecialchars($booking['acceptor_name']) ?></h6>
+                        <p class="text-muted small mb-2"><i class="fas fa-phone-alt me-1 text-success"></i> <?= htmlspecialchars($booking['acceptor_mobile']) ?></p>
+                        <div class="badge bg-light text-success border small mb-3">Accepted on <?= date('d M, Y h:i A', strtotime($booking['accepted_at'])) ?></div>
+                        
+                        <div class="d-grid gap-2 mb-4">
+                            <a href="../partners/view-partner.php?id=<?= $booking['accepted_partner_id'] ?>" class="btn btn-outline-success btn-sm rounded-pill px-4">View Partner Profile</a>
+                        </div>
+
+                        <hr class="my-4 opacity-50">
+
+                        <!-- Driver & Vehicle Details (If Assigned) -->
+                        <div class="row g-3 text-start">
+                            <!-- Driver Card -->
+                            <div class="col-12">
+                                <div class="bg-light rounded-4 p-3 border border-dashed">
+                                    <label class="small text-muted fw-bold d-block mb-3 text-uppercase" style="letter-spacing: 0.5px;"><i class="fas fa-id-card me-2"></i>Assigned Driver</label>
+                                    <?php if ($booking['driver_name']): ?>
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-3 position-relative">
+                                                <img src="<?= htmlspecialchars($booking['driver_image'] ?: '../../assets/driver-icon.png') ?>" 
+                                                     class="rounded-circle border border-2 border-white shadow-sm" style="width: 55px; height: 55px; object-fit: cover;">
+                                                <span class="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle" style="width: 14px; height: 14px;"></span>
+                                            </div>
+                                            <div style="flex: 1;">
+                                                <h6 class="mb-0 fw-bold small text-dark"><?= htmlspecialchars($booking['driver_name']) ?></h6>
+                                                <p class="text-muted small mb-1"><?= htmlspecialchars($booking['driver_phone'] ?: 'No Contact Provided') ?></p>
+                                                <span class="badge bg-white text-primary border small rounded-pill fw-normal">DL: <?= htmlspecialchars($booking['driver_license']) ?></span>
+                                            </div>
+                                        </div>
+                                    <?php else: ?>
+                                        <div class="text-center py-2">
+                                            <i class="fas fa-user-slash text-muted opacity-50 mb-2"></i>
+                                            <p class="text-muted small mb-0">No driver assigned yet</p>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <!-- Vehicle Card -->
+                            <div class="col-12">
+                                <div class="bg-light rounded-4 p-3 border border-dashed">
+                                    <label class="small text-muted fw-bold d-block mb-3 text-uppercase" style="letter-spacing: 0.5px;"><i class="fas fa-car-side me-2"></i>Assigned Vehicle</label>
+                                    <?php if ($booking['vehicle_rc']): ?>
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-3">
+                                                <div class="rounded border shadow-sm overflow-hidden" style="width: 70px; height: 45px; background: #eee;">
+                                                    <img src="../../<?= htmlspecialchars($booking['vehicle_image']) ?>" 
+                                                         class="w-100 h-100" style="object-fit: cover;"
+                                                         onerror="this.src='../../assets/car_types/default.png'">
+                                                </div>
+                                            </div>
+                                            <div style="flex: 1;">
+                                                <h6 class="mb-0 fw-bold small text-dark"><?= htmlspecialchars($booking['vehicle_model']) ?></h6>
+                                                <p class="text-muted small mb-1"><?= htmlspecialchars($booking['vehicle_rc']) ?></p>
+                                                <span class="badge bg-white text-secondary border small rounded-pill fw-normal"><?= htmlspecialchars($booking['vehicle_color'] ?: 'Color N/A') ?></span>
+                                            </div>
+                                        </div>
+                                    <?php else: ?>
+                                        <div class="text-center py-2">
+                                            <i class="fas fa-car-crash text-muted opacity-50 mb-2"></i>
+                                            <p class="text-muted small mb-0">No vehicle assigned yet</p>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
