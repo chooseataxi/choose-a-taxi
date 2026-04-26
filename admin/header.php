@@ -17,6 +17,13 @@ $menuItems = [
         ],
     ],
     [
+        "menuTitle" => "Bookings",
+        "icon" => "fas fa-calendar-check",
+        "pages" => [
+            ["title" => "Partner Bookings", "url" => "bookings/partner-bookings.php"]
+        ],
+    ],
+    [
         "menuTitle" => "Trips",
         "icon" => "fas fa-route",
         "pages" => [
