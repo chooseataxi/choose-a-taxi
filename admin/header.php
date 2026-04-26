@@ -27,9 +27,6 @@ $menuItems = [
         "menuTitle" => "Cars",
         "icon" => "fas fa-car",
         "pages" => [
-            ["title" => "Manage Cars", "url" => "cars/car-management.php"],
-            ["title" => "Add New Car", "url" => "cars/add-car.php"],
-            ["title" => "Car Brands", "url" => "cars/brand-management.php"],
             ["title" => "Car Types", "url" => "cars/type-management.php"]
         ],
     ],
@@ -61,7 +58,8 @@ $menuItems = [
 // Calculate current page correctly for subdirectories
 $current_Full_Url = $_SERVER['PHP_SELF'];
 $admin_root_pos = strpos($current_Full_Url, '/admin/');
-if ($admin_root_pos === false) $admin_root_pos = strpos($current_Full_Url, '/admin');
+if ($admin_root_pos === false)
+    $admin_root_pos = strpos($current_Full_Url, '/admin');
 $relative_Page = substr($current_Full_Url, $admin_root_pos + 7); // e.g. "Trips/index.php" or "index.php"
 
 $active_pageInfo = null;
@@ -92,7 +90,8 @@ $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "
 $host = $_SERVER['HTTP_HOST'];
 $script_name = $_SERVER['SCRIPT_NAME'];
 $admin_pos = strpos($script_name, '/admin/');
-if ($admin_pos === false) $admin_pos = strpos($script_name, '/admin');
+if ($admin_pos === false)
+    $admin_pos = strpos($script_name, '/admin');
 $admin_path = substr($script_name, 0, $admin_pos + 7); // Should be something like /project/admin/
 $adminUrl = $protocol . "://" . $host . $admin_path;
 
@@ -133,21 +132,21 @@ if (!empty($headerAdmin['profile_picture'])) {
     <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
 
     <script>
-    function logout() {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "You will be logged out of the session!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, logout!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = '<?= $adminUrl ?>logout.php';
-            }
-        })
-    }
+        function logout() {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You will be logged out of the session!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, logout!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '<?= $adminUrl ?>logout.php';
+                }
+            })
+        }
     </script>
     <style>
         :root {
@@ -201,12 +200,12 @@ if (!empty($headerAdmin['profile_picture'])) {
         }
 
         /* Navigation Items */
-        .nav-sidebar > .nav-item {
+        .nav-sidebar>.nav-item {
             margin-bottom: 0 !important;
             border-bottom: 1px solid var(--border-color);
         }
 
-        .nav-sidebar > .nav-item:first-child {
+        .nav-sidebar>.nav-item:first-child {
             border-top: 1px solid var(--border-color);
         }
 
@@ -223,7 +222,7 @@ if (!empty($headerAdmin['profile_picture'])) {
 
         /* WordPress Style Left Indicator */
         .nav-sidebar .nav-link.active::before,
-        .nav-item.menu-open > .nav-link::before {
+        .nav-item.menu-open>.nav-link::before {
             content: '';
             position: absolute;
             left: 0;
@@ -262,7 +261,7 @@ if (!empty($headerAdmin['profile_picture'])) {
 
         .nav-link:hover .nav-icon,
         .nav-link.active .nav-icon,
-        .menu-open > .nav-link .nav-icon {
+        .menu-open>.nav-link .nav-icon {
             color: var(--primary-green) !important;
         }
 
@@ -272,27 +271,28 @@ if (!empty($headerAdmin['profile_picture'])) {
             padding: 0 !important;
         }
 
-        .nav-treeview > .nav-item > .nav-link {
-            padding-left: 45px !important; /* Indent submenus like WP */
+        .nav-treeview>.nav-item>.nav-link {
+            padding-left: 45px !important;
+            /* Indent submenus like WP */
             font-size: 0.85rem;
             color: #50575e !important;
             border-bottom: none !important;
             border-top: none !important;
         }
 
-        .nav-treeview > .nav-item > .nav-link:hover {
+        .nav-treeview>.nav-item>.nav-link:hover {
             color: var(--primary-green) !important;
             background-color: #fff !important;
         }
 
-        .nav-treeview > .nav-item > .nav-link.active {
+        .nav-treeview>.nav-item>.nav-link.active {
             color: var(--primary-green) !important;
             background-color: #fff !important;
             font-weight: 600;
         }
 
         /* Active highlight for submenu text in WP is often Yellow or lighter Green in our case */
-        .nav-treeview > .nav-item > .nav-link.active::after {
+        .nav-treeview>.nav-item>.nav-link.active::after {
             content: '';
             position: absolute;
             right: 0;
@@ -313,17 +313,20 @@ if (!empty($headerAdmin['profile_picture'])) {
         }
 
         .nav-sidebar .right::before {
-            content: "\f067"; /* plus */
+            content: "\f067";
+            /* plus */
             font-family: "Font Awesome 6 Free";
             font-weight: 900;
         }
 
-        .menu-open > .nav-link .right::before {
-            content: "\f068"; /* minus */
+        .menu-open>.nav-link .right::before {
+            content: "\f068";
+            /* minus */
         }
 
-        .menu-open > .nav-link .right {
-            transform: none !important; /* No rotation needed for +/- */
+        .menu-open>.nav-link .right {
+            transform: none !important;
+            /* No rotation needed for +/- */
             color: var(--primary-green) !important;
         }
 
@@ -404,12 +407,13 @@ if (!empty($headerAdmin['profile_picture'])) {
 
         /* WordPress-style Pop-out Labels on Hover */
         @media (min-width: 992px) {
-            .sidebar-mini.sidebar-collapse .main-sidebar:not(.sidebar-no-expand):hover .nav-sidebar > .nav-item > .nav-link > p,
-            .sidebar-mini.sidebar-collapse .main-sidebar:not(.sidebar-no-expand) .nav-sidebar > .nav-item > .nav-link > p {
+
+            .sidebar-mini.sidebar-collapse .main-sidebar:not(.sidebar-no-expand):hover .nav-sidebar>.nav-item>.nav-link>p,
+            .sidebar-mini.sidebar-collapse .main-sidebar:not(.sidebar-no-expand) .nav-sidebar>.nav-item>.nav-link>p {
                 transition: none !important;
             }
 
-            .sidebar-mini.sidebar-collapse .main-sidebar:not(.sidebar-no-expand) .nav-item:hover > .nav-link > p {
+            .sidebar-mini.sidebar-collapse .main-sidebar:not(.sidebar-no-expand) .nav-item:hover>.nav-link>p {
                 display: block !important;
                 position: absolute;
                 left: 73px;
@@ -417,10 +421,11 @@ if (!empty($headerAdmin['profile_picture'])) {
                 width: 200px;
                 margin: 0 !important;
                 padding: 12px 20px !important;
-                background-color: #2c3338 !important; /* Dark WP style background */
+                background-color: #2c3338 !important;
+                /* Dark WP style background */
                 color: #fff !important;
                 border-radius: 0 4px 4px 0;
-                box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+                box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
                 z-index: 1000;
                 pointer-events: none;
                 font-weight: 500;
@@ -428,85 +433,101 @@ if (!empty($headerAdmin['profile_picture'])) {
             }
 
             /* Submenu hover refinement for collapsed mode */
-            .sidebar-mini.sidebar-collapse .main-sidebar:not(.sidebar-no-expand) .nav-item:hover > .nav-treeview {
+            .sidebar-mini.sidebar-collapse .main-sidebar:not(.sidebar-no-expand) .nav-item:hover>.nav-treeview {
                 display: block !important;
                 position: absolute;
                 left: 73px;
-                top: 44px; /* Position below the main link p tag */
+                top: 44px;
+                /* Position below the main link p tag */
                 width: 200px;
                 background-color: var(--submenu-bg) !important;
-                box-shadow: 2px 5px 10px rgba(0,0,0,0.1);
+                box-shadow: 2px 5px 10px rgba(0, 0, 0, 0.1);
                 border: 1px solid #dcdcde;
                 border-left: none;
                 z-index: 999;
             }
 
-            .sidebar-mini.sidebar-collapse .main-sidebar:not(.sidebar-no-expand) .nav-item:hover > .nav-treeview .nav-link {
+            .sidebar-mini.sidebar-collapse .main-sidebar:not(.sidebar-no-expand) .nav-item:hover>.nav-treeview .nav-link {
                 padding-left: 20px !important;
                 justify-content: flex-start !important;
             }
-        @keyframes blink {
-            0% { opacity: 1; }
-            50% { opacity: 0.3; }
-            100% { opacity: 1; }
-        }
 
-        .blinking-text {
-            animation: blink 2s infinite;
-            color: var(--primary-green) !important;
-            font-weight: 700;
-            font-size: 1rem;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-        .btn-yellow-black {
-            background-color: #ffc107;
-            color: #000;
-            font-weight: 600;
-            border: none;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(255, 193, 7, 0.2);
-        }
+            @keyframes blink {
+                0% {
+                    opacity: 1;
+                }
 
-        .btn-yellow-black:hover {
-            background-color: #e0ac08;
-            color: #000;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(255, 193, 7, 0.3);
-        }
+                50% {
+                    opacity: 0.3;
+                }
 
-        /* Responsive Branding & Header */
-        @media (max-width: 768px) {
+                100% {
+                    opacity: 1;
+                }
+            }
+
             .blinking-text {
-                display: none !important;
+                animation: blink 2s infinite;
+                color: var(--primary-green) !important;
+                font-weight: 700;
+                font-size: 1rem;
+                letter-spacing: 0.5px;
+                text-transform: uppercase;
             }
-            .content-header h1 {
-                font-size: 1.5rem;
-                text-align: center;
-                margin-bottom: 10px !important;
-            }
-            .breadcrumb {
-                justify-content: center;
-                float: none !important;
-            }
-            .small-box h3 {
-                font-size: 1.6rem !important;
-            }
-            .small-box p {
-                font-size: 0.85rem;
-            }
-        }
 
-        @media (max-width: 576px) {
-            .navbar-nav .nav-link span {
-                display: none; /* Hide admin name beside avatar on tiny screens */
+            .btn-yellow-black {
+                background-color: #ffc107;
+                color: #000;
+                font-weight: 600;
+                border: none;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 10px rgba(255, 193, 7, 0.2);
             }
-        }
 
-        /* Content Area Padding */
-        .content {
-            padding-bottom: 40px !important;
-        }
+            .btn-yellow-black:hover {
+                background-color: #e0ac08;
+                color: #000;
+                transform: translateY(-2px);
+                box-shadow: 0 6px 15px rgba(255, 193, 7, 0.3);
+            }
+
+            /* Responsive Branding & Header */
+            @media (max-width: 768px) {
+                .blinking-text {
+                    display: none !important;
+                }
+
+                .content-header h1 {
+                    font-size: 1.5rem;
+                    text-align: center;
+                    margin-bottom: 10px !important;
+                }
+
+                .breadcrumb {
+                    justify-content: center;
+                    float: none !important;
+                }
+
+                .small-box h3 {
+                    font-size: 1.6rem !important;
+                }
+
+                .small-box p {
+                    font-size: 0.85rem;
+                }
+            }
+
+            @media (max-width: 576px) {
+                .navbar-nav .nav-link span {
+                    display: none;
+                    /* Hide admin name beside avatar on tiny screens */
+                }
+            }
+
+            /* Content Area Padding */
+            .content {
+                padding-bottom: 40px !important;
+            }
     </style>
 </head>
 
@@ -552,7 +573,8 @@ if (!empty($headerAdmin['profile_picture'])) {
                 <!-- Profile Dropdown -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" aria-expanded="false">
-                        <img src="<?= $profilePic ?>" class="img-circle elevation-1 mr-2" style="width: 25px; height: 25px; object-fit: cover;" alt="User">
+                        <img src="<?= $profilePic ?>" class="img-circle elevation-1 mr-2"
+                            style="width: 25px; height: 25px; object-fit: cover;" alt="User">
                         <span><?= htmlspecialchars($headerAdmin['name'] ?? 'Admin') ?></span>
                     </a>
                     <div class="dropdown-menu dropdown-menu-md dropdown-menu-end">
@@ -560,7 +582,8 @@ if (!empty($headerAdmin['profile_picture'])) {
                             <i class="fas fa-user-circle mr-2"></i> My Profile
                         </a>
                         <div class="dropdown-divider"></div>
-                        <a href="javascript:void(0);" onclick="logout()" class="dropdown-item dropdown-footer text-danger">
+                        <a href="javascript:void(0);" onclick="logout()"
+                            class="dropdown-item dropdown-footer text-danger">
                             <i class="fas fa-power-off mr-2"></i> Logout
                         </a>
                     </div>
@@ -587,15 +610,19 @@ if (!empty($headerAdmin['profile_picture'])) {
             </div>
         </div>
 
-        <aside class="main-sidebar elevation-4" style="background-color: var(--sidebar-bg); color: var(--sidebar-color);">
-            <a href="<?= $adminUrl ?>index.php" class="brand-link" style="border-bottom: 1px solid #eee; padding: 15px 20px;">
-                <img src="<?= $adminUrl ?>../assets/logo.png" alt="Logo" class="brand-image" style="opacity: .8; max-height: 40px; float: none;">
+        <aside class="main-sidebar elevation-4"
+            style="background-color: var(--sidebar-bg); color: var(--sidebar-color);">
+            <a href="<?= $adminUrl ?>index.php" class="brand-link"
+                style="border-bottom: 1px solid #eee; padding: 15px 20px;">
+                <img src="<?= $adminUrl ?>../assets/logo.png" alt="Logo" class="brand-image"
+                    style="opacity: .8; max-height: 40px; float: none;">
             </a>
             <div class="sidebar">
                 <div class="user-panel mt-3 pb-3 mb-3">
                     <a href="./profile.php" class="d-flex align-items-center">
                         <div class="image">
-                            <img src="<?= $profilePic ?>" class="img-circle elevation-2 bg-white" style="width: 35px; height: 35px; object-fit: cover;" alt="User Image">
+                            <img src="<?= $profilePic ?>" class="img-circle elevation-2 bg-white"
+                                style="width: 35px; height: 35px; object-fit: cover;" alt="User Image">
                         </div>
                         <div class="info">
                             <?= htmlspecialchars($adminData['name'] ?? 'Admin') ?>

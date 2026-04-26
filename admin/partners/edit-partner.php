@@ -40,10 +40,10 @@ $page_title = "Edit & Verify Partner";
             
             <!-- Left Side: Profile Editing -->
             <div class="col-lg-7">
-                <div class="card shadow-lg border-0 rounded-4 overflow-hidden h-100">
-                    <div class="card-body p-4 text-center border-bottom bg-light">
+                <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                    <div class="card-body p-3 text-center border-bottom bg-light">
                         <div class="position-relative d-inline-block">
-                            <div class="rounded-circle shadow border border-4 border-white overflow-hidden mb-3" style="width: 120px; height: 120px; background: #fff;">
+                            <div class="rounded-circle shadow border border-4 border-white overflow-hidden mb-2" style="width: 100px; height: 100px; background: #fff;">
                                 <?php if (!empty($partner['selfie_link'])): ?>
                                     <img src="../../uploads/partners/<?= $partner['selfie_link'] ?>" style="width:100%; height:100%; object-fit:cover;">
                                 <?php else: ?>
@@ -53,8 +53,8 @@ $page_title = "Edit & Verify Partner";
                                 <?php endif; ?>
                             </div>
                         </div>
-                        <h4 class="fw-bold mb-0 text-dark"><?= htmlspecialchars($partner['full_name'] ?? 'Incomplete Profile') ?></h4>
-                        <p class="text-muted small mb-0"><i class="fas fa-id-badge me-1"></i> Partner ID: #<?= $partner['id'] ?></p>
+                        <h5 class="fw-bold mb-0 text-dark"><?= htmlspecialchars($partner['full_name'] ?? 'Incomplete Profile') ?></h5>
+                        <p class="text-muted small mb-0"><i class="fas fa-id-badge me-1"></i> ID: #<?= $partner['id'] ?></p>
                     </div>
                     <div class="card-body p-4">
                         <form id="editPartnerForm">
