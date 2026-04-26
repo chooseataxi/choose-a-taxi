@@ -263,7 +263,7 @@ $color = $status_colors[$booking['status']] ?? 'dark';
 
                         <hr class="my-4 opacity-50">
 
-                        <!-- Driver & Vehicle Details (If Assigned) -->
+                        <!-- Driver Details (If Assigned) -->
                         <div class="row g-3 text-start">
                             <!-- Driver Card -->
                             <div class="col-12">
@@ -286,34 +286,6 @@ $color = $status_colors[$booking['status']] ?? 'dark';
                                         <div class="text-center py-2">
                                             <i class="fas fa-user-slash text-muted opacity-50 mb-2"></i>
                                             <p class="text-muted small mb-0">No driver assigned yet</p>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-
-                            <!-- Vehicle Card -->
-                            <div class="col-12">
-                                <div class="bg-light rounded-4 p-3 border border-dashed">
-                                    <label class="small text-muted fw-bold d-block mb-3 text-uppercase" style="letter-spacing: 0.5px;"><i class="fas fa-car-side me-2"></i>Assigned Vehicle</label>
-                                    <?php if ($booking['vehicle_rc']): ?>
-                                        <div class="d-flex align-items-center">
-                                            <div class="me-3">
-                                                <div class="rounded border shadow-sm overflow-hidden" style="width: 70px; height: 45px; background: #eee;">
-                                                    <img src="../../<?= htmlspecialchars($booking['vehicle_image']) ?>" 
-                                                         class="w-100 h-100" style="object-fit: cover;"
-                                                         onerror="this.src='../../assets/car_types/default.png'">
-                                                </div>
-                                            </div>
-                                            <div style="flex: 1;">
-                                                <h6 class="mb-0 fw-bold small text-dark"><?= htmlspecialchars($booking['vehicle_model']) ?></h6>
-                                                <p class="text-muted small mb-1"><?= htmlspecialchars($booking['vehicle_rc']) ?></p>
-                                                <span class="badge bg-white text-secondary border small rounded-pill fw-normal"><?= htmlspecialchars($booking['vehicle_color'] ?: 'Color N/A') ?></span>
-                                            </div>
-                                        </div>
-                                    <?php else: ?>
-                                        <div class="text-center py-2">
-                                            <i class="fas fa-car-crash text-muted opacity-50 mb-2"></i>
-                                            <p class="text-muted small mb-0">No vehicle assigned yet</p>
                                         </div>
                                     <?php endif; ?>
                                 </div>
