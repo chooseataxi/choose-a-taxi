@@ -2,19 +2,34 @@
 require_once __DIR__ . '/../auth_check.php';
 require_once __DIR__ . '/../header.php';
 
-// Fetch all partner bookings with partner names and acceptance info
+// Pagination settings
+$limit = 10;
+$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$offset = ($page - 1) * $limit;
+
+// Fetch bookings with partner names, car types, and images
 try {
+    // Total count for pagination
+    $total_stmt = $pdo->query("SELECT COUNT(*) FROM partner_bookings");
+    $total_records = $total_stmt->fetchColumn();
+    $total_pages = ceil($total_records / $limit);
+
     $sql = "SELECT pb.*, 
                    p.full_name AS poster_name, 
                    p.mobile AS poster_mobile,
                    acc_p.full_name AS acceptor_name,
                    acc_p.mobile AS acceptor_mobile,
-                   acc.status AS acceptance_status
+                   acc.status AS acceptance_status,
+                   ct.name AS car_type_name,
+                   ct.image AS car_type_image
             FROM partner_bookings pb
             LEFT JOIN partners p ON p.id = pb.partner_id
             LEFT JOIN accepted_bookings acc ON acc.booking_id = pb.id AND acc.status != 'Cancelled'
             LEFT JOIN partners acc_p ON acc_p.id = acc.partner_id
-            ORDER BY pb.id DESC";
+            LEFT JOIN cars c ON c.id = pb.car_type
+            LEFT JOIN car_types ct ON ct.id = c.type_id
+            ORDER BY pb.id DESC
+            LIMIT $limit OFFSET $offset";
     $stmt = $pdo->query($sql);
     $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
@@ -86,7 +101,7 @@ $status_badges = [
                             <?php foreach ($bookings as $b): ?>
                             <tr>
                                 <td class="ps-4">
-                                    <span class="fw-bold text-dark d-block">#<?= $b['id'] ?></span>
+                                    <span class="fw-bold text-dark d-block text-nowrap">ID-<?= $b['id'] ?></span>
                                     <span class="badge bg-light text-dark border mt-1" style="font-size: 0.65rem;"><?= htmlspecialchars($b['booking_type']) ?></span>
                                 </td>
                                 <td>
@@ -106,17 +121,33 @@ $status_badges = [
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="small fw-bold text-dark"><?= htmlspecialchars($b['car_type']) ?></div>
-                                    <?php 
-                                        $prefs = json_decode($b['preferences'], true);
-                                        if (!empty($prefs)): 
-                                    ?>
-                                        <div class="d-flex flex-wrap gap-1 mt-1">
-                                            <?php foreach ($prefs as $p): ?>
-                                                <span class="badge bg-gray-200 text-muted fw-normal" style="font-size: 0.6rem;"><?= htmlspecialchars($p) ?></span>
-                                            <?php endforeach; ?>
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-2" style="width: 50px; height: 35px;">
+                                            <?php if (!empty($b['car_type_image'])): ?>
+                                                <img src="../../uploads/car_types/<?= $b['car_type_image'] ?>" class="img-fluid rounded shadow-sm" style="object-fit: contain; width: 100%; height: 100%;">
+                                            <?php else: ?>
+                                                <div class="bg-light d-flex align-items-center justify-content-center h-100 rounded">
+                                                    <i class="fas fa-car text-muted small"></i>
+                                                </div>
+                                            <?php endif; ?>
                                         </div>
-                                    <?php endif; ?>
+                                        <div>
+                                            <div class="small fw-bold text-dark"><?= htmlspecialchars($b['car_type_name'] ?? $b['car_type']) ?></div>
+                                            <?php 
+                                                $prefs = json_decode($b['preferences'], true);
+                                                if (!empty($prefs)): 
+                                            ?>
+                                                <div class="d-flex flex-wrap gap-1 mt-1">
+                                                    <?php foreach (array_slice($prefs, 0, 2) as $p): ?>
+                                                        <span class="badge bg-gray-200 text-muted fw-normal" style="font-size: 0.6rem;"><?= htmlspecialchars($p) ?></span>
+                                                    <?php endforeach; ?>
+                                                    <?php if (count($prefs) > 2): ?>
+                                                        <span class="text-muted small" style="font-size: 0.6rem;">+<?= count($prefs) - 2 ?></span>
+                                                    <?php endif; ?>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td>
                                     <?php if ($b['pricing_option'] === 'fixed'): ?>
@@ -149,8 +180,8 @@ $status_badges = [
                                     </span>
                                 </td>
                                 <td class="text-center pe-4">
-                                    <div class="btn-group shadow-sm">
-                                        <button class="btn btn-white btn-sm border" title="View Detail"><i class="fas fa-eye text-info"></i></button>
+                                    <div class="btn-group shadow-sm border rounded overflow-hidden">
+                                        <a href="view-booking.php?id=<?= $b['id'] ?>" class="btn btn-white btn-sm px-2" title="View Detail"><i class="fas fa-eye text-info"></i></a>
                                         <?php if (!in_array($b['status'], ['Cancelled', 'Completed', 'Expired'])): ?>
                                             <button class="btn btn-white btn-sm border text-danger cancel-booking" data-id="<?= $b['id'] ?>" title="Cancel Booking"><i class="fas fa-ban"></i></button>
                                         <?php endif; ?>
@@ -174,6 +205,30 @@ $status_badges = [
                     </table>
                 </div>
             </div>
+            
+            <!-- Pagination -->
+            <?php if ($total_pages > 1): ?>
+            <div class="card-footer bg-white border-top py-3">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm justify-content-center mb-0">
+                        <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>">
+                            <a class="page-link shadow-none" href="?page=<?= $page - 1 ?>" tabindex="-1">Previous</a>
+                        </li>
+                        <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                            <li class="page-item <?= ($page == $i) ? 'active' : '' ?>">
+                                <a class="page-link shadow-none" href="?page=<?= $i ?>"><?= $i ?></a>
+                            </li>
+                        <?php endfor; ?>
+                        <li class="page-item <?= ($page >= $total_pages) ? 'disabled' : '' ?>">
+                            <a class="page-link shadow-none" href="?page=<?= $page + 1 ?>">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+                <div class="text-center mt-2 small text-muted">
+                    Showing <?= min($total_records, $offset + 1) ?> to <?= min($total_records, $offset + $limit) ?> of <?= $total_records ?> entries
+                </div>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 </div>
