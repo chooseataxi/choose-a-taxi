@@ -177,14 +177,16 @@ $page_title = "Partner Details - " . ($partner['full_name'] ?? 'N/A');
                         </div>
                     </div>
                     <div class="card-footer bg-white border-top p-4">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-muted small"><i class="fas fa-info-circle me-1"></i> Ensure all documents are clearly visible before approval.</span>
-                            <div>
-                                <button class="btn btn-danger btn-sm px-3 rounded-pill me-2 delete-btn" data-id="<?= $partner['id'] ?>">
+                        <div class="row align-items-center">
+                            <div class="col-md-7 mb-3 mb-md-0">
+                                <span class="text-muted small"><i class="fas fa-info-circle me-1 text-primary"></i> <b>Admin Note:</b> Please verify all uploaded KYC documents (Aadhar & Selfie) carefully before approving this partner account.</span>
+                            </div>
+                            <div class="col-md-5 text-md-end">
+                                <button class="btn btn-outline-danger px-4 rounded-3 delete-btn me-2" data-id="<?= $partner['id'] ?>">
                                     <i class="fas fa-trash-alt me-1"></i> Delete Partner
                                 </button>
-                                <a href="edit-partner.php?id=<?= $partner['id'] ?>" class="btn btn-primary btn-sm px-4 rounded-pill">
-                                    <i class="fas fa-check-circle me-1"></i> Verify Documents
+                                <a href="edit-partner.php?id=<?= $partner['id'] ?>" class="btn btn-primary px-4 rounded-3 shadow-sm">
+                                    <i class="fas fa-user-check me-1"></i> Verify & Approve
                                 </a>
                             </div>
                         </div>

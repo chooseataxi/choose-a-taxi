@@ -88,11 +88,9 @@ try {
                                             <span class="badge <?= $vClass ?> rounded-pill px-3 py-2 border"><i class="fas <?= $vStatus==='Approved' ? 'fa-check-circle' : 'fa-clock' ?> me-1"></i> <?= $vStatus ?></span>
                                         </td>
                                         <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="form-check form-switch p-0 m-0" style="min-height: auto;">
-                                                    <input class="form-check-input ms-0 status-toggle" type="checkbox" role="switch" <?= $partner['status'] === 'Active' ? 'checked' : '' ?> data-id="<?= $partner['id'] ?>" style="cursor: pointer;">
-                                                </div>
-                                                <span class="ms-2 small fw-semibold status-label <?= $partner['status'] === 'Active' ? 'text-success' : 'text-danger' ?>"><?= $partner['status'] ?></span>
+                                            <div class="form-check form-switch p-0 m-0 d-flex align-items-center" style="min-height: auto;">
+                                                <input class="form-check-input ms-0 status-toggle" type="checkbox" role="switch" <?= $partner['status'] === 'Active' ? 'checked' : '' ?> data-id="<?= $partner['id'] ?>" style="cursor: pointer; width: 35px; height: 18px;">
+                                                <span class="badge <?= $partner['status'] === 'Active' ? 'bg-success' : 'bg-secondary' ?> ms-2 status-label" style="font-size: 0.75rem;"><?= $partner['status'] ?></span>
                                             </div>
                                         </td>
                                         <td class="text-center">
@@ -153,9 +151,9 @@ $(document).ready(function() {
             if (res.success) {
                 label.text(res.new_status);
                 if (res.new_status === 'Active') {
-                    label.removeClass('text-danger').addClass('text-success');
+                    label.removeClass('bg-secondary').addClass('bg-success');
                 } else {
-                    label.removeClass('text-success').addClass('text-danger');
+                    label.removeClass('bg-success').addClass('bg-secondary');
                 }
             } else {
                 Swal.fire('Error', res.message, 'error');
