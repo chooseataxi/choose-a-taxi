@@ -134,7 +134,7 @@ $page_title = "Partner Details - " . ($partner['full_name'] ?? 'N/A');
 
             <!-- Right Column: Wallet Management -->
             <div class="col-lg-8">
-                <div class="row g-4">
+                <div class="row g-4 align-items-start">
                     <!-- Wallet Summary Card -->
                     <div class="col-md-5">
                         <div class="card wallet-card shadow-sm rounded-4 position-relative overflow-hidden">
@@ -170,7 +170,7 @@ $page_title = "Partner Details - " . ($partner['full_name'] ?? 'N/A');
                                 <a href="#" class="text-primary small text-decoration-none fw-bold">View All</a>
                             </div>
                             <div class="card-body p-0">
-                                <div class="table-responsive border-0" style="max-height: 200px; overflow-y: auto;">
+                                <div class="table-responsive border-0">
                                     <table class="table transaction-table mb-0" style="table-layout: fixed;">
                                         <thead>
                                             <tr>
