@@ -45,13 +45,7 @@ $onesignal_channel_id = $settingsRows['onesignal_channel_id'] ?? '';
                         <div class="form-group mb-4">
                             <label class="font-weight-bold text-dark mb-2">Android Channel ID</label>
                             <input type="text" name="onesignal_channel_id" class="form-control" value="<?= htmlspecialchars($onesignal_channel_id) ?>" placeholder="e.g. fcm_default_channel">
-                            <small class="text-muted">Required for custom sounds on Android 8+. Create this in OneSignal Dashboard.</small>
-                        </div>
-
-                        <div class="form-group mb-4">
-                            <label class="font-weight-bold text-dark mb-2">Notification Sound Name</label>
-                            <input type="text" name="notification_sound" class="form-control" value="<?= htmlspecialchars($settingsRows['notification_sound'] ?? 'chat_notification_sound') ?>" placeholder="e.g. chat_notification_sound">
-                            <small class="text-muted">The name of the sound file bundled in the mobile app (without extension).</small>
+                            <small class="text-muted">Required for custom sounds on Android 8+. <strong>Leave empty</strong> if you haven't created a channel in OneSignal dashboard.</small>
                         </div>
 
                         <div class="form-group mb-4">
@@ -63,7 +57,7 @@ $onesignal_channel_id = $settingsRows['onesignal_channel_id'] ?? '';
                         <div class="form-group mb-4">
                             <label class="font-weight-bold text-dark mb-2">Upload Sound File (.wav / .mp3)</label>
                             <input type="file" name="sound_file" class="form-control" accept=".wav,.mp3">
-                            <small class="text-muted">Upload for reference. Note: This won't update the mobile app assets automatically.</small>
+                            <small class="text-muted">Upload for server-side reference. (Optional)</small>
                         </div>
 
                         <div class="d-grid mt-5">
