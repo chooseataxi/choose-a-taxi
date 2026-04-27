@@ -25,8 +25,7 @@ try {
                    acc.accepted_at,
                    ct.name AS car_type_name,
                    ct.image AS car_type_image,
-                   c.name AS car_specific_name,
-                   c.model AS car_model,
+                   -- Removed specific car info as it's a category booking
                    -- Driver Info
                    d.full_name AS driver_name,
                    d.phone AS driver_phone,

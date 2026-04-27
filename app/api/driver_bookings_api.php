@@ -71,8 +71,7 @@ try {
                 FROM accepted_bookings ab 
                 JOIN partner_bookings pb ON ab.booking_id = pb.id 
                 JOIN partners p ON pb.partner_id = p.id
-                LEFT JOIN cars c ON c.id = pb.car_type
-                LEFT JOIN car_types ct ON ct.id = c.type_id
+                LEFT JOIN car_types ct ON (ct.id = pb.car_type OR ct.name = pb.car_type)
                 WHERE ab.driver_id = ? 
                 ORDER BY pb.start_date DESC, pb.start_time DESC
             ");

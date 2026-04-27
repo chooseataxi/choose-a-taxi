@@ -298,8 +298,7 @@ if ($action === 'get_bookings') {
                     acc_p.mobile AS accepted_partner_phone,
                     acc.partner_id AS accepted_partner_id
                 FROM partner_bookings pb
-                LEFT JOIN cars c  ON c.id = pb.car_type
-                LEFT JOIN car_types ct ON ct.id = c.type_id
+                LEFT JOIN car_types ct ON (ct.id = pb.car_type OR ct.name = pb.car_type)
                 LEFT JOIN partners p ON p.id = pb.partner_id
                 LEFT JOIN accepted_bookings acc ON acc.booking_id = pb.id AND acc.status != 'Cancelled'
                 LEFT JOIN partners acc_p ON acc_p.id = acc.partner_id
@@ -348,16 +347,13 @@ if ($action === 'get_market_bookings') {
                         OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') >= (NOW() - INTERVAL 2 HOUR))
                     )");
         $sql = "SELECT pb.*,
-                    c.name   AS car_name,
-                    c.model  AS car_model,
                     ct.name  AS car_type_name,
                     ct.image AS car_type_image,
                     p.full_name AS partner_name,
                     p.selfie_link AS partner_image,
                     p.mobile AS partner_phone
                 FROM partner_bookings pb
-                LEFT JOIN cars c       ON c.id = pb.car_type
-                LEFT JOIN car_types ct ON ct.id = c.type_id
+                LEFT JOIN car_types ct ON (ct.id = pb.car_type OR ct.name = pb.car_type)
                 LEFT JOIN partners p   ON p.id = pb.partner_id
                 WHERE pb.status IN ('Open', 'Posted', 'Active')
                 ORDER BY pb.start_date ASC, pb.start_time ASC, pb.id DESC
