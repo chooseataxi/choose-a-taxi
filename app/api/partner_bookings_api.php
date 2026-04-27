@@ -287,8 +287,6 @@ if ($action === 'get_bookings') {
                         OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') >= (NOW() - INTERVAL 2 HOUR))
                     )");
         $sql = "SELECT pb.*,
-                    c.name  AS car_name,
-                    c.model AS car_model,
                     ct.name  AS car_type_name,
                     ct.image AS car_type_image,
                     p.full_name AS partner_name,
