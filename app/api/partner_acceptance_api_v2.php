@@ -70,12 +70,10 @@ try {
     switch ($action) {
         case 'get_details':
             $stmt = $pdo->prepare("SELECT b.*, p.full_name as poster_name, 
-                                         c.name AS car_name, c.model AS car_model, 
                                          ct.name AS car_type_name, ct.image AS car_type_image
                                   FROM partner_bookings b 
                                   JOIN partners p ON b.partner_id = p.id 
-                                  LEFT JOIN cars c ON c.id = b.car_type
-                                  LEFT JOIN car_types ct ON ct.id = c.type_id
+                                  LEFT JOIN car_types ct ON (ct.id = b.car_type OR ct.name = b.car_type)
                                   WHERE b.id = ?");
             $stmt->execute([$booking_id]);
             $booking = $stmt->fetch();
@@ -258,13 +256,11 @@ try {
                                   b.pickup_location, b.drop_location, b.start_date, b.start_time, b.status as booking_status,
                                   b.total_amount, b.commission, b.booking_type,
                                   p.full_name as partner_name, 
-                                  ct.name as car_type_name, ct.image as car_type_image, 
-                                  c.name as car_name, c.model as car_model
+                                  ct.name as car_type_name, ct.image as car_type_image
                                   FROM accepted_bookings a 
                                   JOIN partner_bookings b ON a.booking_id = b.id 
                                   JOIN partners p ON b.partner_id = p.id 
-                                  LEFT JOIN cars c ON b.car_type = c.id
-                                  LEFT JOIN car_types ct ON c.type_id = ct.id
+                                  LEFT JOIN car_types ct ON (ct.id = b.car_type OR ct.name = b.car_type)
                                   WHERE a.partner_id = ? 
                                   ORDER BY a.id DESC");
             $stmt->execute([$partner_id]);
