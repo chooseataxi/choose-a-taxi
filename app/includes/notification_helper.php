@@ -142,14 +142,17 @@ class NotificationHelper {
      */
     public static function sendBookingNotification($pdo, $booking) {
         try {
-            // Fetch all partners who have alert settings
-            $stmt = $pdo->query("SELECT pas.* FROM partner_alert_settings pas");
-            $allSettings = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // Fetch all active partners and their alert settings (if any)
+            $stmt = $pdo->query("SELECT p.id as partner_id, pas.vehicle_types, pas.trip_types, pas.notification_types, pas.routes 
+                                 FROM partners p 
+                                 LEFT JOIN partner_alert_settings pas ON p.id = pas.partner_id 
+                                 WHERE p.status = 'Active'");
+            $allPartners = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             $recipients = [];
-            foreach ($allSettings as $settings) {
-                if (self::shouldNotify($settings, $booking)) {
-                    $recipients[] = "partner_" . $settings['partner_id'];
+            foreach ($allPartners as $partner) {
+                if (self::shouldNotify($partner, $booking)) {
+                    $recipients[] = "partner_" . $partner['partner_id'];
                 }
             }
 
@@ -169,6 +172,11 @@ class NotificationHelper {
     }
 
     private static function shouldNotify($settings, $booking) {
+        // If no settings found, they receive everything by default
+        if (empty($settings['vehicle_types']) && empty($settings['trip_types']) && empty($settings['routes'])) {
+            return true;
+        }
+
         // 1. Check Vehicle types
         if (!empty($settings['vehicle_types'])) {
             $allowedCars = explode(',', $settings['vehicle_types']);
@@ -180,13 +188,18 @@ class NotificationHelper {
         if (!empty($settings['trip_types'])) {
             $allowedTrips = explode(',', $settings['trip_types']);
             $tripType = $booking['trip_type'] ?? '';
-            if (!in_array($tripType, $allowedTrips)) return false;
+            
+            // Normalize: remove spaces and lowercase
+            $normTripType = strtolower(str_replace(' ', '', $tripType));
+            $normAllowed = array_map(function($t) { return strtolower(str_replace(' ', '', $t)); }, $allowedTrips);
+            
+            if (!in_array($normTripType, $normAllowed)) return false;
         }
 
         // 3. Check Routes (City to City)
         if (!empty($settings['routes'])) {
             $routes = json_decode($settings['routes'], true);
-            if (!empty($routes)) {
+            if (!empty($routes) && is_array($routes)) {
                 $match = false;
                 foreach ($routes as $r) {
                     $p1 = strtolower($booking['pickup_location'] ?? '');
@@ -214,7 +227,13 @@ class NotificationHelper {
             $stmt = $pdo->prepare("SELECT notification_types FROM partner_alert_settings WHERE partner_id = ?");
             $stmt->execute([$partner_id]);
             $val = $stmt->fetchColumn();
-            if ($val === false) return true; 
+            
+            // If no record exists, default to ENABLED for everything
+            if ($val === false || $val === null) return true; 
+            
+            // If record exists but field is empty, it means everything is DISABLED
+            if (trim($val) === '') return false;
+            
             $types = explode(',', $val);
             return in_array($type, $types);
         } catch (Exception $e) {
