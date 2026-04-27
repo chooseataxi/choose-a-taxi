@@ -13,6 +13,7 @@ try {
     if ($action === 'save_settings') {
         $app_id = $_POST['onesignal_app_id'] ?? '';
         $api_key = $_POST['onesignal_rest_api_key'] ?? '';
+        $sound_name = $_POST['notification_sound'] ?? 'chat_notification_sound';
 
         // Ensure table exists
         $pdo->exec("CREATE TABLE IF NOT EXISTS site_settings (
@@ -21,13 +22,27 @@ try {
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )");
 
-        // Insert or Update app_id
-        $stmt = $pdo->prepare("INSERT INTO site_settings (setting_key, setting_value) VALUES ('onesignal_app_id', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
-        $stmt->execute([$app_id]);
+        // Save settings
+        $settings = [
+            'onesignal_app_id' => $app_id,
+            'onesignal_rest_api_key' => $api_key,
+            'notification_sound' => $sound_name
+        ];
 
-        // Insert or Update api_key
-        $stmt = $pdo->prepare("INSERT INTO site_settings (setting_key, setting_value) VALUES ('onesignal_rest_api_key', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
-        $stmt->execute([$api_key]);
+        foreach ($settings as $key => $val) {
+            $stmt = $pdo->prepare("INSERT INTO site_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+            $stmt->execute([$key, $val]);
+        }
+
+        // Handle Sound File Upload
+        if (!empty($_FILES['sound_file']['name'])) {
+            $uploadDir = __DIR__ . '/../../../assets/sounds/';
+            if (!is_dir($uploadDir)) @mkdir($uploadDir, 0777, true);
+            
+            $ext = pathinfo($_FILES['sound_file']['name'], PATHINFO_EXTENSION);
+            $fileName = $sound_name . '.' . $ext;
+            move_uploaded_file($_FILES['sound_file']['tmp_name'], $uploadDir . $fileName);
+        }
 
         echo json_encode(['success' => true, 'message' => 'OneSignal settings updated successfully']);
     } 

@@ -226,7 +226,7 @@ try {
                 
                 $penaltyMsg = "";
                 if ($penalty > 0) {
-                    if (!updateWallet($pdo, $partner_id, $penalty, 'Debit', 'Penalty', $accepted['id'], "Penalty for Cancelling Booking #$booking_id after " . ceil($diffMinutes) . " minutes")) {
+                    if (!updateWallet($pdo, $partner_id, $penalty, 'Debit', 'Penalty', $accepted['id'], "Penalty for Cancelling Booking ID-$booking_id after " . ceil($diffMinutes) . " minutes")) {
                         throw new Exception("Penalty deduction failed");
                     }
                     $penaltyMsg = " A penalty of ₹$penalty has been deducted from your wallet as per the policy.";
@@ -243,7 +243,7 @@ try {
                 // 4. Refund commission if > 0 (always refund to wallet as Credits)
                 $commission = (float)$accepted['commission'];
                 if ($commission > 0) {
-                    if (!updateWallet($pdo, $partner_id, $commission, 'Credit', 'Refund', $accepted['id'], "Refund for Cancelling Booking #$booking_id")) {
+                    if (!updateWallet($pdo, $partner_id, $commission, 'Credit', 'Refund', $accepted['id'], "Refund for Cancelling Booking ID-$booking_id")) {
                         throw new Exception("Refund failed");
                     }
                 }
@@ -321,7 +321,7 @@ try {
                 $stmt->execute([$booking_id]);
 
                 // 5. Deduct Wallet
-                if (!updateWallet($pdo, $partner_id, $commission, 'Debit', 'Booking Acceptance', $acc_id, "Commission for Booking #$booking_id")) {
+                if (!updateWallet($pdo, $partner_id, $commission, 'Debit', 'Booking Acceptance', $acc_id, "Commission for Booking ID-$booking_id")) {
                     throw new Exception("Wallet update failed");
                 }
 
@@ -333,7 +333,7 @@ try {
                     $stmtPoster->execute([$booking_id]);
                     $poster_id = $stmtPoster->fetchColumn();
                     if ($poster_id && NotificationHelper::isEnabled($pdo, $poster_id, 'Booking Accept')) {
-                                                NotificationHelper::send($pdo, "partner_" . $poster_id, "Booking Accepted!", "Your booking #$booking_id has been accepted.", [
+                                                NotificationHelper::send($pdo, "partner_" . $poster_id, "Booking Accepted!", "Your booking ID-$booking_id has been accepted.", [
                             'type' => 'booking_accepted',
                             'booking_id' => $booking_id
                         ]);
@@ -448,7 +448,7 @@ try {
 
                 // Log as transaction (Paid but not from wallet, so maybe just log it)
                 $stmt = $pdo->prepare("INSERT INTO partner_transactions (partner_id, type, amount, source, source_id, description) VALUES (?, 'Debit', ?, 'Razorpay Acceptance', ?, ?)");
-                $stmt->execute([$partner_id, $commission, $payment_id, "Commission payment for Booking #$booking_id via Razorpay"]);
+                $stmt->execute([$partner_id, $commission, $payment_id, "Commission payment for Booking ID-$booking_id via Razorpay"]);
 
                 $pdo->commit();
 
@@ -458,7 +458,7 @@ try {
                     $stmtPoster->execute([$booking_id]);
                     $poster_id = $stmtPoster->fetchColumn();
                     if ($poster_id && NotificationHelper::isEnabled($pdo, $poster_id, 'Booking Accept')) {
-                                                NotificationHelper::send($pdo, "partner_" . $poster_id, "Booking Accepted!", "Your booking #$booking_id has been accepted.", [
+                                                NotificationHelper::send($pdo, "partner_" . $poster_id, "Booking Accepted!", "Your booking ID-$booking_id has been accepted.", [
                             'type' => 'booking_accepted',
                             'booking_id' => $booking_id
                         ]);

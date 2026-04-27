@@ -43,6 +43,18 @@ $onesignal_rest_api_key = $settingsRows['onesignal_rest_api_key'] ?? '';
                             <small class="text-muted">Found in OneSignal Dashboard -> Settings -> Keys & IDs</small>
                         </div>
 
+                        <div class="form-group mb-4">
+                            <label class="font-weight-bold text-dark mb-2">Notification Sound Name</label>
+                            <input type="text" name="notification_sound" class="form-control" value="<?= htmlspecialchars($settingsRows['notification_sound'] ?? 'chat_notification_sound') ?>" placeholder="e.g. chat_notification_sound">
+                            <small class="text-muted">The name of the sound file bundled in the mobile app (without extension).</small>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label class="font-weight-bold text-dark mb-2">Upload Sound File (.wav / .mp3)</label>
+                            <input type="file" name="sound_file" class="form-control" accept=".wav,.mp3">
+                            <small class="text-muted">Upload for reference. Note: This won't update the mobile app assets automatically.</small>
+                        </div>
+
                         <div class="d-grid mt-5">
                             <button type="submit" class="btn btn-primary shadow-sm rounded-pill py-2">
                                 <i class="fas fa-save me-2"></i> Save Notification Settings

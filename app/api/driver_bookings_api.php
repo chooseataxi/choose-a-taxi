@@ -183,7 +183,7 @@ try {
                         // Log transaction
                         $stmt = $pdo->prepare("INSERT INTO partner_transactions (partner_id, type, amount, source, source_id, description) 
                                                VALUES (?, 'Credit', ?, 'Booking Commission', ?, ?)");
-                        $stmt->execute([$poster_id, $commission, $acceptance_id, "Commission for Booking #$booking_id (Trip Completed)"]);
+                        $stmt->execute([$poster_id, $commission, $acceptance_id, "Commission for Booking ID-$booking_id (Trip Completed)"]);
                     }
                 }
                 
@@ -201,11 +201,11 @@ try {
                     } else if ($status === 'Started') {
                         $notifType = 'Trip Start';
                         $title = "Trip Started";
-                        $body = "Your trip for Booking #$booking_id has started.";
+                        $body = "Your trip for Booking ID-$booking_id has started.";
                     } else if ($status === 'Completed') {
                         $notifType = 'Trip End';
                         $title = "Trip Completed";
-                        $body = "Your trip for Booking #$booking_id has been completed.";
+                        $body = "Your trip for Booking ID-$booking_id has been completed.";
                     }
 
                     if ($notifType && NotificationHelper::isEnabled($pdo, $trip['poster_id'], $notifType)) {

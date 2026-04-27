@@ -76,6 +76,18 @@ class NotificationHelper {
         return $key;
     }
 
+    public static function getSoundName($pdo = null) {
+        if ($pdo) {
+            try {
+                $stmt = $pdo->prepare("SELECT setting_value FROM site_settings WHERE setting_key = 'notification_sound'");
+                $stmt->execute();
+                $val = $stmt->fetchColumn();
+                if ($val) return $val;
+            } catch (Exception $e) {}
+        }
+        return 'chat_notification_sound';
+    }
+
     /**
      * Sends a notification to specific user(s) using OneSignal External IDs
      * $recipients: can be a single string (e.g. "partner_14") or an array of strings
@@ -98,6 +110,7 @@ class NotificationHelper {
             "en" => $title
         );
 
+        $sound = self::getSoundName($pdo);
         $fields = array(
             'app_id' => $appId,
             'include_external_user_ids' => $recipientList,
@@ -106,8 +119,8 @@ class NotificationHelper {
             'headings' => $headings,
             'android_accent_color' => 'FF1A1F36',
             'small_icon' => 'ic_stat_onesignal_default',
-            'android_sound' => 'chat_notification_sound',
-            'ios_sound' => 'chat_notification_sound.wav'
+            'android_sound' => $sound,
+            'ios_sound' => $sound . '.wav'
         );
 
         return self::executeCurl($fields, $apiKey);
@@ -122,14 +135,15 @@ class NotificationHelper {
 
         if (!$apiKey) return false;
 
+        $sound = self::getSoundName($pdo);
         $fields = array(
             'app_id' => $appId,
             'included_segments' => array('All'),
             'data' => $data,
             'contents' => array("en" => $body),
             'headings' => array("en" => $title),
-            'android_sound' => 'chat_notification_sound',
-            'ios_sound' => 'chat_notification_sound.wav'
+            'android_sound' => $sound,
+            'ios_sound' => $sound . '.wav'
         );
 
         return self::executeCurl($fields, $apiKey);
