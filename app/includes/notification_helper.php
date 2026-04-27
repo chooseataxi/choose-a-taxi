@@ -17,12 +17,29 @@ class NotificationHelper {
         }
     }
 
-    private static function getAppId() {
+    private static function getAppId($pdo = null) {
+        if ($pdo) {
+            try {
+                $stmt = $pdo->prepare("SELECT setting_value FROM site_settings WHERE setting_key = 'onesignal_app_id'");
+                $stmt->execute();
+                $val = $stmt->fetchColumn();
+                if ($val) return $val;
+            } catch (Exception $e) {}
+        }
         self::loadEnv();
         return $_ENV['ONESIGNAL_APP_ID'] ?? '8af20809-09e9-4ce1-9377-989b6b4e4600';
     }
 
-    private static function getApiKey() {
+    private static function getApiKey($pdo = null) {
+        if ($pdo) {
+            try {
+                $stmt = $pdo->prepare("SELECT setting_value FROM site_settings WHERE setting_key = 'onesignal_rest_api_key'");
+                $stmt->execute();
+                $val = $stmt->fetchColumn();
+                if ($val) return $val;
+            } catch (Exception $e) {}
+        }
+        
         self::loadEnv();
         $key = $_ENV['ONESIGNAL_API_KEY'] ?? '';
         
@@ -33,7 +50,9 @@ class NotificationHelper {
                 $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
                 foreach ($lines as $line) {
                     if (strpos(trim($line), '#') === 0) continue;
-                    list($name, $value) = explode('=', $line, 2);
+                    $parts = explode('=', $line, 2);
+                    if (count($parts) < 2) continue;
+                    list($name, $value) = $parts;
                     $name = trim($name);
                     $value = trim($value, " \t\n\r\0\x0B\"'");
                     if ($name === 'ONESIGNAL_API_KEY') {
@@ -49,7 +68,7 @@ class NotificationHelper {
              $logFile = __DIR__ . '/../../tmp/onesignal_log.json';
              $logData = [
                  'timestamp' => date('Y-m-d H:i:s'),
-                 'error' => 'API KEY NOT FOUND IN $_ENV OR .ENV MANUALLY',
+                 'error' => 'API KEY NOT FOUND IN DB, $_ENV OR .ENV MANUALLY',
                  'check_path' => realpath(__DIR__ . '/../../') . '/.env'
              ];
              @file_put_contents($logFile, json_encode($logData, JSON_PRETTY_PRINT) . PHP_EOL . "---" . PHP_EOL, FILE_APPEND);
@@ -61,12 +80,12 @@ class NotificationHelper {
      * Sends a notification to specific user(s) using OneSignal External IDs
      * $recipients: can be a single string (e.g. "partner_14") or an array of strings
      */
-    public static function send($recipients, $title, $body, $data = []) {
-        $appId = self::getAppId();
-        $apiKey = self::getApiKey();
+    public static function send($pdo, $recipients, $title, $body, $data = []) {
+        $appId = self::getAppId($pdo);
+        $apiKey = self::getApiKey($pdo);
 
         if (!$apiKey) {
-            error_log("OneSignal Error: REST API KEY is missing in .env");
+            error_log("OneSignal Error: REST API KEY is missing");
             return false;
         }
 
@@ -96,8 +115,8 @@ class NotificationHelper {
      * Sends notification to ALL users (broadcasting)
      */
     public static function broadcastToAll($pdo, $title, $body, $data = [], $exclude_id = 0) {
-        $appId = self::getAppId();
-        $apiKey = self::getApiKey();
+        $appId = self::getAppId($pdo);
+        $apiKey = self::getApiKey($pdo);
 
         if (!$apiKey) return false;
 

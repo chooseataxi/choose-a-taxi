@@ -13,7 +13,8 @@ $menuItems = [
         "menuTitle" => "Settings",
         "icon" => "fas fa-cog",
         "pages" => [
-            ["title" => "Profile", "url" => "profile.php"]
+            ["title" => "Profile", "url" => "profile.php"],
+            ["title" => "Notification Settings", "url" => "manage-api/index.php"]
         ],
     ],
     [

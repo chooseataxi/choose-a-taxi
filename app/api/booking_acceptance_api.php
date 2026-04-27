@@ -161,7 +161,7 @@ try {
                 $stName->execute([$partner_id]);
                 $senderName = $stName->fetchColumn() ?: 'Partner';
                 
-                NotificationHelper::send($externalId, "New message from $senderName", $message, [
+                NotificationHelper::send($pdo, $externalId, "New message from $senderName", $message, [
                     'type' => 'chat',
                     'booking_id' => $booking_id,
                     'sender_id' => $partner_id
