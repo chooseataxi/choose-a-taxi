@@ -100,7 +100,7 @@ try {
             $stmt->execute([$partner_id]);
             $drivers = $stmt->fetchAll();
 
-            $stmt = $pdo->prepare("SELECT id, rc_number, maker_model, front_image as image FROM partner_vehicles WHERE partner_id = ? AND status = 'Active'");
+            $stmt = $pdo->prepare("SELECT id, rc_number, maker_model, front_image as image, front_image, back_image FROM partner_vehicles WHERE partner_id = ? AND status = 'Active'");
             $stmt->execute([$partner_id]);
             $vehicles = $stmt->fetchAll();
 
