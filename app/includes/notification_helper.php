@@ -107,8 +107,7 @@ class NotificationHelper {
             'android_accent_color' => 'FF1A1F36',
             'small_icon' => 'ic_stat_onesignal_default',
             'android_sound' => 'chat_notification_sound',
-            'ios_sound' => 'chat_notification_sound.wav',
-            'android_channel_id' => 'fcm_default_channel'
+            'ios_sound' => 'chat_notification_sound.wav'
         );
 
         return self::executeCurl($fields, $apiKey);
@@ -130,8 +129,7 @@ class NotificationHelper {
             'contents' => array("en" => $body),
             'headings' => array("en" => $title),
             'android_sound' => 'chat_notification_sound',
-            'ios_sound' => 'chat_notification_sound.wav',
-            'android_channel_id' => 'fcm_default_channel'
+            'ios_sound' => 'chat_notification_sound.wav'
         );
 
         return self::executeCurl($fields, $apiKey);
