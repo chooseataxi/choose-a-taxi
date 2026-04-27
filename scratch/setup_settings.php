@@ -1,6 +1,6 @@
 <?php
 try {
-    $pdo = new PDO("mysql:host=localhost;dbname=u885872058_chooseataxi", "root", "");
+    $pdo = new PDO("mysql:host=localhost;dbname=u885872058_chooseataxi", "u885872058_chooseataxi", "Nknehra@7432");
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     $pdo->exec("CREATE TABLE IF NOT EXISTS site_settings (
@@ -15,7 +15,8 @@ try {
     if (file_exists($rootPath . '/.env')) {
         $lines = file($rootPath . '/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         foreach ($lines as $line) {
-            if (strpos(trim($line), '#') === 0) continue;
+            if (strpos(trim($line), '#') === 0)
+                continue;
             list($name, $value) = explode('=', $line, 2);
             $env[trim($name)] = trim($value, '"\' ');
         }
