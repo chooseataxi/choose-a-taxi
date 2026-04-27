@@ -6,6 +6,7 @@ set_exception_handler(function ($e) {
     exit;
 });
 require_once __DIR__ . '/../../includes/db.php';
+require_once __DIR__ . '/../includes/notification_helper.php';
 require_once __DIR__ . '/../../includes/pusher_config.php';
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
@@ -521,7 +522,6 @@ if ($action === 'cancel_booking') {
             $accepter_id = $stmtAcc->fetchColumn();
             
             if ($accepter_id && NotificationHelper::isEnabled($pdo, $accepter_id, 'Booking Cancel')) {
-                require_once __DIR__ . '/../includes/notification_helper.php';
                 NotificationHelper::send($pdo, "partner_" . $accepter_id, "Booking Cancelled", "Booking #$booking_id has been cancelled by the poster.", [
                     'type' => 'booking_cancelled',
                     'booking_id' => $booking_id

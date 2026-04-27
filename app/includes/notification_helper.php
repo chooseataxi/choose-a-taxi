@@ -155,8 +155,10 @@ class NotificationHelper {
             }
 
             if (!empty($recipients)) {
-                $title = "New " . ($booking['trip_type'] ?? 'Booking') . " Alert";
-                $body = "Pickup: " . ($booking['pickup_location'] ?? 'N/A') . " \u2192 " . ($booking['drop_location'] ?? 'N/A');
+                $title = "New " . ($booking['trip_type'] ?? 'Booking') . " Available";
+                $pickup = $booking['pickup_location'] ?? 'N/A';
+                $drop = $booking['drop_location'] ?? 'N/A';
+                $body = "Route: $pickup ➔ $drop. Check the marketplace for details.";
                 
                 return self::send($pdo, $recipients, $title, $body, [
                     'type' => 'new_booking',

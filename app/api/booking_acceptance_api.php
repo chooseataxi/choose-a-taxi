@@ -1,5 +1,6 @@
 <?php
 // require_once __DIR__ . '/../../includes/db.php';
+require_once __DIR__ . '/../includes/notification_helper.php';
 set_exception_handler(function($e) {
     header("Content-Type: application/json");
     echo json_encode(["status" => "error", "message" => "Critical Error: " . $e->getMessage()]);
@@ -145,8 +146,7 @@ try {
 
             // ── Send OneSignal Push Notification ──
             try {
-                require_once __DIR__ . '/../includes/notification_helper.php';
-                
+                                
                 // Identify recipient role to construct External ID
                 $isDriver = false;
                 $stmtCheck = $pdo->prepare("SELECT id FROM drivers WHERE id = ?");
@@ -213,6 +213,7 @@ try {
                 $acceptedAt = strtotime($accepted['accepted_at']);
                 $currentTime = time();
                 $diffMinutes = ($currentTime - $acceptedAt) / 60;
+                $body = "Route: " . $accepted['pickup_city'] . " ➔ " . $accepted['drop_city'] . ". Check the marketplace for details.";
                 
                 $penalty = 0;
                 if ($diffMinutes > 30) {
@@ -332,8 +333,7 @@ try {
                     $stmtPoster->execute([$booking_id]);
                     $poster_id = $stmtPoster->fetchColumn();
                     if ($poster_id && NotificationHelper::isEnabled($pdo, $poster_id, 'Booking Accept')) {
-                        require_once __DIR__ . '/../includes/notification_helper.php';
-                        NotificationHelper::send($pdo, "partner_" . $poster_id, "Booking Accepted!", "Your booking #$booking_id has been accepted.", [
+                                                NotificationHelper::send($pdo, "partner_" . $poster_id, "Booking Accepted!", "Your booking #$booking_id has been accepted.", [
                             'type' => 'booking_accepted',
                             'booking_id' => $booking_id
                         ]);
@@ -458,8 +458,7 @@ try {
                     $stmtPoster->execute([$booking_id]);
                     $poster_id = $stmtPoster->fetchColumn();
                     if ($poster_id && NotificationHelper::isEnabled($pdo, $poster_id, 'Booking Accept')) {
-                        require_once __DIR__ . '/../includes/notification_helper.php';
-                        NotificationHelper::send($pdo, "partner_" . $poster_id, "Booking Accepted!", "Your booking #$booking_id has been accepted.", [
+                                                NotificationHelper::send($pdo, "partner_" . $poster_id, "Booking Accepted!", "Your booking #$booking_id has been accepted.", [
                             'type' => 'booking_accepted',
                             'booking_id' => $booking_id
                         ]);
