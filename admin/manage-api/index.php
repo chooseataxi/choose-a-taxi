@@ -57,7 +57,12 @@ $onesignal_channel_id = $settingsRows['onesignal_channel_id'] ?? '';
                         <div class="form-group mb-4">
                             <label class="font-weight-bold text-dark mb-2">Upload Sound File (.wav / .mp3)</label>
                             <input type="file" name="sound_file" class="form-control" accept=".wav,.mp3">
-                            <small class="text-muted">Upload for server-side reference. (Optional)</small>
+                            <small class="text-muted">
+                                Upload for server-side reference. (Optional)
+                                <?php if (!empty($settingsRows['notification_sound_file'])): ?>
+                                    <br><span class="text-success"><i class="fas fa-check-circle"></i> Current file: <?= htmlspecialchars($settingsRows['notification_sound_file']) ?></span>
+                                <?php endif; ?>
+                            </small>
                         </div>
 
                         <div class="d-grid mt-5">

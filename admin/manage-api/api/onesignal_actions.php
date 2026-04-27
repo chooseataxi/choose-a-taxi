@@ -21,7 +21,7 @@ try {
             setting_key VARCHAR(100) PRIMARY KEY,
             setting_value TEXT,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-        )");
+        ) ENGINE=InnoDB");
 
         // Save settings
         $settings = [
@@ -32,18 +32,34 @@ try {
         ];
 
         foreach ($settings as $key => $val) {
-            $stmt = $pdo->prepare("INSERT INTO site_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+            $stmt = $pdo->prepare("INSERT INTO site_settings (setting_key, setting_value) VALUES (?, ?) 
+                                   ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
             $stmt->execute([$key, $val]);
         }
 
         // Handle Sound File Upload
         if (!empty($_FILES['sound_file']['name'])) {
             $uploadDir = __DIR__ . '/../../../assets/sounds/';
-            if (!is_dir($uploadDir)) @mkdir($uploadDir, 0777, true);
+            if (!is_dir($uploadDir)) {
+                if (!mkdir($uploadDir, 0777, true)) {
+                    throw new Exception("Failed to create sound directory");
+                }
+            }
             
-            $ext = pathinfo($_FILES['sound_file']['name'], PATHINFO_EXTENSION);
+            $ext = strtolower(pathinfo($_FILES['sound_file']['name'], PATHINFO_EXTENSION));
+            if (!in_array($ext, ['wav', 'mp3'])) {
+                throw new Exception("Only .wav and .mp3 files are allowed");
+            }
+
             $fileName = $sound_name . '.' . $ext;
-            move_uploaded_file($_FILES['sound_file']['tmp_name'], $uploadDir . $fileName);
+            if (!move_uploaded_file($_FILES['sound_file']['tmp_name'], $uploadDir . $fileName)) {
+                throw new Exception("Failed to move uploaded file");
+            }
+            
+            // Also store the full filename including extension
+            $stmt = $pdo->prepare("INSERT INTO site_settings (setting_key, setting_value) VALUES ('notification_sound_file', ?) 
+                                   ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+            $stmt->execute([$fileName]);
         }
 
         echo json_encode(['success' => true, 'message' => 'OneSignal settings updated successfully']);
