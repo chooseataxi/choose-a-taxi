@@ -161,11 +161,17 @@ try {
                 $stName->execute([$partner_id]);
                 $senderName = $stName->fetchColumn() ?: 'Partner';
                 
-                NotificationHelper::send($pdo, $externalId, "New message from $senderName", $message, [
-                    'type' => 'chat',
-                    'booking_id' => $booking_id,
-                    'sender_id' => $partner_id
-                ]);
+                $notifType = ($type === 'quote_request' || $type === 'quote_response') ? 'Commission Request' : 'Chat Notifications';
+                $title = ($type === 'quote_request') ? "New Commission Request" : (($type === 'quote_response') ? "Quote Received" : "New message from $senderName");
+
+                if (NotificationHelper::isEnabled($pdo, $receiver_id, $notifType)) {
+                    NotificationHelper::send($pdo, $externalId, $title, $message, [
+                        'type' => 'chat',
+                        'booking_id' => $booking_id,
+                        'sender_id' => $partner_id,
+                        'chat_type' => $type
+                    ]);
+                }
             } catch (Exception $nf) {}
 
             echo json_encode(['status' => 'success', 'chat' => $event_data]);
@@ -319,6 +325,21 @@ try {
                 }
 
                 $pdo->commit();
+
+                // Send Notification to Poster
+                try {
+                    $stmtPoster = $pdo->prepare("SELECT partner_id FROM partner_bookings WHERE id = ?");
+                    $stmtPoster->execute([$booking_id]);
+                    $poster_id = $stmtPoster->fetchColumn();
+                    if ($poster_id && NotificationHelper::isEnabled($pdo, $poster_id, 'Booking Accept')) {
+                        require_once __DIR__ . '/../includes/notification_helper.php';
+                        NotificationHelper::send($pdo, "partner_" . $poster_id, "Booking Accepted!", "Your booking #$booking_id has been accepted.", [
+                            'type' => 'booking_accepted',
+                            'booking_id' => $booking_id
+                        ]);
+                    }
+                } catch (Exception $nf) {}
+
                 echo json_encode(['status' => 'success', 'message' => 'Booking accepted successfully using wallet balance.']);
             } catch (Exception $e) {
                 $pdo->rollBack();
@@ -430,6 +451,21 @@ try {
                 $stmt->execute([$partner_id, $commission, $payment_id, "Commission payment for Booking #$booking_id via Razorpay"]);
 
                 $pdo->commit();
+
+                // Send Notification to Poster
+                try {
+                    $stmtPoster = $pdo->prepare("SELECT partner_id FROM partner_bookings WHERE id = ?");
+                    $stmtPoster->execute([$booking_id]);
+                    $poster_id = $stmtPoster->fetchColumn();
+                    if ($poster_id && NotificationHelper::isEnabled($pdo, $poster_id, 'Booking Accept')) {
+                        require_once __DIR__ . '/../includes/notification_helper.php';
+                        NotificationHelper::send($pdo, "partner_" . $poster_id, "Booking Accepted!", "Your booking #$booking_id has been accepted.", [
+                            'type' => 'booking_accepted',
+                            'booking_id' => $booking_id
+                        ]);
+                    }
+                } catch (Exception $nf) {}
+
                 echo json_encode(['status' => 'success', 'message' => 'Payment verified. Booking accepted.']);
             } catch (Exception $e) {
                 if ($pdo->inTransaction()) $pdo->rollBack();

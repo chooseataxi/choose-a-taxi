@@ -105,7 +105,10 @@ class NotificationHelper {
             'contents' => $content,
             'headings' => $headings,
             'android_accent_color' => 'FF1A1F36',
-            'small_icon' => 'ic_stat_onesignal_default' 
+            'small_icon' => 'ic_stat_onesignal_default',
+            'android_sound' => 'chat_notification_sound',
+            'ios_sound' => 'chat_notification_sound.wav',
+            'android_channel_id' => 'fcm_default_channel'
         );
 
         return self::executeCurl($fields, $apiKey);
@@ -125,10 +128,98 @@ class NotificationHelper {
             'included_segments' => array('All'),
             'data' => $data,
             'contents' => array("en" => $body),
-            'headings' => array("en" => $title)
+            'headings' => array("en" => $title),
+            'android_sound' => 'chat_notification_sound',
+            'ios_sound' => 'chat_notification_sound.wav',
+            'android_channel_id' => 'fcm_default_channel'
         );
 
         return self::executeCurl($fields, $apiKey);
+    }
+
+    /**
+     * Sends a filtered booking notification to eligible partners
+     */
+    public static function sendBookingNotification($pdo, $booking) {
+        try {
+            // Fetch all partners who have alert settings
+            $stmt = $pdo->query("SELECT pas.* FROM partner_alert_settings pas");
+            $allSettings = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $recipients = [];
+            foreach ($allSettings as $settings) {
+                if (self::shouldNotify($settings, $booking)) {
+                    $recipients[] = "partner_" . $settings['partner_id'];
+                }
+            }
+
+            if (!empty($recipients)) {
+                $title = "New " . ($booking['trip_type'] ?? 'Booking') . " Alert";
+                $body = "Pickup: " . ($booking['pickup_location'] ?? 'N/A') . " \u2192 " . ($booking['drop_location'] ?? 'N/A');
+                
+                return self::send($pdo, $recipients, $title, $body, [
+                    'type' => 'new_booking',
+                    'booking_id' => $booking['id']
+                ]);
+            }
+        } catch (Exception $e) {
+            error_log("Error in sendBookingNotification: " . $e->getMessage());
+        }
+        return false;
+    }
+
+    private static function shouldNotify($settings, $booking) {
+        // 1. Check Vehicle types
+        if (!empty($settings['vehicle_types'])) {
+            $allowedCars = explode(',', $settings['vehicle_types']);
+            $carType = $booking['car_type_name'] ?? '';
+            if (!in_array($carType, $allowedCars)) return false;
+        }
+
+        // 2. Check Trip types
+        if (!empty($settings['trip_types'])) {
+            $allowedTrips = explode(',', $settings['trip_types']);
+            $tripType = $booking['trip_type'] ?? '';
+            if (!in_array($tripType, $allowedTrips)) return false;
+        }
+
+        // 3. Check Routes (City to City)
+        if (!empty($settings['routes'])) {
+            $routes = json_decode($settings['routes'], true);
+            if (!empty($routes)) {
+                $match = false;
+                foreach ($routes as $r) {
+                    $p1 = strtolower($booking['pickup_location'] ?? '');
+                    $d1 = strtolower($booking['drop_location'] ?? '');
+                    $p2 = strtolower($r['pickup'] ?? '');
+                    $d2 = strtolower($r['drop'] ?? '');
+                    
+                    if (strpos($p1, $p2) !== false && strpos($d1, $d2) !== false) {
+                        $match = true;
+                        break;
+                    }
+                }
+                if (!$match) return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Checks if a specific notification type is enabled for a partner
+     */
+    public static function isEnabled($pdo, $partner_id, $type) {
+        try {
+            $stmt = $pdo->prepare("SELECT notification_types FROM partner_alert_settings WHERE partner_id = ?");
+            $stmt->execute([$partner_id]);
+            $val = $stmt->fetchColumn();
+            if ($val === false) return true; 
+            $types = explode(',', $val);
+            return in_array($type, $types);
+        } catch (Exception $e) {
+            return true;
+        }
     }
 
     private static function executeCurl($fields, $apiKey) {

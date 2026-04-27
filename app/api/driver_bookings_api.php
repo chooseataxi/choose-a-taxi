@@ -186,6 +186,36 @@ try {
                         $stmt->execute([$poster_id, $commission, $acceptance_id, "Commission for Booking #$booking_id (Trip Completed)"]);
                     }
                 }
+                
+                // ── Send OneSignal Push Notification ──
+                try {
+                    require_once __DIR__ . '/../includes/notification_helper.php';
+                    $notifType = '';
+                    $title = '';
+                    $body = '';
+
+                    if ($status === 'OnWayToPickup') {
+                        $notifType = 'Live Tracking URL';
+                        $title = "Live Tracking Available";
+                        $body = "The driver is on the way to pickup. Tap to track live!";
+                    } else if ($status === 'Started') {
+                        $notifType = 'Trip Start';
+                        $title = "Trip Started";
+                        $body = "Your trip for Booking #$booking_id has started.";
+                    } else if ($status === 'Completed') {
+                        $notifType = 'Trip End';
+                        $title = "Trip Completed";
+                        $body = "Your trip for Booking #$booking_id has been completed.";
+                    }
+
+                    if ($notifType && NotificationHelper::isEnabled($pdo, $trip['poster_id'], $notifType)) {
+                        NotificationHelper::send($pdo, "partner_" . $trip['poster_id'], $title, $body, [
+                            'type' => 'trip_update',
+                            'status' => $status,
+                            'booking_id' => $booking_id
+                        ]);
+                    }
+                } catch (Exception $nf) {}
 
                 $pdo->commit();
 

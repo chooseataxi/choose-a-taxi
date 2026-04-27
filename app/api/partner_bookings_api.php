@@ -41,6 +41,70 @@ if ($action === 'get_trip_types') {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
+// ACTION: get_alert_settings
+// ──────────────────────────────────────────────────────────────────────────────
+if ($action === 'get_alert_settings') {
+    $partner_id = $_GET['partner_id'] ?? '';
+    if (empty($partner_id)) {
+        echo json_encode(["status" => "error", "message" => "Missing partner_id"]);
+        exit;
+    }
+
+    try {
+        // Ensure table exists
+        $pdo->exec("CREATE TABLE IF NOT EXISTS partner_alert_settings (
+            partner_id INT PRIMARY KEY,
+            vehicle_types TEXT,
+            trip_types TEXT,
+            notification_types TEXT,
+            routes TEXT,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
+
+        $stmt = $pdo->prepare("SELECT * FROM partner_alert_settings WHERE partner_id = ?");
+        $stmt->execute([$partner_id]);
+        $settings = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        echo json_encode(["status" => "success", "settings" => $settings]);
+    } catch (PDOException $e) {
+        echo json_encode(["status" => "error", "message" => $e->getMessage()]);
+    }
+    exit;
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// ACTION: save_alert_settings
+// ──────────────────────────────────────────────────────────────────────────────
+if ($action === 'save_alert_settings') {
+    $partner_id = $_POST['partner_id'] ?? '';
+    $vehicle_types = $_POST['vehicle_types'] ?? '';
+    $trip_types = $_POST['trip_types'] ?? '';
+    $notification_types = $_POST['notification_types'] ?? '';
+    $routes = $_POST['routes'] ?? '[]';
+
+    if (empty($partner_id)) {
+        echo json_encode(["status" => "error", "message" => "Missing partner_id"]);
+        exit;
+    }
+
+    try {
+        $stmt = $pdo->prepare("INSERT INTO partner_alert_settings (partner_id, vehicle_types, trip_types, notification_types, routes) 
+                               VALUES (?, ?, ?, ?, ?)
+                               ON DUPLICATE KEY UPDATE 
+                               vehicle_types = VALUES(vehicle_types), 
+                               trip_types = VALUES(trip_types), 
+                               notification_types = VALUES(notification_types), 
+                               routes = VALUES(routes)");
+        $stmt->execute([$partner_id, $vehicle_types, $trip_types, $notification_types, $routes]);
+
+        echo json_encode(["status" => "success", "message" => "Settings saved successfully"]);
+    } catch (PDOException $e) {
+        echo json_encode(["status" => "error", "message" => $e->getMessage()]);
+    }
+    exit;
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 // ACTION: get_cars  — for create booking dropdown
 // ──────────────────────────────────────────────────────────────────────────────
 if ($action === 'get_cars') {
@@ -149,16 +213,16 @@ if ($action === 'create_booking') {
         } catch (Exception $e) {
         }
 
-        // Send Push Notification to All
+        // Send Filtered Push Notifications
         try {
-            require_once __DIR__ . '/../../vendor/autoload.php';
             require_once __DIR__ . '/../includes/notification_helper.php';
-            $title = "New Booking Available!";
-            $body = "From $pickup to $drop for $car_type. Tap to view!";
-            NotificationHelper::broadcastToAll($pdo, $title, $body, [
-                'type' => 'new_booking',
-                'booking_id' => $bookingId
-            ], $partner_id);
+            NotificationHelper::sendBookingNotification($pdo, [
+                'id' => $bookingId,
+                'trip_type' => $booking_type,
+                'pickup_location' => $pickup,
+                'drop_location' => $drop,
+                'car_type_name' => $car_type
+            ]);
         } catch (Exception $nf) {
         }
 
@@ -450,11 +514,20 @@ if ($action === 'cancel_booking') {
 
         $pdo->commit();
 
-        // Broadcast real-time update
+        // Send Notification to Accepter (if any)
         try {
-            $pusher->trigger('market-channel', 'list-updated', ['id' => $booking_id, 'action' => 'cancelled']);
-        } catch (Exception $e) {
-        }
+            $stmtAcc = $pdo->prepare("SELECT partner_id FROM accepted_bookings WHERE booking_id = ? AND status = 'Cancelled' ORDER BY id DESC LIMIT 1");
+            $stmtAcc->execute([$booking_id]);
+            $accepter_id = $stmtAcc->fetchColumn();
+            
+            if ($accepter_id && NotificationHelper::isEnabled($pdo, $accepter_id, 'Booking Cancel')) {
+                require_once __DIR__ . '/../includes/notification_helper.php';
+                NotificationHelper::send($pdo, "partner_" . $accepter_id, "Booking Cancelled", "Booking #$booking_id has been cancelled by the poster.", [
+                    'type' => 'booking_cancelled',
+                    'booking_id' => $booking_id
+                ]);
+            }
+        } catch (Exception $nf) {}
 
         echo json_encode(["status" => "success", "message" => "Booking cancelled successfully"]);
     } catch (Exception $e) {
