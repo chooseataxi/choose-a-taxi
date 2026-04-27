@@ -14,16 +14,20 @@ try {
         $app_id = $_POST['onesignal_app_id'] ?? '';
         $api_key = $_POST['onesignal_rest_api_key'] ?? '';
 
-        if (empty($app_id) || empty($api_key)) {
-            throw new Exception("App ID and API Key are required");
-        }
+        // Ensure table exists
+        $pdo->exec("CREATE TABLE IF NOT EXISTS site_settings (
+            setting_key VARCHAR(100) PRIMARY KEY,
+            setting_value TEXT,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
 
-        $stmt = $pdo->prepare("INSERT INTO site_settings (setting_key, setting_value) 
-                               VALUES ('onesignal_app_id', ?), ('onesignal_rest_api_key', ?)
-                               ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
-        
-        $pdo->prepare("UPDATE site_settings SET setting_value = ? WHERE setting_key = 'onesignal_app_id'")->execute([$app_id]);
-        $pdo->prepare("UPDATE site_settings SET setting_value = ? WHERE setting_key = 'onesignal_rest_api_key'")->execute([$api_key]);
+        // Insert or Update app_id
+        $stmt = $pdo->prepare("INSERT INTO site_settings (setting_key, setting_value) VALUES ('onesignal_app_id', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+        $stmt->execute([$app_id]);
+
+        // Insert or Update api_key
+        $stmt = $pdo->prepare("INSERT INTO site_settings (setting_key, setting_value) VALUES ('onesignal_rest_api_key', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+        $stmt->execute([$api_key]);
 
         echo json_encode(['success' => true, 'message' => 'OneSignal settings updated successfully']);
     } 
@@ -33,13 +37,23 @@ try {
         $title = $_POST['title'] ?? 'Test Notification';
         $message = $_POST['message'] ?? 'This is a test notification from admin panel';
 
+        // Check if settings exist in DB
+        $appId = NotificationHelper::getAppId($pdo);
+        $apiKey = NotificationHelper::getApiKey($pdo);
+
+        if (!$apiKey) {
+            throw new Exception("OneSignal REST API Key is not configured. Please save settings first.");
+        }
+
         // We use broadcastToAll for testing
         $response = NotificationHelper::broadcastToAll($pdo, $title, $message, ['type' => 'test']);
+        $resData = json_decode($response, true);
         
-        if ($response) {
-            echo json_encode(['success' => true, 'message' => 'Test notification sent', 'response' => json_decode($response, true)]);
+        if ($resData && (isset($resData['id']) || isset($resData['recipients']))) {
+            echo json_encode(['success' => true, 'message' => 'Test notification sent', 'response' => $resData]);
         } else {
-            throw new Exception("Failed to send test notification. Check your API keys.");
+            $errorMsg = $resData['errors'][0] ?? "Failed to send test notification. Check your API keys and OneSignal dashboard.";
+            throw new Exception($errorMsg);
         }
     }
     else {

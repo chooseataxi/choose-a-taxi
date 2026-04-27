@@ -17,7 +17,7 @@ class NotificationHelper {
         }
     }
 
-    private static function getAppId($pdo = null) {
+    public static function getAppId($pdo = null) {
         if ($pdo) {
             try {
                 $stmt = $pdo->prepare("SELECT setting_value FROM site_settings WHERE setting_key = 'onesignal_app_id'");
@@ -30,7 +30,7 @@ class NotificationHelper {
         return $_ENV['ONESIGNAL_APP_ID'] ?? '8af20809-09e9-4ce1-9377-989b6b4e4600';
     }
 
-    private static function getApiKey($pdo = null) {
+    public static function getApiKey($pdo = null) {
         if ($pdo) {
             try {
                 $stmt = $pdo->prepare("SELECT setting_value FROM site_settings WHERE setting_key = 'onesignal_rest_api_key'");
