@@ -77,7 +77,7 @@ try {
             // 1. Get Booking Main Info with Car Details
             $stmt = $pdo->prepare("SELECT b.*, p.full_name as poster_name, p.manual_verification_status as poster_verification,
                                          ct.name AS car_type_name, ct.image AS car_type_image,
-                                         p.id AS poster_id, p.selfie_link AS poster_image
+                                         p.id AS poster_id, p.selfie_link AS poster_image, p.mobile AS poster_mobile
                                   FROM partner_bookings b 
                                   JOIN partners p ON b.partner_id = p.id 
                                   LEFT JOIN car_types ct ON (ct.id = b.car_type OR ct.name = b.car_type)
@@ -88,7 +88,7 @@ try {
 
             // 2. Check if already accepted
             $stmt = $pdo->prepare("SELECT a.*, p.full_name as accepter_name, p.id as accepter_id, p.selfie_link as accepter_image,
-                                         p.manual_verification_status as accepter_verification
+                                         p.manual_verification_status as accepter_verification, p.mobile AS accepter_mobile
                                   FROM accepted_bookings a 
                                   JOIN partners p ON a.partner_id = p.id 
                                   WHERE a.booking_id = ? AND a.status != 'Cancelled' LIMIT 1");
