@@ -13,6 +13,7 @@ try {
     if ($action === 'save_settings') {
         $app_id = $_POST['onesignal_app_id'] ?? '';
         $api_key = $_POST['onesignal_rest_api_key'] ?? '';
+        $channel_id = $_POST['onesignal_channel_id'] ?? '';
         $sound_name = $_POST['notification_sound'] ?? 'chat_notification_sound';
 
         // Ensure table exists
@@ -26,6 +27,7 @@ try {
         $settings = [
             'onesignal_app_id' => $app_id,
             'onesignal_rest_api_key' => $api_key,
+            'onesignal_channel_id' => $channel_id,
             'notification_sound' => $sound_name
         ];
 

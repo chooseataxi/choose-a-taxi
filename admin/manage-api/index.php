@@ -8,6 +8,7 @@ $settingsRows = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
 
 $onesignal_app_id = $settingsRows['onesignal_app_id'] ?? '';
 $onesignal_rest_api_key = $settingsRows['onesignal_rest_api_key'] ?? '';
+$onesignal_channel_id = $settingsRows['onesignal_channel_id'] ?? '';
 ?>
 
 <div class="container-fluid py-4">
@@ -20,16 +21,15 @@ $onesignal_rest_api_key = $settingsRows['onesignal_rest_api_key'] ?? '';
                 </div>
                 <div class="card-body">
                     <div class="alert alert-info border-0 shadow-sm small mb-4">
-                        <i class="fas fa-info-circle me-2"></i> Configure your OneSignal App ID and REST API Key here. These settings will override the values in your .env file.
+                        <i class="fas fa-info-circle me-2"></i> Configure your OneSignal settings here. For custom sounds on Android, ensure you create a <strong>Notification Channel</strong> in OneSignal dashboard and enter its ID below.
                     </div>
                     
-                    <form id="onesignalConfigForm">
+                    <form id="onesignalConfigForm" enctype="multipart/form-data">
                         <input type="hidden" name="action" value="save_settings">
                         
                         <div class="form-group mb-4">
                             <label class="font-weight-bold text-dark mb-2">OneSignal App ID</label>
                             <input type="text" name="onesignal_app_id" class="form-control" value="<?= htmlspecialchars($onesignal_app_id) ?>" placeholder="e.g. 8af20809-09e9-4ce1-..." required>
-                            <small class="text-muted">Found in OneSignal Dashboard -> Settings -> Keys & IDs</small>
                         </div>
                         
                         <div class="form-group mb-4">
@@ -40,7 +40,18 @@ $onesignal_rest_api_key = $settingsRows['onesignal_rest_api_key'] ?? '';
                                     <i class="fas fa-eye"></i>
                                 </button>
                             </div>
-                            <small class="text-muted">Found in OneSignal Dashboard -> Settings -> Keys & IDs</small>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label class="font-weight-bold text-dark mb-2">Android Channel ID</label>
+                            <input type="text" name="onesignal_channel_id" class="form-control" value="<?= htmlspecialchars($onesignal_channel_id) ?>" placeholder="e.g. fcm_default_channel">
+                            <small class="text-muted">Required for custom sounds on Android 8+. Create this in OneSignal Dashboard.</small>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label class="font-weight-bold text-dark mb-2">Notification Sound Name</label>
+                            <input type="text" name="notification_sound" class="form-control" value="<?= htmlspecialchars($settingsRows['notification_sound'] ?? 'chat_notification_sound') ?>" placeholder="e.g. chat_notification_sound">
+                            <small class="text-muted">The name of the sound file bundled in the mobile app (without extension).</small>
                         </div>
 
                         <div class="form-group mb-4">

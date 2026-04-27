@@ -88,6 +88,18 @@ class NotificationHelper {
         return 'chat_notification_sound';
     }
 
+    public static function getChannelId($pdo = null) {
+        if ($pdo) {
+            try {
+                $stmt = $pdo->prepare("SELECT setting_value FROM site_settings WHERE setting_key = 'onesignal_channel_id'");
+                $stmt->execute();
+                $val = $stmt->fetchColumn();
+                if ($val) return $val;
+            } catch (Exception $e) {}
+        }
+        return ''; // No default
+    }
+
     /**
      * Sends a notification to specific user(s) using OneSignal External IDs
      * $recipients: can be a single string (e.g. "partner_14") or an array of strings
@@ -95,22 +107,16 @@ class NotificationHelper {
     public static function send($pdo, $recipients, $title, $body, $data = []) {
         $appId = self::getAppId($pdo);
         $apiKey = self::getApiKey($pdo);
+        $sound = self::getSoundName($pdo);
+        $channelId = self::getChannelId($pdo);
 
-        if (!$apiKey) {
-            error_log("OneSignal Error: REST API KEY is missing");
-            return false;
-        }
+        if (!$apiKey) return false;
 
         $recipientList = is_array($recipients) ? $recipients : [$recipients];
 
-        $content = array(
-            "en" => $body
-        );
-        $headings = array(
-            "en" => $title
-        );
+        $content = array("en" => $body);
+        $headings = array("en" => $title);
 
-        $sound = self::getSoundName($pdo);
         $fields = array(
             'app_id' => $appId,
             'include_external_user_ids' => $recipientList,
@@ -123,6 +129,10 @@ class NotificationHelper {
             'ios_sound' => $sound . '.wav'
         );
 
+        if ($channelId) {
+            $fields['android_channel_id'] = $channelId;
+        }
+
         return self::executeCurl($fields, $apiKey);
     }
 
@@ -132,10 +142,11 @@ class NotificationHelper {
     public static function broadcastToAll($pdo, $title, $body, $data = [], $exclude_id = 0) {
         $appId = self::getAppId($pdo);
         $apiKey = self::getApiKey($pdo);
+        $sound = self::getSoundName($pdo);
+        $channelId = self::getChannelId($pdo);
 
         if (!$apiKey) return false;
 
-        $sound = self::getSoundName($pdo);
         $fields = array(
             'app_id' => $appId,
             'included_segments' => array('All'),
@@ -145,6 +156,10 @@ class NotificationHelper {
             'android_sound' => $sound,
             'ios_sound' => $sound . '.wav'
         );
+
+        if ($channelId) {
+            $fields['android_channel_id'] = $channelId;
+        }
 
         return self::executeCurl($fields, $apiKey);
     }
