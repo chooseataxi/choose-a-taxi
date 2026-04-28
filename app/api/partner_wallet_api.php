@@ -80,7 +80,16 @@ try {
             $wallet = $stmt->fetch(PDO::FETCH_ASSOC);
             $balance = $wallet ? $wallet['balance'] : "0.00";
 
-            $stmt = $pdo->prepare("SELECT * FROM partner_transactions WHERE partner_id = ? ORDER BY id DESC LIMIT 20");
+            $sql = "SELECT t.*, 
+                    CASE 
+                        WHEN t.source = 'Withdrawal' THEN (SELECT status FROM partner_withdrawals WHERE id = t.source_id)
+                        WHEN t.source = 'Commission' THEN (SELECT status FROM commission_requests WHERE id = t.source_id)
+                        ELSE 'Success'
+                    END as txn_status
+                    FROM partner_transactions t 
+                    WHERE t.partner_id = ? 
+                    ORDER BY t.id DESC LIMIT 20";
+            $stmt = $pdo->prepare($sql);
             $stmt->execute([$partner_id]);
             $transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -201,21 +210,22 @@ try {
             // Process withdrawal
             $pdo->beginTransaction();
             try {
-                // Ensure status ENUM supports 'Processing'
-                $pdo->exec("ALTER TABLE partner_withdrawals MODIFY COLUMN status ENUM('Pending', 'Processing', 'In-Process', 'Paid', 'Rejected', 'Success') DEFAULT 'Pending'");
-
                 // 1. Create withdrawal record
                 $stmt = $pdo->prepare("INSERT INTO partner_withdrawals (partner_id, amount, status) VALUES (?, ?, 'Processing')");
                 $stmt->execute([$partner_id, $amount]);
                 $withdrawal_id = $pdo->lastInsertId();
 
                 // 2. Update Wallet & Log (Debit)
-                updateWallet($pdo, $partner_id, $amount, 'Debit', 'Withdrawal', $withdrawal_id, "Withdrawal request submitted (Processing)");
+                if (!updateWallet($pdo, $partner_id, $amount, 'Debit', 'Withdrawal', $withdrawal_id, "Withdrawal request submitted (Processing)")) {
+                    throw new Exception("Failed to update wallet balance");
+                }
 
                 $pdo->commit();
                 echo json_encode(["status" => "success", "message" => "Withdrawal request submitted successfully"]);
             } catch (Exception $e) {
-                $pdo->rollBack();
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
                 throw $e;
             }
             break;
