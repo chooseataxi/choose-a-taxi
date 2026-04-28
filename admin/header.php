@@ -54,6 +54,14 @@ $menuItems = [
         ],
     ],
     [
+        "menuTitle" => "Wallet Management",
+        "icon" => "fas fa-wallet",
+        "pages" => [
+            ["title" => "Commission Requests", "url" => "wallet/commissions.php"],
+            ["title" => "Withdrawal Requests", "url" => "wallet/withdrawals.php"]
+        ],
+    ],
+    [
         "menuTitle" => "Subscriptions",
         "icon" => "fas fa-medal",
         "pages" => [

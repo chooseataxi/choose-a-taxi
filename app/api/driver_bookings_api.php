@@ -151,7 +151,7 @@ try {
                     } catch (Exception $e) {}
                 }
 
-                // 3. If completed, credit the poster
+                // 3. If completed, create commission request for poster
                 if ($status === 'Completed') {
                     $poster_id = $trip['poster_id'];
                     $commission = (float)$trip['commission'];
@@ -172,18 +172,30 @@ try {
                     $stmt->execute([$booking_id]);
 
                     if ($commission > 0) {
-                        // Ensure poster wallet exists
-                        $stmt = $pdo->prepare("INSERT IGNORE INTO partner_wallet (partner_id, balance) VALUES (?, 0)");
-                        $stmt->execute([$poster_id]);
+                        // Ensure commission_requests table exists
+                        $pdo->exec("CREATE TABLE IF NOT EXISTS commission_requests (
+                            id INT AUTO_INCREMENT PRIMARY KEY,
+                            partner_id INT NOT NULL,
+                            booking_id INT NOT NULL,
+                            acceptance_id INT NOT NULL,
+                            raw_amount DECIMAL(10,2) NOT NULL,
+                            service_charge DECIMAL(10,2) NOT NULL,
+                            final_amount DECIMAL(10,2) NOT NULL,
+                            status ENUM('Processing', 'Approved', 'Rejected') DEFAULT 'Processing',
+                            admin_note TEXT,
+                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                            INDEX(partner_id),
+                            INDEX(booking_id),
+                            INDEX(status)
+                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
-                        // Credit the commission
-                        $stmt = $pdo->prepare("UPDATE partner_wallet SET balance = balance + ? WHERE partner_id = ?");
-                        $stmt->execute([$commission, $poster_id]);
+                        $service_charge = round($commission * 0.03, 2);
+                        $final_amount = $commission - $service_charge;
 
-                        // Log transaction
-                        $stmt = $pdo->prepare("INSERT INTO partner_transactions (partner_id, type, amount, source, source_id, description) 
-                                               VALUES (?, 'Credit', ?, 'Booking Commission', ?, ?)");
-                        $stmt->execute([$poster_id, $commission, $acceptance_id, "Commission for Booking ID-$booking_id (Trip Completed)"]);
+                        $stmt = $pdo->prepare("INSERT INTO commission_requests (partner_id, booking_id, acceptance_id, raw_amount, service_charge, final_amount, status) 
+                                               VALUES (?, ?, ?, ?, ?, ?, 'Processing')");
+                        $stmt->execute([$poster_id, $booking_id, $acceptance_id, $commission, $service_charge, $final_amount]);
                     }
                 }
                 

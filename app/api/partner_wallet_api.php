@@ -84,7 +84,25 @@ try {
             $stmt->execute([$partner_id]);
             $transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            echo json_encode(["status" => "success", "balance" => $balance, "transactions" => $transactions]);
+            // Pending Commissions
+            $stmt = $pdo->prepare("SELECT SUM(final_amount) as pending FROM commission_requests WHERE partner_id = ? AND status = 'Processing'");
+            $stmt->execute([$partner_id]);
+            $pComm = $stmt->fetch();
+            $pending_commissions = (float)($pComm['pending'] ?? 0);
+
+            // Pending Withdrawals (Balance already deducted, but good to show as processing)
+            $stmt = $pdo->prepare("SELECT SUM(amount) as pending FROM partner_withdrawals WHERE partner_id = ? AND status = 'Processing'");
+            $stmt->execute([$partner_id]);
+            $pWith = $stmt->fetch();
+            $pending_withdrawals = (float)($pWith['pending'] ?? 0);
+
+            echo json_encode([
+                "status" => "success", 
+                "balance" => $balance, 
+                "transactions" => $transactions,
+                "pending_commissions" => $pending_commissions,
+                "pending_withdrawals" => $pending_withdrawals
+            ]);
             break;
 
         // ──────────────────────────────────────────────────
@@ -183,13 +201,16 @@ try {
             // Process withdrawal
             $pdo->beginTransaction();
             try {
+                // Ensure status ENUM supports 'Processing'
+                $pdo->exec("ALTER TABLE partner_withdrawals MODIFY COLUMN status ENUM('Pending', 'Processing', 'In-Process', 'Paid', 'Rejected', 'Success') DEFAULT 'Pending'");
+
                 // 1. Create withdrawal record
-                $stmt = $pdo->prepare("INSERT INTO partner_withdrawals (partner_id, amount, status) VALUES (?, ?, 'Pending')");
+                $stmt = $pdo->prepare("INSERT INTO partner_withdrawals (partner_id, amount, status) VALUES (?, ?, 'Processing')");
                 $stmt->execute([$partner_id, $amount]);
                 $withdrawal_id = $pdo->lastInsertId();
 
                 // 2. Update Wallet & Log (Debit)
-                updateWallet($pdo, $partner_id, $amount, 'Debit', 'Withdrawal', $withdrawal_id, "Withdrawal request submitted");
+                updateWallet($pdo, $partner_id, $amount, 'Debit', 'Withdrawal', $withdrawal_id, "Withdrawal request submitted (Processing)");
 
                 $pdo->commit();
                 echo json_encode(["status" => "success", "message" => "Withdrawal request submitted successfully"]);
