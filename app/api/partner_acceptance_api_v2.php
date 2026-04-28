@@ -174,7 +174,7 @@ try {
                 $stmt = $pdo->prepare("UPDATE partner_bookings SET status = 'Accepted' WHERE id = ?");
                 $stmt->execute([$booking_id]);
 
-                if (!updateWallet($pdo, $partner_id, $commission, 'Debit', 'Booking Acceptance', $booking_id, "Commission payment for Booking #$booking_id (Wallet)")) {
+                if (!updateWallet($pdo, $partner_id, $commission, 'Debit', 'Booking Acceptance', $booking_id, "Commission payment for Booking ID-$booking_id (Wallet)")) {
                     throw new Exception("Wallet update failed");
                 }
 
@@ -238,7 +238,7 @@ try {
                 $stmt->execute([$booking_id]);
 
                 $stmt = $pdo->prepare("INSERT INTO partner_transactions (partner_id, type, amount, source, source_id, description) VALUES (?, 'Debit', ?, 'Razorpay Acceptance', ?, ?)");
-                $stmt->execute([$partner_id, $commission, $payment_id, "Commission payment for Booking #$booking_id (Razorpay)"]);
+                $stmt->execute([$partner_id, $commission, $payment_id, "Commission payment for Booking ID-$booking_id (Razorpay)"]);
 
                 $pdo->commit();
 

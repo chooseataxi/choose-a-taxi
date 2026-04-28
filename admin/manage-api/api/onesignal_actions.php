@@ -31,13 +31,17 @@ try {
             'notification_sound' => $sound_name
         ];
 
+        $saved_count = 0;
         foreach ($settings as $key => $val) {
             $stmt = $pdo->prepare("INSERT INTO site_settings (setting_key, setting_value) VALUES (?, ?) 
                                    ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
-            $stmt->execute([$key, $val]);
+            if ($stmt->execute([$key, $val])) {
+                $saved_count++;
+            }
         }
 
         // Handle Sound File Upload
+        $upload_msg = "";
         if (!empty($_FILES['sound_file']['name'])) {
             $uploadDir = __DIR__ . '/../../../assets/sounds/';
             if (!is_dir($uploadDir)) {
@@ -60,9 +64,10 @@ try {
             $stmt = $pdo->prepare("INSERT INTO site_settings (setting_key, setting_value) VALUES ('notification_sound_file', ?) 
                                    ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
             $stmt->execute([$fileName]);
+            $upload_msg = " and sound file uploaded as $fileName";
         }
 
-        echo json_encode(['success' => true, 'message' => 'OneSignal settings updated successfully']);
+        echo json_encode(['success' => true, 'message' => "Settings updated successfully ($saved_count fields)$upload_msg"]);
     } 
     elseif ($action === 'send_test') {
         require_once __DIR__ . '/../../../app/includes/notification_helper.php';

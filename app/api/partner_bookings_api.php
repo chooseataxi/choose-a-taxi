@@ -176,15 +176,17 @@ if ($action === 'create_booking') {
     $note = $data['note'] ?? '';
     $preferences = isset($data['preferences']) && is_string($data['preferences']) ? $data['preferences'] : json_encode($data['preferences'] ?? []);
 
+    $approach = $data['approach_type'] ?? 'first_driver';
+
     try {
         $sql = "INSERT INTO partner_bookings (
             partner_id, booking_type, pickup_location, drop_location, stops, 
             car_type, start_date, start_time, end_date, end_time, 
-            pricing_option, total_amount, commission, toll_tax, parking, note, preferences, status
+            pricing_option, total_amount, commission, toll_tax, parking, note, preferences, status, approach_type
         ) VALUES (
             ?, ?, ?, ?, ?, 
             ?, ?, ?, ?, ?, 
-            ?, ?, ?, ?, ?, ?, ?, 'Open'
+            ?, ?, ?, ?, ?, ?, ?, 'Open', ?
         )";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
@@ -204,7 +206,8 @@ if ($action === 'create_booking') {
             $toll,
             $parking,
             $note,
-            $preferences
+            $preferences,
+            $approach
         ]);
         $bookingId = $pdo->lastInsertId();
 
@@ -272,11 +275,13 @@ if ($action === 'update_booking') {
     $note = $data['note'] ?? '';
     $preferences = isset($data['preferences']) && is_string($data['preferences']) ? $data['preferences'] : json_encode($data['preferences'] ?? []);
 
+    $approach = $data['approach_type'] ?? 'first_driver';
+
     try {
         $sql = "UPDATE partner_bookings SET
             booking_type = ?, pickup_location = ?, drop_location = ?, stops = ?, 
             car_type = ?, start_date = ?, start_time = ?, end_date = ?, end_time = ?, 
-            pricing_option = ?, total_amount = ?, commission = ?, toll_tax = ?, parking = ?, note = ?, preferences = ?
+            pricing_option = ?, total_amount = ?, commission = ?, toll_tax = ?, parking = ?, note = ?, preferences = ?, approach_type = ?
             WHERE id = ? AND partner_id = ?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
@@ -296,6 +301,7 @@ if ($action === 'update_booking') {
             $parking,
             $note,
             $preferences,
+            $approach,
             $booking_id,
             $partner_id
         ]);

@@ -127,6 +127,23 @@ try {
             $stmt->execute([$booking_id, $partner_id, $receiver_id, $message, $type, $payload]);
             $chat_id = $pdo->lastInsertId();
 
+            // If it's a quote request and approach_type is manual_selection, update the booking's commission/total_amount
+            if ($type === 'quote_request' && !empty($payload)) {
+                $p = json_decode($payload, true);
+                if (isset($p['fare']) && isset($p['comm'])) {
+                    // We update the booking only if it is a manual_selection booking
+                    $stmtUpdate = $pdo->prepare("UPDATE partner_bookings SET total_amount = ?, commission = ? WHERE id = ? AND approach_type = 'manual_selection'");
+                    $stmtUpdate->execute([$p['fare'], $p['comm'], $booking_id]);
+                    
+                    // Trigger market list update via Pusher if something changed
+                    if ($stmtUpdate->rowCount() > 0) {
+                        try {
+                            $pusher->trigger('market-channel', 'list-updated', ['id' => $booking_id, 'action' => 'updated']);
+                        } catch (Exception $e) {}
+                    }
+                }
+            }
+
             // Trigger Pusher
             $event_data = [
                 'id' => $chat_id,

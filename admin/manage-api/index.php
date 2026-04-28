@@ -21,7 +21,9 @@ $onesignal_channel_id = $settingsRows['onesignal_channel_id'] ?? '';
                 </div>
                 <div class="card-body">
                     <div class="alert alert-info border-0 shadow-sm small mb-4">
-                        <i class="fas fa-info-circle me-2"></i> Configure your OneSignal settings here. For custom sounds on Android, ensure you create a <strong>Notification Channel</strong> in OneSignal dashboard and enter its ID below.
+                        <i class="fas fa-info-circle me-2"></i> Configure your OneSignal settings here. 
+                        <br><strong>Note:</strong> For custom sounds to work, the sound file (without extension) must be bundled inside the mobile app's assets.
+                        On Android 8+, you must also create a <strong>Notification Channel</strong> in OneSignal dashboard and enter its ID below.
                     </div>
                     
                     <form id="onesignalConfigForm" enctype="multipart/form-data">
@@ -51,7 +53,7 @@ $onesignal_channel_id = $settingsRows['onesignal_channel_id'] ?? '';
                         <div class="form-group mb-4">
                             <label class="font-weight-bold text-dark mb-2">Notification Sound Name</label>
                             <input type="text" name="notification_sound" class="form-control" value="<?= htmlspecialchars($settingsRows['notification_sound'] ?? 'chat_notification_sound') ?>" placeholder="e.g. chat_notification_sound">
-                            <small class="text-muted">The name of the sound file bundled in the mobile app (without extension).</small>
+                            <small class="text-muted">The name of the sound file bundled in the mobile app (without extension). Default is <code>chat_notification_sound</code>.</small>
                         </div>
 
                         <div class="form-group mb-4">
