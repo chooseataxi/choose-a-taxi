@@ -1,30 +1,52 @@
 <?php
-require_once __DIR__ . '/../../includes/db.php';
-require_once __DIR__ . '/../../includes/pusher_config.php';
-require_once __DIR__ . '/../../vendor/autoload.php';
+// driver_bookings_api.php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-    try {
-        $pdo->exec("ALTER TABLE accepted_bookings MODIFY COLUMN trip_status ENUM('Pending', 'OnWayToPickup', 'Arrived', 'Started', 'Completed') DEFAULT 'Pending'");
-        
-        $pdo->exec("CREATE TABLE IF NOT EXISTS driver_trip_logs (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            acceptance_id INT NOT NULL,
-            booking_id INT NOT NULL,
-            start_selfie VARCHAR(255),
-            start_time DATETIME,
-            start_location TEXT,
-            start_odometer_reading INT,
-            start_odometer_image VARCHAR(255),
-            end_time DATETIME,
-            end_location TEXT,
-            end_odometer_reading INT,
-            end_odometer_image VARCHAR(255),
-            total_km DECIMAL(10,2),
-            collect_amount DECIMAL(10,2),
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            UNIQUE(acceptance_id)
-        )");
-    } catch(PDOException $e) {}
+require_once 'db_config.php';
+
+// --- Schema setup (moved outside transactions) ---
+try {
+    $pdo->exec("ALTER TABLE accepted_bookings MODIFY COLUMN trip_status ENUM('Pending', 'OnWayToPickup', 'Arrived', 'Started', 'Completed') DEFAULT 'Pending'");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS driver_trip_logs (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        acceptance_id INT NOT NULL,
+        booking_id INT NOT NULL,
+        start_selfie VARCHAR(255),
+        start_time DATETIME,
+        start_location TEXT,
+        start_odometer_reading INT,
+        start_odometer_image VARCHAR(255),
+        end_time DATETIME,
+        end_location TEXT,
+        end_odometer_reading INT,
+        end_odometer_image VARCHAR(255),
+        total_km DECIMAL(10,2),
+        collect_amount DECIMAL(10,2),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(acceptance_id)
+    )");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS commission_requests (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        partner_id INT NOT NULL,
+        booking_id INT NOT NULL,
+        acceptance_id INT NOT NULL,
+        raw_amount DECIMAL(10,2) NOT NULL,
+        service_charge DECIMAL(10,2) NOT NULL,
+        final_amount DECIMAL(10,2) NOT NULL,
+        status ENUM('Processing', 'Approved', 'Rejected') DEFAULT 'Processing',
+        admin_note TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX(partner_id),
+        INDEX(booking_id),
+        INDEX(status)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+} catch (PDOException $e) {
+}
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
@@ -36,15 +58,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-function uploadTripImage($file, $prefix, $booking_id) {
-    if (!isset($file['tmp_name']) || empty($file['tmp_name'])) return null;
+function uploadTripImage($file, $prefix, $booking_id)
+{
+    if (!isset($file['tmp_name']) || empty($file['tmp_name']))
+        return null;
     $targetDir = __DIR__ . '/../../uploads/trips/';
-    if (!file_exists($targetDir)) mkdir($targetDir, 0777, true);
-    
+    if (!file_exists($targetDir))
+        mkdir($targetDir, 0777, true);
+
     $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
     $filename = $prefix . "_" . $booking_id . "_" . time() . "." . $ext;
     $targetFile = $targetDir . $filename;
-    
+
     if (move_uploaded_file($file['tmp_name'], $targetFile)) {
         return "uploads/trips/" . $filename;
     }
@@ -83,7 +108,8 @@ try {
             $acceptance_id = $_POST['acceptance_id'] ?? '';
             $status = $_POST['status'] ?? ''; // 'Started', 'Completed'
 
-            if (empty($acceptance_id) || empty($status)) throw new Exception("Acceptance ID and Status required");
+            if (empty($acceptance_id) || empty($status))
+                throw new Exception("Acceptance ID and Status required");
 
             // 1. Get current status and commission details
             $stmt = $pdo->prepare("
@@ -95,8 +121,9 @@ try {
             $stmt->execute([$acceptance_id]);
             $trip = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if (!$trip) throw new Exception("Trip acceptance record not found");
-            
+            if (!$trip)
+                throw new Exception("Trip acceptance record not found");
+
             // Avoid double completion logic
             if ($trip['trip_status'] === 'Completed') {
                 echo json_encode(['success' => true, 'message' => "Trip is already completed"]);
@@ -127,9 +154,8 @@ try {
 
                 // 2.1 If OnWayToPickup, send tracking link to chat
                 if ($status === 'OnWayToPickup') {
-                    $poster_id = $trip['poster_id']; // This is the partner who POSTED the booking
-                    
-                    // The sender of the tracking link should be the one who ACCEPTED the booking
+                    $poster_id = $trip['poster_id'];
+
                     $stmt = $pdo->prepare("SELECT partner_id FROM accepted_bookings WHERE id = ?");
                     $stmt->execute([$acceptance_id]);
                     $accepter = $stmt->fetch();
@@ -137,25 +163,25 @@ try {
 
                     $tracking_url = "https://chooseataxi.com/driver-location/track_trip.php?booking_id=$booking_id";
                     $msg = "Driver is on the way to Pickup point. Track live here: $tracking_url";
-                    
+
                     $stmt = $pdo->prepare("INSERT INTO booking_chats (booking_id, sender_id, receiver_id, message, type) VALUES (?, ?, ?, ?, 'tracking_link')");
                     $stmt->execute([$booking_id, $sender_id, $poster_id, $msg]);
 
-                    // Trigger pusher for chat update
                     try {
                         $pusher->trigger("chat-$booking_id", 'new-message', [
                             'message' => $msg,
                             'sender_id' => $sender_id,
                             'type' => 'tracking_link'
                         ]);
-                    } catch (Exception $e) {}
+                    } catch (Exception $e) {
+                    }
                 }
 
                 // 3. If completed, create commission request for poster
                 if ($status === 'Completed') {
                     $poster_id = $trip['poster_id'];
-                    $commission = (float)$trip['commission'];
-                    
+                    $commission = (float) $trip['commission'];
+
                     // Log End Details
                     $odo_img = uploadTripImage($_FILES['end_odometer_image'] ?? null, 'odo_end', $booking_id);
                     $odo_reading = $_POST['end_odometer_reading'] ?? 0;
@@ -167,29 +193,10 @@ try {
                     $stmt = $pdo->prepare("UPDATE driver_trip_logs SET end_time = ?, end_location = ?, end_odometer_reading = ?, end_odometer_image = ?, total_km = ?, collect_amount = ? WHERE acceptance_id = ?");
                     $stmt->execute([$now, $location, $odo_reading, $odo_img, $total_km, $collect_amount, $acceptance_id]);
 
-                    // Update main booking status too
                     $stmt = $pdo->prepare("UPDATE partner_bookings SET status = 'Completed' WHERE id = ?");
                     $stmt->execute([$booking_id]);
 
                     if ($commission > 0) {
-                        // Ensure commission_requests table exists
-                        $pdo->exec("CREATE TABLE IF NOT EXISTS commission_requests (
-                            id INT AUTO_INCREMENT PRIMARY KEY,
-                            partner_id INT NOT NULL,
-                            booking_id INT NOT NULL,
-                            acceptance_id INT NOT NULL,
-                            raw_amount DECIMAL(10,2) NOT NULL,
-                            service_charge DECIMAL(10,2) NOT NULL,
-                            final_amount DECIMAL(10,2) NOT NULL,
-                            status ENUM('Processing', 'Approved', 'Rejected') DEFAULT 'Processing',
-                            admin_note TEXT,
-                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                            INDEX(partner_id),
-                            INDEX(booking_id),
-                            INDEX(status)
-                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
-
                         $service_charge = round($commission * 0.03, 2);
                         $final_amount = $commission - $service_charge;
 
@@ -198,7 +205,7 @@ try {
                         $stmt->execute([$poster_id, $booking_id, $acceptance_id, $commission, $service_charge, $final_amount]);
                     }
                 }
-                
+
                 // ── Send OneSignal Push Notification ──
                 try {
                     require_once __DIR__ . '/../includes/notification_helper.php';
@@ -227,7 +234,8 @@ try {
                             'booking_id' => $booking_id
                         ]);
                     }
-                } catch (Exception $nf) {}
+                } catch (Exception $nf) {
+                }
 
                 $pdo->commit();
 
@@ -238,7 +246,8 @@ try {
                         'booking_id' => $booking_id,
                         'new_status' => $status
                     ]);
-                } catch (Exception $e) {}
+                } catch (Exception $e) {
+                }
 
                 echo json_encode(['success' => true, 'message' => "Trip status updated to $status"]);
             } catch (Exception $e) {
