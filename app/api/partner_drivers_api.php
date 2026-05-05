@@ -69,10 +69,10 @@ function updateWallet($pdo, $partner_id, $amount, $type, $description) {
 // ──────────────────────────────────────────────────────────────────────────────
 function verifyDrivingLicense($license_number, $dob)
 {
-    // ── Token retrieval with fallback (consistent with other API files) ──
-    $token = $_ENV['SUREPASS_TOKEN'] ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDg3NzAwMywianRpIjoiZGUxNGRmYmUtMmE3NC00NGQ5LWIxMzEtZGZhMWNlODBhMTc2IiwidHlwZSI6ImFjY2VzcyIsImlkZW50aXR5IjoiZGV2LnJvaGl0XzAzNDVAc3VyZXBhc3MuaW8iLCJuYmYiOjE3NzQ4NzcwMDMsImV4cCI6MjQwNTU5NzAwMywiZW1haWwiOiJyb2hpdF8wMzQ1QHN1cmVwYXNzLmlvIiwidGVuYW50X2lkIjoibWFpbiIsInVzZXJfY2xhaW1zIjp7InNjb3BlcyI6WyJ1c2VyIl19fQ.UC3ebDNZdNjyUxDhez-7IIACaf224xpA5rl8DaQRFpU';
+    // ── Token retrieval with trim to prevent whitespace issues ──
+    $token = trim($_ENV['SUREPASS_TOKEN'] ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDg3NzAwMywianRpIjoiZGUxNGRmYmUtMmE3NC00NGQ5LWIxMzEtZGZhMWNlODBhMTc2IiwidHlwZSI6ImFjY2VzcyIsImlkZW50aXR5IjoiZGV2LnJvaGl0XzAzNDVAc3VyZXBhc3MuaW8iLCJuYmYiOjE3NzQ4NzcwMDMsImV4cCI6MjQwNTU5NzAwMywiZW1haWwiOiJyb2hpdF8wMzQ1QHN1cmVwYXNzLmlvIiwidGVuYW50X2lkIjoibWFpbiIsInVzZXJfY2xhaW1zIjp7InNjb3BlcyI6WyJ1c2VyIl19fQ.UC3ebDNZdNjyUxDhez-7IIACaf224xpA5rl8DaQRFpU');
     
-    // ── Use .app domain (newer) instead of .io (deprecated for many users) ──
+    // ── Try the primary endpoint ──
     $baseUrl = rtrim($_ENV['SUREPASS_BASE_URL'] ?? 'https://kyc-api.surepass.app/api/v1', '/');
     $url = $baseUrl . "/driving-license/driving-license";
 
@@ -99,6 +99,24 @@ function verifyDrivingLicense($license_number, $dob)
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
+    // If 401 or 404, try the alternate dl-details endpoint
+    if ($httpCode === 401 || $httpCode === 404) {
+        $urlAlt = $baseUrl . "/driving-license/dl-details";
+        $ch = curl_init($urlAlt);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json", "Authorization: Bearer " . $token]);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+        $responseAlt = curl_exec($ch);
+        $httpCodeAlt = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        
+        if ($httpCodeAlt === 200) {
+            $httpCode = $httpCodeAlt;
+            $response = $responseAlt;
+        }
+    }
+
     if ($httpCode === 200) {
         $j = json_decode($response, true);
         if ($j['success'] ?? false) {
@@ -106,7 +124,14 @@ function verifyDrivingLicense($license_number, $dob)
         }
         return ["status" => "error", "message" => $j['message'] ?? "Verification failed"];
     }
-    return ["status" => "error", "message" => "Surepass API Error: $httpCode"];
+    
+    // Return detailed error for debugging if it's still failing
+    $errorDetail = "";
+    if ($response) {
+        $jErr = json_decode($response, true);
+        $errorDetail = " - " . ($jErr['message'] ?? $response);
+    }
+    return ["status" => "error", "message" => "Surepass API Error: $httpCode" . $errorDetail];
 }
 
 try {
