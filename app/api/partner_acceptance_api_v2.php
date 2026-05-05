@@ -90,6 +90,11 @@ try {
             $stmt->execute([$partner_id]);
             $drivers = $stmt->fetchAll();
 
+            // Hotfix: Force 'fixed' mode if amounts are present
+            if (!empty($booking['total_amount']) && $booking['total_amount'] > 0 && !empty($booking['commission'])) {
+                $booking['pricing_option'] = 'fixed';
+            }
+
             echo json_encode([
                 'status' => 'success',
                 'booking' => $booking,

@@ -376,6 +376,14 @@ if ($action === 'get_bookings') {
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$partner_id]);
         $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // ── Hotfix: Force 'fixed' mode if amounts are present for UI consistency ──
+        foreach ($bookings as &$b) {
+            if (!empty($b['total_amount']) && $b['total_amount'] > 0 && !empty($b['commission'])) {
+                $b['pricing_option'] = 'fixed';
+            }
+        }
+
         echo json_encode(["status" => "success", "bookings" => $bookings, "server_time" => $now]);
     } catch (PDOException $e) {
         echo json_encode(["status" => "error", "message" => "DB Error: " . $e->getMessage()]);
@@ -429,6 +437,14 @@ if ($action === 'get_market_bookings') {
                 LIMIT 50";
         $stmt = $pdo->query($sql);
         $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // ── Hotfix: Force 'fixed' mode if amounts are present for UI consistency ──
+        foreach ($bookings as &$b) {
+            if (!empty($b['total_amount']) && $b['total_amount'] > 0 && !empty($b['commission'])) {
+                $b['pricing_option'] = 'fixed';
+            }
+        }
+
         echo json_encode(["status" => "success", "bookings" => $bookings, "server_time" => $now]);
     } catch (PDOException $e) {
         echo json_encode(["status" => "error", "message" => "DB Error: " . $e->getMessage()]);

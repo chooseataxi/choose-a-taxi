@@ -105,6 +105,11 @@ try {
             $stmt->execute([$partner_id]);
             $vehicles = $stmt->fetchAll();
 
+            // 4. Hotfix: Override pricing_option for UI consistency
+            if (!empty($booking['total_amount']) && $booking['total_amount'] > 0 && !empty($booking['commission'])) {
+                $booking['pricing_option'] = 'fixed';
+            }
+
             echo json_encode([
                 'status' => 'success',
                 'booking' => $booking,
