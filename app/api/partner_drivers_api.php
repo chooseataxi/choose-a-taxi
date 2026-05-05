@@ -69,12 +69,16 @@ function updateWallet($pdo, $partner_id, $amount, $type, $description) {
 // ──────────────────────────────────────────────────────────────────────────────
 function verifyDrivingLicense($license_number, $dob)
 {
-    // ── Token retrieval with fallback (same as partner_vehicles_api.php) ──
+    // ── Token retrieval with fallback (consistent with other API files) ──
     $token = $_ENV['SUREPASS_TOKEN'] ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDg3NzAwMywianRpIjoiZGUxNGRmYmUtMmE3NC00NGQ5LWIxMzEtZGZhMWNlODBhMTc2IiwidHlwZSI6ImFjY2VzcyIsImlkZW50aXR5IjoiZGV2LnJvaGl0XzAzNDVAc3VyZXBhc3MuaW8iLCJuYmYiOjE3NzQ4NzcwMDMsImV4cCI6MjQwNTU5NzAwMywiZW1haWwiOiJyb2hpdF8wMzQ1QHN1cmVwYXNzLmlvIiwidGVuYW50X2lkIjoibWFpbiIsInVzZXJfY2xhaW1zIjp7InNjb3BlcyI6WyJ1c2VyIl19fQ.UC3ebDNZdNjyUxDhez-7IIACaf224xpA5rl8DaQRFpU';
+    
+    // ── Use .app domain (newer) instead of .io (deprecated for many users) ──
+    $baseUrl = rtrim($_ENV['SUREPASS_BASE_URL'] ?? 'https://kyc-api.surepass.app/api/v1', '/');
+    $url = $baseUrl . "/driving-license/driving-license";
+
     if (!$token)
         return ["status" => "error", "message" => "SUREPASS_TOKEN missing"];
 
-    $url = "https://kyc-api.surepass.io/api/v1/driving-license/driving-license";
     $body = json_encode([
         "id_number" => $license_number,
         "dob" => $dob
@@ -82,8 +86,8 @@ function verifyDrivingLicense($license_number, $dob)
 
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 30); // 30s max
-    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10); // 10s to connect
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         "Content-Type: application/json",
         "Authorization: Bearer " . $token
