@@ -105,10 +105,11 @@ try {
             $stmt->execute([$partner_id]);
             $vehicles = $stmt->fetchAll();
 
-            // 4. Hotfix: Override pricing_option for UI consistency
-            if (!empty($booking['total_amount']) && $booking['total_amount'] > 0 && !empty($booking['commission'])) {
-                $booking['pricing_option'] = 'fixed';
-            }
+            // 4. Aggressive Hotfix: Force 'Accept' UI by overriding key fields
+            $booking['pricing_option'] = 'fixed';
+            $booking['approach_type'] = 'first_driver';
+            if (isset($booking['total_amount'])) $booking['total_amount'] = (float)$booking['total_amount'];
+            if (isset($booking['commission'])) $booking['commission'] = (float)$booking['commission'];
 
             echo json_encode([
                 'status' => 'success',
