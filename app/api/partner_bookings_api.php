@@ -309,7 +309,8 @@ if ($action === 'update_booking') {
         // Broadcast real-time update via Pusher
         try {
             $pusher->trigger('market-channel', 'list-updated', ['id' => $booking_id, 'action' => 'updated']);
-        } catch (Exception $e) {}
+        } catch (Exception $e) {
+        }
 
         echo json_encode(["status" => "success", "message" => "Booking updated successfully!", "booking_id" => $booking_id]);
     } catch (PDOException $e) {
@@ -332,26 +333,30 @@ if ($action === 'get_bookings') {
         // Log for debugging
         error_log("Booking Expiry Check - Partner ID: $partner_id, DB Now: $now");
 
-        // 1. Auto-expire open bookings that are past their start time (Immediate)
+        // 1. Auto-expire open bookings that are past their start time (with 15-minute grace period to avoid clock drift issues)
         $pdo->exec("UPDATE partner_bookings 
                     SET status = 'Expired' 
                     WHERE status IN ('Open', 'Posted') 
                     AND (
-                        (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') < NOW())
-                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') < NOW())
-                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') < NOW())
-                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') < NOW())
+                        (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') < (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') < (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') < (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') < (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%e-%c-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%e-%c-%Y %h:%i %p') < (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') < (NOW() - INTERVAL 15 MINUTE))
                     )");
 
-        // 2. Self-heal: Un-expire bookings that are actually in the future
+        // 2. Self-heal: Un-expire bookings that are actually in the future (Aggressive recovery)
         $pdo->exec("UPDATE partner_bookings 
                     SET status = 'Open' 
                     WHERE status = 'Expired' 
                     AND (
-                        (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') >= NOW())
-                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') >= NOW())
-                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') >= NOW())
-                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') >= NOW())
+                        (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') >= (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') >= (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') >= (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') >= (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%e-%c-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%e-%c-%Y %h:%i %p') >= (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') >= (NOW() - INTERVAL 15 MINUTE))
                     )");
         $sql = "SELECT pb.*,
                     ct.name  AS car_type_name,
@@ -377,8 +382,10 @@ if ($action === 'get_bookings') {
         foreach ($bookings as &$b) {
             $b['pricing_option'] = 'fixed';
             $b['approach_type'] = 'first_driver';
-            if (isset($b['total_amount'])) $b['total_amount'] = (float)$b['total_amount'];
-            if (isset($b['commission'])) $b['commission'] = (float)$b['commission'];
+            if (isset($b['total_amount']))
+                $b['total_amount'] = (float) $b['total_amount'];
+            if (isset($b['commission']))
+                $b['commission'] = (float) $b['commission'];
         }
 
         echo json_encode(["status" => "success", "bookings" => $bookings, "server_time" => $now]);
@@ -395,26 +402,30 @@ if ($action === 'get_market_bookings') {
     try {
         // Auto-expire open bookings that are past their start time
         // Using %h:%i %p for `10:00 PM` format. If it's `22:00` format, %H:%i is used.
-        // 1. Auto-expire open bookings (Immediate)
+        // 1. Auto-expire open bookings that are past their start time (with 2-hour grace period)
         $pdo->exec("UPDATE partner_bookings 
                     SET status = 'Expired' 
                     WHERE status IN ('Open', 'Posted') 
                     AND (
-                        (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') < NOW())
-                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') < NOW())
-                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') < NOW())
-                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') < NOW())
+                        (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') < (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') < (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') < (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') < (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%e-%c-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%e-%c-%Y %h:%i %p') < (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') < (NOW() - INTERVAL 15 MINUTE))
                     )");
 
-        // 2. Self-heal: Un-expire bookings
+        // 2. Self-heal: Un-expire bookings that are actually in the future
         $pdo->exec("UPDATE partner_bookings 
                     SET status = 'Open' 
                     WHERE status = 'Expired' 
                     AND (
-                        (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') >= NOW())
-                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') >= NOW())
-                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') >= NOW())
-                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') >= NOW())
+                        (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') >= (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') >= (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') >= (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') >= (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%e-%c-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%e-%c-%Y %h:%i %p') >= (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') >= (NOW() - INTERVAL 15 MINUTE))
                     )");
         $sql = "SELECT pb.*,
                     ct.name  AS car_type_name,
@@ -435,8 +446,10 @@ if ($action === 'get_market_bookings') {
         foreach ($bookings as &$b) {
             $b['pricing_option'] = 'fixed';
             $b['approach_type'] = 'first_driver';
-            if (isset($b['total_amount'])) $b['total_amount'] = (float)$b['total_amount'];
-            if (isset($b['commission'])) $b['commission'] = (float)$b['commission'];
+            if (isset($b['total_amount']))
+                $b['total_amount'] = (float) $b['total_amount'];
+            if (isset($b['commission']))
+                $b['commission'] = (float) $b['commission'];
         }
 
         echo json_encode(["status" => "success", "bookings" => $bookings, "server_time" => $now]);
@@ -480,7 +493,8 @@ if ($action === 'delete_booking') {
 
         try {
             $pusher->trigger('market-channel', 'list-updated', ['id' => $booking_id, 'action' => 'deleted']);
-        } catch (Exception $e) {}
+        } catch (Exception $e) {
+        }
 
         echo json_encode(["status" => "success", "message" => "Booking deleted successfully"]);
     } catch (Exception $e) {
@@ -536,14 +550,15 @@ if ($action === 'cancel_booking') {
             $stmtAcc = $pdo->prepare("SELECT partner_id FROM accepted_bookings WHERE booking_id = ? AND status = 'Cancelled' ORDER BY id DESC LIMIT 1");
             $stmtAcc->execute([$booking_id]);
             $accepter_id = $stmtAcc->fetchColumn();
-            
+
             if ($accepter_id && NotificationHelper::isEnabled($pdo, $accepter_id, 'Booking Cancel')) {
                 NotificationHelper::send($pdo, "partner_" . $accepter_id, "Booking Cancelled", "Booking ID-$booking_id has been cancelled by the poster.", [
                     'type' => 'booking_cancelled',
                     'booking_id' => $booking_id
                 ]);
             }
-        } catch (Exception $nf) {}
+        } catch (Exception $nf) {
+        }
 
         echo json_encode(["status" => "success", "message" => "Booking cancelled successfully"]);
     } catch (Exception $e) {
