@@ -404,12 +404,12 @@ if ($action === 'get_market_bookings') {
                     SET status = 'Expired' 
                     WHERE status IN ('Open', 'Posted') 
                     AND (
-                        (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') < (NOW() - INTERVAL 2 HOUR))
-                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') < (NOW() - INTERVAL 2 HOUR))
-                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') < (NOW() - INTERVAL 2 HOUR))
-                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') < (NOW() - INTERVAL 2 HOUR))
-                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%e-%c-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%e-%c-%Y %h:%i %p') < (NOW() - INTERVAL 2 HOUR))
-                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') < (NOW() - INTERVAL 2 HOUR))
+                        (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') < (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') < (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') < (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') < (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%e-%c-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%e-%c-%Y %h:%i %p') < (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') < (NOW() - INTERVAL 15 MINUTE))
                     )");
 
         // 2. Self-heal: Un-expire bookings that are actually in the future
@@ -417,12 +417,12 @@ if ($action === 'get_market_bookings') {
                     SET status = 'Open' 
                     WHERE status = 'Expired' 
                     AND (
-                        (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') >= (NOW() - INTERVAL 2 HOUR))
-                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') >= (NOW() - INTERVAL 2 HOUR))
-                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') >= (NOW() - INTERVAL 2 HOUR))
-                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') >= (NOW() - INTERVAL 2 HOUR))
-                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%e-%c-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%e-%c-%Y %h:%i %p') >= (NOW() - INTERVAL 2 HOUR))
-                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') >= (NOW() - INTERVAL 2 HOUR))
+                        (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %h:%i %p') >= (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %h:%i %p') >= (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%d-%m-%Y %H:%i') >= (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%m-%d %H:%i') >= (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%e-%c-%Y %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%e-%c-%Y %h:%i %p') >= (NOW() - INTERVAL 15 MINUTE))
+                        OR (STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') IS NOT NULL AND STR_TO_DATE(CONCAT(start_date, ' ', start_time), '%Y-%c-%e %h:%i %p') >= (NOW() - INTERVAL 15 MINUTE))
                     )");
         $sql = "SELECT pb.*,
                     ct.name  AS car_type_name,
