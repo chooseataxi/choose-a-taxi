@@ -63,80 +63,80 @@ $cars = $cars_stmt->fetchAll();
 <link rel="stylesheet" href="assets/css/footer.css">
 <style>
     .results-page { background: #fdfdfd; padding: 25px 0; min-height: 80vh; font-family: 'Inter', sans-serif; }
-    .results-header-card { 
+    .ts-header-card { 
         background: #1a1a1a; border-radius: 20px; padding: 25px 35px; margin-bottom: 30px; 
         box-shadow: 0 10px 40px rgba(0,0,0,0.15); color: #fff; position: relative;
     }
-    .trip-summary-header { display: flex; align-items: stretch; justify-content: space-between; flex-wrap: wrap; gap: 30px; }
+    .ts-summary-wrapper { display: flex; align-items: stretch; justify-content: space-between; flex-wrap: wrap; gap: 30px; }
     
-    .trip-route-vertical { display: flex; flex-direction: column; gap: 12px; flex: 1; min-width: 300px; position: relative; padding-left: 25px; }
-    .trip-route-vertical::before {
+    .ts-route-vertical { display: flex; flex-direction: column; gap: 12px; flex: 1; min-width: 300px; position: relative; padding-left: 25px; }
+    .ts-route-vertical::before {
         content: ''; position: absolute; left: 4px; top: 10px; bottom: 10px; width: 2px; 
         background: rgba(255,255,255,0.1); border-left: 2px dashed rgba(255,193,7,0.4);
     }
     
-    .route-step { display: flex; flex-direction: column; position: relative; }
-    .route-step::before {
+    .ts-route-step { display: flex; flex-direction: column; position: relative; }
+    .ts-route-step::before {
         content: ''; position: absolute; left: -25px; top: 6px; width: 10px; height: 10px; 
         border-radius: 50%; background: #ffc107; border: 2px solid #1a1a1a; z-index: 2;
     }
-    .step-pickup::before { background: #ff4757; box-shadow: 0 0 10px rgba(255,71,87,0.5); }
-    .step-drop::before { background: #2ed573; box-shadow: 0 0 10px rgba(46,213,115,0.5); }
-    .step-stop::before { background: #ffa502; }
+    .ts-step-pickup::before { background: #ff4757; box-shadow: 0 0 10px rgba(255,71,87,0.5); }
+    .ts-step-drop::before { background: #2ed573; box-shadow: 0 0 10px rgba(46,213,115,0.5); }
+    .ts-step-stop::before { background: #ffa502; }
     
-    .step-label { font-size: 10px; font-weight: 800; color: #ffc107; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
-    .step-value { font-size: 14px; font-weight: 600; color: #fff; line-height: 1.4; }
+    .ts-step-label { font-size: 10px; font-weight: 800; color: #ffc107; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
+    .ts-step-value { font-size: 14px; font-weight: 600; color: #fff; line-height: 1.4; }
 
-    .trip-side-info { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; gap: 15px; }
-    .trip-badge-area { display: flex; gap: 10px; align-items: center; }
-    .trip-tag { background: #ffc107; color: #000; padding: 5px 15px; border-radius: 8px; font-size: 12px; font-weight: 800; text-transform: uppercase; }
+    .ts-side-info { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; gap: 15px; }
+    .ts-badge-area { display: flex; gap: 10px; align-items: center; }
+    .ts-tag { background: #ffc107; color: #000; padding: 5px 15px; border-radius: 8px; font-size: 12px; font-weight: 800; text-transform: uppercase; }
     
-    .time-card { background: rgba(255,255,255,0.05); padding: 15px 20px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); display: flex; gap: 25px; }
-    .info-item { display: flex; flex-direction: column; gap: 4px; }
-    .info-item label { font-size: 10px; font-weight: 700; color: #aaa; text-transform: uppercase; }
-    .info-item span { font-size: 15px; font-weight: 700; color: #fff; white-space: nowrap; }
+    .ts-time-card { background: rgba(255,255,255,0.05); padding: 15px 20px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); display: flex; gap: 25px; }
+    .ts-info-item { display: flex; flex-direction: column; gap: 4px; }
+    .ts-info-item label { font-size: 10px; font-weight: 700; color: #aaa; text-transform: uppercase; }
+    .ts-info-item span { font-size: 15px; font-weight: 700; color: #fff; white-space: nowrap; }
 </style>
 
 <div class="results-page">
     <div class="container" style="width: 90%; max-width: 1200px; margin: 0 auto;">
         <!-- Header Info -->
-        <div class="results-header-card">
-            <div class="trip-summary-header">
+        <div class="ts-header-card">
+            <div class="ts-summary-wrapper">
                 <!-- Vertical Route Info -->
-                <div class="trip-route-vertical">
-                    <div class="route-step step-pickup">
-                        <span class="step-label">Pickup Location</span>
-                        <span class="step-value"><?= htmlspecialchars($pickup) ?></span>
+                <div class="ts-route-vertical">
+                    <div class="ts-route-step ts-step-pickup">
+                        <span class="ts-step-label">Pickup Location</span>
+                        <span class="ts-step-value"><?= htmlspecialchars($pickup) ?></span>
                     </div>
 
                     <?php 
                     $valid_stops = array_filter($stops);
                     foreach ($valid_stops as $stop): 
                     ?>
-                        <div class="route-step step-stop">
-                            <span class="step-label">Stop</span>
-                            <span class="step-value"><?= htmlspecialchars($stop) ?></span>
+                        <div class="ts-route-step ts-step-stop">
+                            <span class="ts-step-label">Stop</span>
+                            <span class="ts-step-value"><?= htmlspecialchars($stop) ?></span>
                         </div>
                     <?php endforeach; ?>
 
-                    <div class="route-step step-drop">
-                        <span class="step-label">Drop Location</span>
-                        <span class="step-value"><?= htmlspecialchars($drop) ?></span>
+                    <div class="ts-route-step ts-step-drop">
+                        <span class="ts-step-label">Drop Location</span>
+                        <span class="ts-step-value"><?= htmlspecialchars($drop) ?></span>
                     </div>
                 </div>
 
                 <!-- Side Info -->
-                <div class="trip-side-info">
-                    <div class="trip-badge-area">
-                        <span class="trip-tag"><?= htmlspecialchars($trip_type) ?></span>
+                <div class="ts-side-info">
+                    <div class="ts-badge-area">
+                        <span class="ts-tag"><?= htmlspecialchars($trip_type) ?></span>
                     </div>
                     
-                    <div class="time-card">
-                        <div class="info-item">
+                    <div class="ts-time-card">
+                        <div class="ts-info-item">
                             <label>Departure Date</label>
                             <span><?= htmlspecialchars($date) ?></span>
                         </div>
-                        <div class="info-item" style="border-left: 1px solid rgba(255,255,255,0.1); padding-left: 20px;">
+                        <div class="ts-info-item" style="border-left: 1px solid rgba(255,255,255,0.1); padding-left: 20px;">
                             <label>Pickup Time</label>
                             <span><?= htmlspecialchars($time) ?></span>
                         </div>
