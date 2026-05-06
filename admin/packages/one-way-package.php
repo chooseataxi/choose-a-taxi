@@ -193,6 +193,7 @@ $packages = $stmt->fetchAll();
     </div>
 </div>
 
+<style>
     .bg-yellow-soft { background: #fff8e1; color: #856404; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; }
     .inclusion-icons i { font-size: 14px; margin-right: 5px; }
     .btn-yellow-black { background-color: #ffc107; color: #000; font-weight: 700; border: none; transition: 0.3s; }
