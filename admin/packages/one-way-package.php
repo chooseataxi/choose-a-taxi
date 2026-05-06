@@ -12,7 +12,7 @@ $oneWayId = $oneWayRow ? $oneWayRow['id'] : 0;
 $carTypes = $pdo->query("SELECT id, name FROM car_types WHERE status = 'Active' ORDER BY name")->fetchAll();
 
 // Fetch Existing One Way Packages
-$stmt = $pdo->prepare("SELECT c.*, ct.name as type_name, cb.name as brand_name 
+$stmt = $pdo->prepare("SELECT c.*, ct.name as type_name, ct.image as type_image, cb.name as brand_name 
                       FROM cars c 
                       JOIN car_types ct ON c.type_id = ct.id 
                       JOIN car_brands cb ON c.brand_id = cb.id 
@@ -23,19 +23,14 @@ $packages = $stmt->fetchAll();
 ?>
 
 <div class="container-fluid py-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow border-0 rounded-4">
-                <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
-                    <div>
-                        <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-box-open me-2 text-primary"></i>One Way Packages</h5>
-                        <p class="text-muted small mb-0">Manage fixed price one-way trip packages for search results</p>
-                    </div>
-                    <button class="btn btn-yellow-black shadow-sm px-4 rounded-pill" data-bs-toggle="modal" data-bs-target="#packageModal" onclick="resetForm()">
-                        <i class="fas fa-plus me-1"></i> Add New Package
-                    </button>
-                </div>
-                <div class="card-body">
+    <div class="card shadow mb-4 border-0">
+        <div class="card-header bg-white py-3 d-flex align-items-center">
+            <h5 class="mb-0 font-weight-bold text-dark">One Way Package Management</h5>
+            <button class="btn btn-yellow-black shadow-sm px-4 ms-auto" data-bs-toggle="modal" data-bs-target="#packageModal" onclick="resetForm()">
+                <i class="fas fa-plus mr-1"></i> Add One Way Package
+            </button>
+        </div>
+        <div class="card-body p-0">
                     <div class="table-responsive">
                         <table id="packageTable" class="table table-hover align-middle">
                             <thead class="bg-light">
@@ -56,9 +51,16 @@ $packages = $stmt->fetchAll();
                                     <td><?= $idx + 1 ?></td>
                                     <td>
                                         <div class="d-flex align-items-center">
+                                            <div class="bg-light d-flex align-items-center justify-content-center border rounded me-3" style="width: 60px; height: 45px; overflow: hidden;">
+                                                <?php if ($pkg['type_image']): ?>
+                                                    <img src="../../<?= $pkg['type_image'] ?>" alt="Type" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                                <?php else: ?>
+                                                    <i class="fas fa-car text-muted"></i>
+                                                <?php endif; ?>
+                                            </div>
                                             <div>
-                                                <div class="fw-bold text-dark"><?= $pkg['type_name'] ?></div>
-                                                <span class="badge bg-primary-subtle text-primary x-small">One Way</span>
+                                                <div class="font-weight-bold text-dark"><?= htmlspecialchars($pkg['type_name']) ?></div>
+                                                <span class="badge bg-yellow-soft text-dark x-small">One Way Trip</span>
                                             </div>
                                         </div>
                                     </td>
@@ -191,14 +193,13 @@ $packages = $stmt->fetchAll();
     </div>
 </div>
 
-<style>
-    .x-small { font-size: 0.65rem; padding: 2px 8px; border-radius: 10px; }
-    .inclusion-icons i { font-size: 14px; }
+    .bg-yellow-soft { background: #fff8e1; color: #856404; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; }
+    .inclusion-icons i { font-size: 14px; margin-right: 5px; }
     .btn-yellow-black { background-color: #ffc107; color: #000; font-weight: 700; border: none; transition: 0.3s; }
-    .btn-yellow-black:hover { background-color: #e0ac08; transform: translateY(-2px); }
-    .modal-lg { max-width: 800px; }
-    .form-label { margin-bottom: 0.3rem; }
-    .form-control:focus, .form-select:focus { box-shadow: none; border-color: #ffc107 !important; }
+    .btn-yellow-black:hover { background-color: #e0ac08; }
+    .table thead th { background-color: #f8f9fa; border-bottom: 2px solid #dee2e6; color: #495057; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .table-hover tbody tr:hover { background-color: rgba(255, 193, 7, 0.05); }
+    .form-check-input:checked { background-color: #ffc107; border-color: #ffc107; }
 </style>
 
 <script>
