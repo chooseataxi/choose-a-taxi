@@ -8,7 +8,6 @@ $settingsRows = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
 
 $onesignal_app_id = $settingsRows['onesignal_app_id'] ?? '';
 $onesignal_rest_api_key = $settingsRows['onesignal_rest_api_key'] ?? '';
-$onesignal_channel_id = $settingsRows['onesignal_channel_id'] ?? '';
 ?>
 
 <div class="container-fluid py-4">
@@ -17,59 +16,67 @@ $onesignal_channel_id = $settingsRows['onesignal_channel_id'] ?? '';
         <div class="col-xl-6 col-lg-7 mb-4">
             <div class="card shadow border-0">
                 <div class="card-header bg-white py-3 d-flex align-items-center">
-                    <h5 class="mb-0 font-weight-bold text-dark"><i class="fas fa-bell me-2 text-primary"></i> OneSignal Notification Configuration</h5>
+                    <h5 class="mb-0 font-weight-bold text-dark"><i class="fas fa-bell me-2 text-primary"></i> OneSignal Notification Channels</h5>
                 </div>
                 <div class="card-body">
                     <div class="alert alert-info border-0 shadow-sm small mb-4">
-                        <i class="fas fa-info-circle me-2"></i> Configure your OneSignal settings here. 
-                        <br><strong>Note:</strong> For custom sounds to work, the sound file (without extension) must be bundled inside the mobile app's assets.
-                        On Android 8+, you must also create a <strong>Notification Channel</strong> in OneSignal dashboard and enter its ID below.
+                        <i class="fas fa-info-circle me-2"></i> Configure separate Android Notification Channels (Categories) for different notification types.
+                        On Android 8+, these channels allow users to customize alerts (sound, importance) for each category.
                     </div>
                     
-                    <form id="onesignalConfigForm" enctype="multipart/form-data">
+                    <form id="onesignalConfigForm">
                         <input type="hidden" name="action" value="save_settings">
                         
-                        <div class="form-group mb-4">
-                            <label class="font-weight-bold text-dark mb-2">OneSignal App ID</label>
-                            <input type="text" name="onesignal_app_id" class="form-control" value="<?= htmlspecialchars($onesignal_app_id) ?>" placeholder="e.g. 8af20809-09e9-4ce1-..." required>
-                        </div>
-                        
-                        <div class="form-group mb-4">
-                            <label class="font-weight-bold text-dark mb-2">REST API Key</label>
-                            <div class="input-group">
-                                <input type="password" name="onesignal_rest_api_key" id="rest_api_key" class="form-control" value="<?= htmlspecialchars($onesignal_rest_api_key) ?>" placeholder="os_v2_app_..." required>
-                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
-                                    <i class="fas fa-eye"></i>
-                                </button>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="font-weight-bold text-dark mb-2 small">OneSignal App ID</label>
+                                <input type="text" name="onesignal_app_id" class="form-control" value="<?= htmlspecialchars($onesignal_app_id) ?>" placeholder="e.g. 8af20809-..." required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="font-weight-bold text-dark mb-2 small">REST API Key</label>
+                                <div class="input-group">
+                                    <input type="password" name="onesignal_rest_api_key" id="rest_api_key" class="form-control" value="<?= htmlspecialchars($onesignal_rest_api_key) ?>" placeholder="os_v2_app_..." required>
+                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword"><i class="fas fa-eye"></i></button>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="form-group mb-4">
-                            <label class="font-weight-bold text-dark mb-2">Android Channel ID</label>
-                            <input type="text" name="onesignal_channel_id" class="form-control" value="<?= htmlspecialchars($onesignal_channel_id) ?>" placeholder="e.g. fcm_default_channel">
-                            <small class="text-muted">Required for custom sounds on Android 8+. <strong>Leave empty</strong> if you haven't created a channel in OneSignal dashboard.</small>
+                        <hr class="my-4">
+                        <h6 class="mb-3 font-weight-bold"><i class="fas fa-th-list me-2 text-warning"></i> Channel (Box) Configuration</h6>
+
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold text-dark">Box-1: New Booking Channel ID</label>
+                            <input type="text" name="onesignal_new_booking_channel" class="form-control" value="<?= htmlspecialchars($settingsRows['onesignal_new_booking_channel'] ?? '') ?>" placeholder="Android Category ID for New Bookings">
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold text-dark">Box-2: Chat Message Channel ID</label>
+                            <input type="text" name="onesignal_chat_channel" class="form-control" value="<?= htmlspecialchars($settingsRows['onesignal_chat_channel'] ?? '') ?>" placeholder="Android Category ID for Chats">
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold text-dark">Box-3: Commission Request Channel ID</label>
+                            <input type="text" name="onesignal_commission_channel" class="form-control" value="<?= htmlspecialchars($settingsRows['onesignal_commission_channel'] ?? '') ?>" placeholder="Android Category ID for Commission">
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold text-dark">Box-4: Booking Accept Channel ID</label>
+                            <input type="text" name="onesignal_accept_channel" class="form-control" value="<?= htmlspecialchars($settingsRows['onesignal_accept_channel'] ?? '') ?>" placeholder="Android Category ID for Booking Accept">
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold text-dark">Box-5: Booking Cancel Channel ID</label>
+                            <input type="text" name="onesignal_cancel_channel" class="form-control" value="<?= htmlspecialchars($settingsRows['onesignal_cancel_channel'] ?? '') ?>" placeholder="Android Category ID for Cancel">
                         </div>
 
                         <div class="form-group mb-4">
-                            <label class="font-weight-bold text-dark mb-2">Notification Sound Name</label>
-                            <input type="text" name="notification_sound" class="form-control" value="<?= htmlspecialchars($settingsRows['notification_sound'] ?? 'chat_notification_sound') ?>" placeholder="e.g. chat_notification_sound">
-                            <small class="text-muted">The name of the sound file bundled in the mobile app (without extension). Default is <code>chat_notification_sound</code>.</small>
+                            <label class="small font-weight-bold text-dark">Box-6: Trip Status Channel ID</label>
+                            <input type="text" name="onesignal_trip_status_channel" class="form-control" value="<?= htmlspecialchars($settingsRows['onesignal_trip_status_channel'] ?? '') ?>" placeholder="Android Category ID for Trip Start/Complete">
                         </div>
 
-                        <div class="form-group mb-4">
-                            <label class="font-weight-bold text-dark mb-2">Upload Sound File (.wav / .mp3)</label>
-                            <input type="file" name="sound_file" class="form-control" accept=".wav,.mp3">
-                            <small class="text-muted">
-                                Upload for server-side reference. (Optional)
-                                <?php if (!empty($settingsRows['notification_sound_file'])): ?>
-                                    <br><span class="text-success"><i class="fas fa-check-circle"></i> Current file: <?= htmlspecialchars($settingsRows['notification_sound_file']) ?></span>
-                                <?php endif; ?>
-                            </small>
-                        </div>
-
-                        <div class="d-grid mt-5">
+                        <div class="d-grid">
                             <button type="submit" class="btn btn-primary shadow-sm rounded-pill py-2">
-                                <i class="fas fa-save me-2"></i> Save Notification Settings
+                                <i class="fas fa-save me-2"></i> Save All Channels & Settings
                             </button>
                         </div>
                     </form>
@@ -82,36 +89,46 @@ $onesignal_channel_id = $settingsRows['onesignal_channel_id'] ?? '';
             <!-- Test Notification Card -->
             <div class="card shadow border-0 mb-4 bg-gradient-light">
                 <div class="card-header bg-white py-3">
-                    <h6 class="mb-0 font-weight-bold text-success"><i class="fas fa-paper-plane me-2"></i> Send Test Notification</h6>
+                    <h6 class="mb-0 font-weight-bold text-success"><i class="fas fa-paper-plane me-2"></i> Test Channels (Boxes)</h6>
                 </div>
-                <div class="card-body text-center py-5">
-                    <div class="mb-4">
-                        <i class="fas fa-broadcast-tower fa-3x text-success opacity-75"></i>
-                    </div>
-                    <h5>Broadcast Test</h5>
-                    <p class="text-muted mb-4 small">Send a test push notification to all subscribed users to verify your OneSignal configuration.</p>
+                <div class="card-body">
+                    <p class="text-muted mb-4 small">Select a box/channel to send a test push notification to all users.</p>
                     
-                    <div class="form-group mb-3 text-start">
-                        <input type="text" id="test_title" class="form-control mb-2" placeholder="Test Title" value="ChooseATaxi Admin Test">
-                        <input type="text" id="test_message" class="form-control" placeholder="Test Message" value="If you see this, OneSignal is working properly!">
+                    <div class="form-group mb-3">
+                        <label class="small font-weight-bold">Select Channel to Test</label>
+                        <select id="test_box" class="form-control">
+                            <option value="1">Box-1: New Booking</option>
+                            <option value="2">Box-2: Chat Message</option>
+                            <option value="3">Box-3: Commission Request</option>
+                            <option value="4">Box-4: Booking Accept</option>
+                            <option value="5">Box-5: Booking Cancel</option>
+                            <option value="6">Box-6: Trip Status</option>
+                        </select>
                     </div>
 
-                    <button id="sendTestBtn" class="btn btn-yellow-black px-5 shadow-sm rounded-pill">
-                        <i class="fas fa-bolt me-1"></i> Send Test Push
-                    </button>
+                    <div class="form-group mb-3 text-start">
+                        <input type="text" id="test_title" class="form-control mb-2" placeholder="Test Title" value="Channel Test">
+                        <textarea id="test_message" class="form-control" rows="3" placeholder="Test Message">This is a test notification for the selected channel.</textarea>
+                    </div>
+
+                    <div class="d-grid">
+                        <button id="sendTestBtn" class="btn btn-success shadow-sm rounded-pill py-2">
+                            <i class="fas fa-bolt me-1"></i> Send Channel Test Push
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <!-- Helpful Links -->
             <div class="card shadow border-0">
                 <div class="card-header bg-white py-3">
-                    <h6 class="mb-0 font-weight-bold text-dark">Quick Documentation</h6>
+                    <h6 class="mb-0 font-weight-bold text-dark">OneSignal Dashboard Links</h6>
                 </div>
                 <div class="card-body">
                     <ul class="list-group list-group-flush small">
                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                            How to get App ID?
-                            <a href="https://documentation.onesignal.com/docs/accounts-and-keys" target="_blank" class="btn btn-xs btn-link text-primary"><i class="fas fa-external-link-alt"></i></a>
+                            How to create Channels?
+                            <a href="https://documentation.onesignal.com/docs/android-notification-categories" target="_blank" class="btn btn-xs btn-link text-primary"><i class="fas fa-external-link-alt"></i></a>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             OneSignal Dashboard
@@ -170,6 +187,7 @@ $(document).ready(function() {
 
     // 2. Send Test Notification
     $('#sendTestBtn').on('click', function() {
+        const box = $('#test_box').val();
         const title = $('#test_title').val();
         const message = $('#test_message').val();
 
@@ -183,6 +201,7 @@ $(document).ready(function() {
             type: 'POST',
             data: { 
                 action: 'send_test',
+                box: box,
                 title: title,
                 message: message
             },
@@ -191,7 +210,7 @@ $(document).ready(function() {
             },
             success: function(res) {
                 if (res.success) {
-                    Swal.fire('Sent!', 'Test notification request sent to OneSignal. Status: ' + (res.response.id ? 'Success' : 'Pending'), 'success');
+                    Swal.fire('Sent!', 'Test notification sent to Channel (Box ' + box + '). Status: ' + (res.response.id ? 'Success' : 'Pending'), 'success');
                 } else {
                     Swal.fire('Error', res.message, 'error');
                 }
@@ -200,7 +219,7 @@ $(document).ready(function() {
                 Swal.fire('Error', 'Failed to send test notification', 'error');
             },
             complete: function() {
-                $('#sendTestBtn').prop('disabled', false).html('<i class="fas fa-bolt me-1"></i> Send Test Push');
+                $('#sendTestBtn').prop('disabled', false).html('<i class="fas fa-bolt me-1"></i> Send Channel Test Push');
             }
         });
     });

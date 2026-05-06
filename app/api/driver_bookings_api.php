@@ -227,9 +227,9 @@ try {
                         $body = "Your trip for Booking ID-$booking_id has been completed.";
                     }
 
-                    if ($notifType && NotificationHelper::isEnabled($pdo, $trip['poster_id'], $notifType)) {
+                    if ($notifType) {
                         NotificationHelper::send($pdo, "partner_" . $trip['poster_id'], $title, $body, [
-                            'type' => 'trip_update',
+                            'type' => $notifType,
                             'status' => $status,
                             'booking_id' => $booking_id
                         ]);

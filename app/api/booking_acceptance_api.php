@@ -187,14 +187,12 @@ try {
                 $notifType = ($type === 'quote_request' || $type === 'quote_response') ? 'Commission Request' : 'Chat Notifications';
                 $title = ($type === 'quote_request') ? "New Commission Request" : (($type === 'quote_response') ? "Quote Received" : "New message from $senderName");
 
-                if (NotificationHelper::isEnabled($pdo, $receiver_id, $notifType)) {
-                    NotificationHelper::send($pdo, $externalId, $title, $message, [
-                        'type' => 'chat',
-                        'booking_id' => $booking_id,
-                        'sender_id' => $partner_id,
-                        'chat_type' => $type
-                    ]);
-                }
+                NotificationHelper::send($pdo, $externalId, $title, $message, [
+                    'type' => 'chat',
+                    'booking_id' => $booking_id,
+                    'sender_id' => $partner_id,
+                    'chat_type' => $type
+                ]);
             } catch (Exception $nf) {}
 
             echo json_encode(['status' => 'success', 'chat' => $event_data]);
@@ -355,7 +353,7 @@ try {
                     $stmtPoster = $pdo->prepare("SELECT partner_id FROM partner_bookings WHERE id = ?");
                     $stmtPoster->execute([$booking_id]);
                     $poster_id = $stmtPoster->fetchColumn();
-                    if ($poster_id && NotificationHelper::isEnabled($pdo, $poster_id, 'Booking Accept')) {
+                    if ($poster_id) {
                                                 NotificationHelper::send($pdo, "partner_" . $poster_id, "Booking Accepted!", "Your booking ID-$booking_id has been accepted.", [
                             'type' => 'booking_accepted',
                             'booking_id' => $booking_id
@@ -480,7 +478,7 @@ try {
                     $stmtPoster = $pdo->prepare("SELECT partner_id FROM partner_bookings WHERE id = ?");
                     $stmtPoster->execute([$booking_id]);
                     $poster_id = $stmtPoster->fetchColumn();
-                    if ($poster_id && NotificationHelper::isEnabled($pdo, $poster_id, 'Booking Accept')) {
+                    if ($poster_id) {
                                                 NotificationHelper::send($pdo, "partner_" . $poster_id, "Booking Accepted!", "Your booking ID-$booking_id has been accepted.", [
                             'type' => 'booking_accepted',
                             'booking_id' => $booking_id

@@ -76,28 +76,23 @@ class NotificationHelper {
         return $key;
     }
 
-    public static function getSoundName($pdo = null) {
-        if ($pdo) {
-            try {
-                $stmt = $pdo->prepare("SELECT setting_value FROM site_settings WHERE setting_key = 'notification_sound'");
-                $stmt->execute();
-                $val = $stmt->fetchColumn();
-                if ($val) return $val;
-            } catch (Exception $e) {}
-        }
-        return 'chat_notification_sound';
-    }
+    public static function getChannelId($pdo, $box = 1) {
+        $key = 'onesignal_new_booking_channel';
+        if ($box == 2) $key = 'onesignal_chat_channel';
+        if ($box == 3) $key = 'onesignal_commission_channel';
+        if ($box == 4) $key = 'onesignal_accept_channel';
+        if ($box == 5) $key = 'onesignal_cancel_channel';
+        if ($box == 6) $key = 'onesignal_trip_status_channel';
 
-    public static function getChannelId($pdo = null) {
         if ($pdo) {
             try {
-                $stmt = $pdo->prepare("SELECT setting_value FROM site_settings WHERE setting_key = 'onesignal_channel_id'");
-                $stmt->execute();
+                $stmt = $pdo->prepare("SELECT setting_value FROM site_settings WHERE setting_key = ?");
+                $stmt->execute([$key]);
                 $val = $stmt->fetchColumn();
                 if ($val) return $val;
             } catch (Exception $e) {}
         }
-        return ''; // No default
+        return '';
     }
 
     /**
@@ -107,26 +102,32 @@ class NotificationHelper {
     public static function send($pdo, $recipients, $title, $body, $data = []) {
         $appId = self::getAppId($pdo);
         $apiKey = self::getApiKey($pdo);
-        $sound = self::getSoundName($pdo);
-        $channelId = self::getChannelId($pdo);
+        
+        // Determine box based on type
+        $type = $data['type'] ?? '';
+        $chat_type = $data['chat_type'] ?? '';
+        $box = 1;
+        if ($type === 'chat' && $chat_type === 'quote_request') $box = 3;
+        elseif (in_array($type, ['chat', 'chat_message'])) $box = 2;
+        elseif (in_array($type, ['commission_request', 'payment_request'])) $box = 3;
+        elseif (in_array($type, ['booking_accepted', 'assign_success'])) $box = 4;
+        elseif (in_array($type, ['booking_cancelled', 'cancel'])) $box = 5;
+        elseif (in_array($type, ['trip_start', 'trip_end', 'trip_complete', 'trip_update', 'status_update'])) $box = 6;
+        
+        $channelId = self::getChannelId($pdo, $box);
 
         if (!$apiKey) return false;
 
         $recipientList = is_array($recipients) ? $recipients : [$recipients];
 
-        $content = array("en" => $body);
-        $headings = array("en" => $title);
-
         $fields = array(
             'app_id' => $appId,
             'include_external_user_ids' => $recipientList,
             'data' => $data,
-            'contents' => $content,
-            'headings' => $headings,
+            'contents' => array("en" => $body),
+            'headings' => array("en" => $title),
             'android_accent_color' => 'FF1A1F36',
-            'small_icon' => 'ic_stat_onesignal_default',
-            'android_sound' => $sound,
-            'ios_sound' => $sound . '.wav'
+            'small_icon' => 'ic_stat_onesignal_default'
         );
 
         if ($channelId) {
@@ -139,11 +140,10 @@ class NotificationHelper {
     /**
      * Sends notification to ALL users (broadcasting)
      */
-    public static function broadcastToAll($pdo, $title, $body, $data = [], $exclude_id = 0) {
+    public static function broadcastToAll($pdo, $title, $body, $data = [], $box = 1) {
         $appId = self::getAppId($pdo);
         $apiKey = self::getApiKey($pdo);
-        $sound = self::getSoundName($pdo);
-        $channelId = self::getChannelId($pdo);
+        $channelId = self::getChannelId($pdo, $box);
 
         if (!$apiKey) return false;
 
@@ -152,9 +152,7 @@ class NotificationHelper {
             'included_segments' => array('All'),
             'data' => $data,
             'contents' => array("en" => $body),
-            'headings' => array("en" => $title),
-            'android_sound' => $sound,
-            'ios_sound' => $sound . '.wav'
+            'headings' => array("en" => $title)
         );
 
         if ($channelId) {
@@ -169,8 +167,8 @@ class NotificationHelper {
      */
     public static function sendBookingNotification($pdo, $booking) {
         try {
-            // Fetch all active partners and their alert settings (if any)
-            $stmt = $pdo->query("SELECT p.id as partner_id, pas.vehicle_types, pas.trip_types, pas.notification_types, pas.routes 
+            // Fetch all active partners
+            $stmt = $pdo->query("SELECT p.id as partner_id, pas.vehicle_types, pas.trip_types, pas.routes 
                                  FROM partners p 
                                  LEFT JOIN partner_alert_settings pas ON p.id = pas.partner_id 
                                  WHERE p.status = 'Active'");
@@ -185,14 +183,19 @@ class NotificationHelper {
 
             if (!empty($recipients)) {
                 $type = $booking['trip_type'] ?? 'Trip';
-                $title = "🚖 New $type Available";
+                $id = $booking['id'];
                 $pickup = $booking['pickup_location'] ?? 'N/A';
                 $drop = $booking['drop_location'] ?? 'N/A';
-                $body = "New booking ID-" . $booking['id'] . " from $pickup to $drop is now available. Grab it now!";
+                $car = $booking['car_type_name'] ?? 'Any';
+                $date = $booking['start_date'] ?? date('d/m/y');
+                $time = $booking['start_time'] ?? '';
+
+                $title = "Box-1: New $type Available";
+                $body = "1__ $type booking ($id)\n$pickup ----- $drop\nCar type :- $car\nDate :- $date @ $time";
                 
                 return self::send($pdo, $recipients, $title, $body, [
                     'type' => 'new_booking',
-                    'booking_id' => $booking['id']
+                    'booking_id' => $id
                 ]);
             }
         } catch (Exception $e) {

@@ -11,24 +11,16 @@ $action = $_POST['action'] ?? '';
 
 try {
     if ($action === 'save_settings') {
-        $app_id = $_POST['onesignal_app_id'] ?? '';
-        $api_key = $_POST['onesignal_rest_api_key'] ?? '';
-        $channel_id = $_POST['onesignal_channel_id'] ?? '';
-        $sound_name = $_POST['notification_sound'] ?? 'chat_notification_sound';
-
-        // Ensure table exists
-        $pdo->exec("CREATE TABLE IF NOT EXISTS site_settings (
-            setting_key VARCHAR(100) PRIMARY KEY,
-            setting_value TEXT,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-        ) ENGINE=InnoDB");
-
         // Save settings
         $settings = [
-            'onesignal_app_id' => $app_id,
-            'onesignal_rest_api_key' => $api_key,
-            'onesignal_channel_id' => $channel_id,
-            'notification_sound' => $sound_name
+            'onesignal_app_id' => $_POST['onesignal_app_id'] ?? '',
+            'onesignal_rest_api_key' => $_POST['onesignal_rest_api_key'] ?? '',
+            'onesignal_new_booking_channel' => $_POST['onesignal_new_booking_channel'] ?? '',
+            'onesignal_chat_channel' => $_POST['onesignal_chat_channel'] ?? '',
+            'onesignal_commission_channel' => $_POST['onesignal_commission_channel'] ?? '',
+            'onesignal_accept_channel' => $_POST['onesignal_accept_channel'] ?? '',
+            'onesignal_cancel_channel' => $_POST['onesignal_cancel_channel'] ?? '',
+            'onesignal_trip_status_channel' => $_POST['onesignal_trip_status_channel'] ?? ''
         ];
 
         $saved_count = 0;
@@ -40,43 +32,17 @@ try {
             }
         }
 
-        // Handle Sound File Upload
-        $upload_msg = "";
-        if (!empty($_FILES['sound_file']['name'])) {
-            $uploadDir = __DIR__ . '/../../../assets/sounds/';
-            if (!is_dir($uploadDir)) {
-                if (!mkdir($uploadDir, 0777, true)) {
-                    throw new Exception("Failed to create sound directory");
-                }
-            }
-            
-            $ext = strtolower(pathinfo($_FILES['sound_file']['name'], PATHINFO_EXTENSION));
-            if (!in_array($ext, ['wav', 'mp3'])) {
-                throw new Exception("Only .wav and .mp3 files are allowed");
-            }
 
-            $fileName = $sound_name . '.' . $ext;
-            if (!move_uploaded_file($_FILES['sound_file']['tmp_name'], $uploadDir . $fileName)) {
-                throw new Exception("Failed to move uploaded file");
-            }
-            
-            // Also store the full filename including extension
-            $stmt = $pdo->prepare("INSERT INTO site_settings (setting_key, setting_value) VALUES ('notification_sound_file', ?) 
-                                   ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
-            $stmt->execute([$fileName]);
-            $upload_msg = " and sound file uploaded as $fileName";
-        }
-
-        echo json_encode(['success' => true, 'message' => "Settings updated successfully ($saved_count fields)$upload_msg"]);
+        echo json_encode(['success' => true, 'message' => "Settings updated successfully ($saved_count fields)"]);
     } 
     elseif ($action === 'send_test') {
         require_once __DIR__ . '/../../../app/includes/notification_helper.php';
         
+        $box = $_POST['box'] ?? 1;
         $title = $_POST['title'] ?? 'Test Notification';
         $message = $_POST['message'] ?? 'This is a test notification from admin panel';
 
         // Check if settings exist in DB
-        $appId = NotificationHelper::getAppId($pdo);
         $apiKey = NotificationHelper::getApiKey($pdo);
 
         if (!$apiKey) {
@@ -84,7 +50,7 @@ try {
         }
 
         // We use broadcastToAll for testing
-        $response = NotificationHelper::broadcastToAll($pdo, $title, $message, ['type' => 'test']);
+        $response = NotificationHelper::broadcastToAll($pdo, $title, $message, ['type' => 'test'], $box);
         $resData = json_decode($response, true);
         
         if ($resData && (isset($resData['id']) || isset($resData['recipients']))) {
