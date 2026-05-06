@@ -98,7 +98,7 @@ try {
                 JOIN partners p ON pb.partner_id = p.id
                 LEFT JOIN car_types ct ON (ct.id = pb.car_type OR ct.name = pb.car_type)
                 WHERE ab.driver_id = ? 
-                ORDER BY pb.start_date DESC, pb.start_time DESC
+                ORDER BY pb.id DESC
             ");
             $stmt->execute([$driver_id]);
             echo json_encode(['success' => true, 'bookings' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);

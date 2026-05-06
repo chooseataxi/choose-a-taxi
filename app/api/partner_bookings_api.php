@@ -372,7 +372,7 @@ if ($action === 'get_bookings') {
                 LEFT JOIN accepted_bookings acc ON acc.booking_id = pb.id AND acc.status != 'Cancelled'
                 LEFT JOIN partners acc_p ON acc_p.id = acc.partner_id
                 WHERE pb.partner_id = ?
-                ORDER BY pb.id DESC";
+                ORDER BY pb.created_at DESC, pb.id DESC";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$partner_id]);
         $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
