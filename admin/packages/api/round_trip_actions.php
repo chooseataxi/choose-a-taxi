@@ -1,0 +1,97 @@
+<?php
+require_once __DIR__ . '/../../../includes/db.php';
+require_once __DIR__ . '/../../auth_check.php';
+
+header('Content-Type: application/json');
+
+$action = $_POST['action'] ?? '';
+
+function getRoundTripId($pdo) {
+    $stmt = $pdo->prepare("SELECT id FROM trip_types WHERE name LIKE '%Round Trip%' LIMIT 1");
+    $stmt->execute();
+    $res = $stmt->fetch();
+    return $res ? $res['id'] : null;
+}
+
+try {
+    $roundTripId = getRoundTripId($pdo);
+    if (!$roundTripId) throw new Exception("Round Trip type not found in database.");
+
+    switch ($action) {
+        case 'save':
+            $id = $_POST['id'] ?? null;
+            $type_id = $_POST['type_id'];
+            $brand_id = 1; // Default
+            
+            // Auto-fetch car type name for vehicle name
+            $typeStmt = $pdo->prepare("SELECT name FROM car_types WHERE id = ?");
+            $typeStmt->execute([$type_id]);
+            $typeRow = $typeStmt->fetch();
+            $name = $typeRow ? $typeRow['name'] : 'Round Trip Package';
+
+            $min_km = $_POST['min_km'];
+            $price_per_km = $_POST['price_per_km'];
+            $base_fare = $min_km * $price_per_km;
+            
+            $extra_km_price = $_POST['extra_km_price'];
+            $include_toll = $_POST['include_toll'];
+            $include_tax = $_POST['include_tax'];
+            $include_driver_allowance = $_POST['include_driver_allowance'];
+            $include_night_charges = $_POST['include_night_charges'];
+            $include_parking = $_POST['include_parking'];
+            $description = $_POST['description'] ?? '';
+            $status = $_POST['status'] ?? 'Active';
+
+            if ($id) {
+                $stmt = $pdo->prepare("UPDATE cars SET 
+                    type_id = ?, brand_id = ?, name = ?, base_fare = ?, min_km = ?, 
+                    extra_km_price = ?, include_toll = ?, include_tax = ?, 
+                    include_driver_allowance = ?, include_night_charges = ?, 
+                    include_parking = ?, description = ?, status = ?
+                    WHERE id = ? AND trip_type_id = ?");
+                $stmt->execute([
+                    $type_id, $brand_id, $name, $base_fare, $min_km, 
+                    $extra_km_price, $include_toll, $include_tax, 
+                    $include_driver_allowance, $include_night_charges, 
+                    $include_parking, $description, $status, 
+                    $id, $roundTripId
+                ]);
+                $message = "Round Trip package updated successfully!";
+            } else {
+                $stmt = $pdo->prepare("INSERT INTO cars 
+                    (type_id, brand_id, trip_type_id, name, base_fare, min_km, 
+                    extra_km_price, include_toll, include_tax, 
+                    include_driver_allowance, include_night_charges, 
+                    include_parking, description, status) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([
+                    $type_id, $brand_id, $roundTripId, $name, $base_fare, $min_km, 
+                    $extra_km_price, $include_toll, $include_tax, 
+                    $include_driver_allowance, $include_night_charges, 
+                    $include_parking, $description, $status
+                ]);
+                $message = "Round Trip package added successfully!";
+            }
+            echo json_encode(['success' => true, 'message' => $message]);
+            break;
+
+        case 'delete':
+            $id = $_POST['id'];
+            $stmt = $pdo->prepare("DELETE FROM cars WHERE id = ? AND trip_type_id = ?");
+            $stmt->execute([$id, $roundTripId]);
+            echo json_encode(['success' => true, 'message' => 'Package deleted successfully!']);
+            break;
+
+        case 'toggle_status':
+            $id = $_POST['id'];
+            $stmt = $pdo->prepare("UPDATE cars SET status = IF(status='Active', 'Inactive', 'Active') WHERE id = ? AND trip_type_id = ?");
+            $stmt->execute([$id, $roundTripId]);
+            echo json_encode(['success' => true, 'message' => 'Status updated successfully!']);
+            break;
+
+        default:
+            throw new Exception("Invalid action.");
+    }
+} catch (Exception $e) {
+    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+}
