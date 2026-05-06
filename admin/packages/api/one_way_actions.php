@@ -22,8 +22,14 @@ try {
         case 'save':
             $id = $_POST['id'] ?? null;
             $type_id = $_POST['type_id'];
-            $brand_id = $_POST['brand_id'] ?? 1; // Default to 1 if not provided
-            $name = $_POST['name'];
+            
+            // Auto-fetch car type name for vehicle name
+            $typeStmt = $pdo->prepare("SELECT name FROM car_types WHERE id = ?");
+            $typeStmt->execute([$type_id]);
+            $typeRow = $typeStmt->fetch();
+            $name = $typeRow ? $typeRow['name'] : 'One Way Package';
+            
+            $brand_id = 1; // Default brand ID
             $base_fare = $_POST['base_fare'];
             $min_km = $_POST['min_km'];
             $extra_km_price = $_POST['extra_km_price'];
@@ -35,30 +41,19 @@ try {
             $description = $_POST['description'] ?? '';
             $status = $_POST['status'] ?? 'Active';
 
-            // Handle Image Upload
-            $imageName = $_POST['existing_image'] ?? '';
-            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-                $uploadDir = __DIR__ . '/../../../uploads/cars/';
-                if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
-                
-                $fileExt = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
-                $imageName = 'car_' . time() . '.' . $fileExt;
-                move_uploaded_file($_FILES['image']['tmp_name'], $uploadDir . $imageName);
-            }
-
             if ($id) {
                 // Update
                 $stmt = $pdo->prepare("UPDATE cars SET 
                     type_id = ?, brand_id = ?, name = ?, base_fare = ?, min_km = ?, 
                     extra_km_price = ?, include_toll = ?, include_tax = ?, 
                     include_driver_allowance = ?, include_night_charges = ?, 
-                    include_parking = ?, description = ?, image = ?, status = ?
+                    include_parking = ?, description = ?, status = ?
                     WHERE id = ? AND trip_type_id = ?");
                 $stmt->execute([
                     $type_id, $brand_id, $name, $base_fare, $min_km, 
                     $extra_km_price, $include_toll, $include_tax, 
                     $include_driver_allowance, $include_night_charges, 
-                    $include_parking, $description, $imageName, $status, 
+                    $include_parking, $description, $status, 
                     $id, $oneWayId
                 ]);
                 $message = "Package updated successfully!";
@@ -68,13 +63,13 @@ try {
                     (type_id, brand_id, trip_type_id, name, base_fare, min_km, 
                     extra_km_price, include_toll, include_tax, 
                     include_driver_allowance, include_night_charges, 
-                    include_parking, description, image, status) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    include_parking, description, status) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 $stmt->execute([
                     $type_id, $brand_id, $oneWayId, $name, $base_fare, $min_km, 
                     $extra_km_price, $include_toll, $include_tax, 
                     $include_driver_allowance, $include_night_charges, 
-                    $include_parking, $description, $imageName, $status
+                    $include_parking, $description, $status
                 ]);
                 $message = "Package added successfully!";
             }

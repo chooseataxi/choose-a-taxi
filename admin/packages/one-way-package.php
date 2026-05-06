@@ -11,9 +11,6 @@ $oneWayId = $oneWayRow ? $oneWayRow['id'] : 0;
 // Fetch Car Types
 $carTypes = $pdo->query("SELECT id, name FROM car_types WHERE status = 'Active' ORDER BY name")->fetchAll();
 
-// Fetch Brands
-$brands = $pdo->query("SELECT id, name FROM car_brands WHERE status = 'Active' ORDER BY name")->fetchAll();
-
 // Fetch Existing One Way Packages
 $stmt = $pdo->prepare("SELECT c.*, ct.name as type_name, cb.name as brand_name 
                       FROM cars c 
@@ -59,16 +56,9 @@ $packages = $stmt->fetchAll();
                                     <td><?= $idx + 1 ?></td>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            <?php if ($pkg['image']): ?>
-                                                <img src="../../uploads/cars/<?= $pkg['image'] ?>" class="rounded me-3" style="width: 50px; height: 35px; object-fit: cover;">
-                                            <?php else: ?>
-                                                <div class="rounded me-3 bg-light d-flex align-items-center justify-content-center" style="width: 50px; height: 35px;">
-                                                    <i class="fas fa-car text-muted small"></i>
-                                                </div>
-                                            <?php endif; ?>
                                             <div>
-                                                <div class="fw-bold text-dark"><?= htmlspecialchars($pkg['name']) ?></div>
-                                                <span class="badge bg-primary-subtle text-primary x-small"><?= $pkg['type_name'] ?></span>
+                                                <div class="fw-bold text-dark"><?= $pkg['type_name'] ?></div>
+                                                <span class="badge bg-primary-subtle text-primary x-small">One Way</span>
                                             </div>
                                         </div>
                                     </td>
@@ -110,10 +100,9 @@ $packages = $stmt->fetchAll();
 <div class="modal fade" id="packageModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content border-0 shadow">
-            <form id="packageForm" enctype="multipart/form-data">
+            <form id="packageForm">
                 <input type="hidden" name="action" value="save">
                 <input type="hidden" name="id" id="pkg_id">
-                <input type="hidden" name="existing_image" id="pkg_existing_image">
                 
                 <div class="modal-header bg-light border-bottom-0">
                     <h5 class="modal-title fw-bold" id="modalTitle">Add One Way Package</h5>
@@ -121,8 +110,8 @@ $packages = $stmt->fetchAll();
                 </div>
                 <div class="modal-body py-4">
                     <div class="row g-3">
-                        <!-- Car Type & Brand -->
-                        <div class="col-md-6">
+                        <!-- Car Type -->
+                        <div class="col-md-12">
                             <label class="form-label fw-semibold">Car Type</label>
                             <select name="type_id" id="pkg_type_id" class="form-select border-2" required>
                                 <option value="">Select Car Type</option>
@@ -130,20 +119,6 @@ $packages = $stmt->fetchAll();
                                     <option value="<?= $type['id'] ?>"><?= $type['name'] ?></option>
                                 <?php endforeach; ?>
                             </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Brand</label>
-                            <select name="brand_id" id="pkg_brand_id" class="form-select border-2" required>
-                                <?php foreach ($brands as $brand): ?>
-                                    <option value="<?= $brand['id'] ?>"><?= $brand['name'] ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-
-                        <!-- Name -->
-                        <div class="col-md-12">
-                            <label class="form-label fw-semibold">Package/Vehicle Name</label>
-                            <input type="text" name="name" id="pkg_name" class="form-control border-2" placeholder="e.g. Swift Dzire (One Way Special)" required>
                         </div>
 
                         <!-- Pricing -->
@@ -200,15 +175,10 @@ $packages = $stmt->fetchAll();
                             </select>
                         </div>
 
-                        <!-- Image & Description -->
-                        <div class="col-md-12 mt-3">
-                            <label class="form-label fw-semibold">Vehicle Image</label>
-                            <input type="file" name="image" class="form-control border-2" accept="image/*">
-                            <div id="image_preview" class="mt-2"></div>
-                        </div>
+                        <!-- Description -->
                         <div class="col-md-12">
                             <label class="form-label fw-semibold">Description</label>
-                            <textarea name="description" id="pkg_description" class="form-control border-2" rows="2"></textarea>
+                            <textarea name="description" id="pkg_description" class="form-control border-2" rows="3"></textarea>
                         </div>
                     </div>
                 </div>
@@ -235,17 +205,13 @@ $packages = $stmt->fetchAll();
 function resetForm() {
     $('#packageForm')[0].reset();
     $('#pkg_id').val('');
-    $('#pkg_existing_image').val('');
     $('#modalTitle').text('Add One Way Package');
-    $('#image_preview').html('');
 }
 
 function editPackage(pkg) {
     resetForm();
     $('#pkg_id').val(pkg.id);
     $('#pkg_type_id').val(pkg.type_id);
-    $('#pkg_brand_id').val(pkg.brand_id);
-    $('#pkg_name').val(pkg.name);
     $('#pkg_base_fare').val(pkg.base_fare);
     $('#pkg_min_km').val(pkg.min_km);
     $('#pkg_extra_km_price').val(pkg.extra_km_price);
@@ -255,13 +221,8 @@ function editPackage(pkg) {
     $('#pkg_include_night_charges').val(pkg.include_night_charges);
     $('#pkg_include_parking').val(pkg.include_parking);
     $('#pkg_description').val(pkg.description);
-    $('#pkg_existing_image').val(pkg.image);
     
-    $('#modalTitle').text('Edit Package: ' + pkg.name);
-    if (pkg.image) {
-        $('#image_preview').html(`<img src="../../uploads/cars/${pkg.image}" style="height: 60px; border-radius: 4px;">`);
-    }
-    
+    $('#modalTitle').text('Edit Package: ' + pkg.type_name);
     $('#packageModal').modal('show');
 }
 
