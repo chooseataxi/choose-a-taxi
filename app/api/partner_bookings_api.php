@@ -434,7 +434,7 @@ if ($action === 'get_market_bookings') {
                 LEFT JOIN car_types ct ON (ct.id = pb.car_type OR ct.name = pb.car_type)
                 LEFT JOIN partners p   ON p.id = pb.partner_id
                 WHERE pb.status IN ('Open', 'Posted', 'Active')
-                ORDER BY pb.id DESC
+                ORDER BY pb.start_date ASC, pb.start_time ASC, pb.id DESC
                 LIMIT 50";
         $stmt = $pdo->query($sql);
         $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
