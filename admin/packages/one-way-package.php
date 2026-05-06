@@ -26,9 +26,9 @@ $packages = $stmt->fetchAll();
     <div class="card shadow mb-4 border-0">
         <div class="card-header bg-white py-3 d-flex align-items-center">
             <h5 class="mb-0 font-weight-bold text-dark">One Way Package Management</h5>
-            <button class="btn btn-yellow-black shadow-sm px-4 ms-auto" data-bs-toggle="modal" data-bs-target="#packageModal" onclick="resetForm()">
+            <a href="manage-one-way.php" class="btn btn-yellow-black shadow-sm px-4 ms-auto">
                 <i class="fas fa-plus mr-1"></i> Add One Way Package
-            </button>
+            </a>
         </div>
         <div class="card-body p-0">
                     <div class="table-responsive">
@@ -80,9 +80,9 @@ $packages = $stmt->fetchAll();
                                         </div>
                                     </td>
                                     <td class="text-center">
-                                        <button class="btn btn-sm btn-outline-primary me-2" onclick='editPackage(<?= json_encode($pkg) ?>)'>
+                                        <a href="manage-one-way.php?id=<?= $pkg['id'] ?>" class="btn btn-sm btn-outline-primary me-2">
                                             <i class="fas fa-edit"></i>
-                                        </button>
+                                        </a>
                                         <button class="btn btn-sm btn-outline-danger" onclick="deletePackage(<?= $pkg['id'] ?>)">
                                             <i class="fas fa-trash-alt"></i>
                                         </button>
@@ -98,100 +98,7 @@ $packages = $stmt->fetchAll();
     </div>
 </div>
 
-<!-- Modal -->
-<div class="modal fade" id="packageModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content border-0 shadow">
-            <form id="packageForm">
-                <input type="hidden" name="action" value="save">
-                <input type="hidden" name="id" id="pkg_id">
-                
-                <div class="modal-header bg-light border-bottom-0">
-                    <h5 class="modal-title fw-bold" id="modalTitle">Add One Way Package</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body py-4">
-                    <div class="row g-3">
-                        <!-- Car Type -->
-                        <div class="col-md-12">
-                            <label class="form-label fw-semibold">Car Type</label>
-                            <select name="type_id" id="pkg_type_id" class="form-select border-2" required>
-                                <option value="">Select Car Type</option>
-                                <?php foreach ($carTypes as $type): ?>
-                                    <option value="<?= $type['id'] ?>"><?= $type['name'] ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-
-                        <!-- Pricing -->
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">Base Fare (₹)</label>
-                            <input type="number" name="base_fare" id="pkg_base_fare" class="form-control border-2" placeholder="0" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">Included KMs</label>
-                            <input type="number" name="min_km" id="pkg_min_km" class="form-control border-2" placeholder="0" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">Extra KM Price (₹)</label>
-                            <input type="number" name="extra_km_price" id="pkg_extra_km_price" class="form-control border-2" placeholder="0" required>
-                        </div>
-
-                        <!-- Inclusions -->
-                        <div class="col-12 mt-4">
-                            <h6 class="fw-bold text-muted border-bottom pb-2 mb-3">Inclusions Policy</h6>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-bold">Toll Charges</label>
-                            <select name="include_toll" id="pkg_include_toll" class="form-select">
-                                <option value="Included">Included</option>
-                                <option value="Excluded">Excluded</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-bold">State Tax</label>
-                            <select name="include_tax" id="pkg_include_tax" class="form-select">
-                                <option value="Included">Included</option>
-                                <option value="Excluded">Excluded</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-bold">Driver Allowance</label>
-                            <select name="include_driver_allowance" id="pkg_include_driver_allowance" class="form-select">
-                                <option value="Included">Included</option>
-                                <option value="Excluded">Excluded</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Night Charges</label>
-                            <select name="include_night_charges" id="pkg_include_night_charges" class="form-select">
-                                <option value="Included">Included</option>
-                                <option value="Excluded">Excluded</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Parking</label>
-                            <select name="include_parking" id="pkg_include_parking" class="form-select">
-                                <option value="Excluded">Excluded</option>
-                                <option value="Included">Included</option>
-                            </select>
-                        </div>
-
-                        <!-- Description -->
-                        <div class="col-md-12">
-                            <label class="form-label fw-semibold">Description</label>
-                            <textarea name="description" id="pkg_description" class="form-control border-2" rows="3"></textarea>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer border-top-0 py-3">
-                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-yellow-black px-5 shadow-sm">Save Package</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+<!-- Modal Removed -->
 
 <style>
     .bg-yellow-soft { background: #fff8e1; color: #856404; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; }
@@ -204,30 +111,6 @@ $packages = $stmt->fetchAll();
 </style>
 
 <script>
-function resetForm() {
-    $('#packageForm')[0].reset();
-    $('#pkg_id').val('');
-    $('#modalTitle').text('Add One Way Package');
-}
-
-function editPackage(pkg) {
-    resetForm();
-    $('#pkg_id').val(pkg.id);
-    $('#pkg_type_id').val(pkg.type_id);
-    $('#pkg_base_fare').val(pkg.base_fare);
-    $('#pkg_min_km').val(pkg.min_km);
-    $('#pkg_extra_km_price').val(pkg.extra_km_price);
-    $('#pkg_include_toll').val(pkg.include_toll);
-    $('#pkg_include_tax').val(pkg.include_tax);
-    $('#pkg_include_driver_allowance').val(pkg.include_driver_allowance);
-    $('#pkg_include_night_charges').val(pkg.include_night_charges);
-    $('#pkg_include_parking').val(pkg.include_parking);
-    $('#pkg_description').val(pkg.description);
-    
-    $('#modalTitle').text('Edit Package: ' + pkg.type_name);
-    $('#packageModal').modal('show');
-}
-
 function toggleStatus(id) {
     $.post('api/one_way_actions.php', { action: 'toggle_status', id: id }, function(res) {
         if (!res.success) Swal.fire('Error', res.message, 'error');
@@ -257,25 +140,10 @@ function deletePackage(id) {
 }
 
 $(document).ready(function() {
-    $('#packageForm').on('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        
-        $.ajax({
-            url: 'api/one_way_actions.php',
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function(res) {
-                if (res.success) {
-                    $('#packageModal').modal('hide');
-                    Swal.fire('Success', res.message, 'success').then(() => location.reload());
-                } else {
-                    Swal.fire('Error', res.message, 'error');
-                }
-            }
-        });
+    $('#packageTable').DataTable({
+        pageLength: 10,
+        ordering: true,
+        responsive: true
     });
 });
 </script>
