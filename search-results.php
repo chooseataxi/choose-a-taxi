@@ -64,31 +64,32 @@ $cars = $cars_stmt->fetchAll();
 <style>
     .results-page { background: #fdfdfd; padding: 25px 0; min-height: 80vh; font-family: 'Inter', sans-serif; }
     .results-header-card { 
-        background: #1a1a1a; border-radius: 16px; padding: 18px 30px; margin-bottom: 30px; 
+        background: #1a1a1a; border-radius: 16px; padding: 18px 25px; margin-bottom: 30px; 
         box-shadow: 0 10px 30px rgba(0,0,0,0.1); color: #fff; position: relative; overflow: hidden;
     }
     .results-header-card::after {
         content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: #ffc107;
     }
-    .trip-summary-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 25px; }
-    .trip-route-info { display: flex; flex: 1; min-width: 350px; gap: 15px; align-items: center; position: relative; }
+    .trip-summary-header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 20px; }
+    .trip-route-info { display: flex; flex: 1; min-width: 450px; gap: 15px; align-items: center; position: relative; padding-bottom: 20px; }
     
     .route-item { display: flex; flex-direction: column; gap: 4px; position: relative; z-index: 1; }
     .route-label { font-size: 11px; font-weight: 800; color: #ffc107; text-transform: uppercase; letter-spacing: 1px; }
-    .route-value { font-size: 15px; font-weight: 600; color: #fff; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .route-value { font-size: 14px; font-weight: 600; color: #fff; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     
-    .route-line { flex: 1; height: 1px; border-top: 2px dashed rgba(255,193,7,0.3); margin-top: 15px; position: relative; }
+    .route-line { flex: 1; height: 1px; border-top: 2px dashed rgba(255,193,7,0.3); margin-top: 15px; position: relative; min-width: 100px; }
     .route-line::before, .route-line::after { content: ''; position: absolute; top: -4px; width: 8px; height: 8px; border-radius: 50%; background: #ffc107; }
     .route-line::before { left: -4px; } .route-line::after { right: -4px; }
 
-    .trip-details-info { display: flex; gap: 25px; align-items: center; background: rgba(255,255,255,0.05); padding: 10px 20px; border-radius: 12px; }
+    .trip-details-info { display: flex; gap: 15px; align-items: center; background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 12px; white-space: nowrap; }
     .info-box { display: flex; flex-direction: column; gap: 4px; }
     .info-box label { font-size: 10px; font-weight: 700; color: #aaa; text-transform: uppercase; }
-    .info-box span { font-size: 14px; font-weight: 700; color: #fff; }
+    .info-box span { font-size: 14px; font-weight: 700; color: #fff; white-space: nowrap; }
     
-    .trip-type-tag { background: #ffc107; color: #000; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+    .trip-type-tag { background: #ffc107; color: #000; padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
     
     .stop-dot-v2 { width: 10px; height: 10px; background: #fff; border: 2px solid #ffc107; border-radius: 50%; position: absolute; top: 50%; transform: translateY(-50%); z-index: 2; }
+    .stop-name { position: absolute; top: 15px; transform: translateX(-50%); font-size: 10px; color: #ffc107; font-weight: 600; white-space: nowrap; max-width: 80px; overflow: hidden; text-overflow: ellipsis; }
 </style>
 
 <div class="results-page">
@@ -111,7 +112,9 @@ $cars = $cars_stmt->fetchAll();
                             foreach ($valid_stops as $i => $stop):
                                 $pos = (($i + 1) / ($stop_count + 1)) * 100;
                         ?>
-                            <div class="stop-dot-v2" style="left: <?= $pos ?>%;" title="Stop: <?= htmlspecialchars($stop) ?>"></div>
+                            <div class="stop-dot-v2" style="left: <?= $pos ?>%;" title="Stop: <?= htmlspecialchars($stop) ?>">
+                                <span class="stop-name"><?= htmlspecialchars(explode(',', $stop)[0]) ?></span>
+                            </div>
                         <?php endforeach; endif; ?>
                     </div>
 
