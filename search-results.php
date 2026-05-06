@@ -62,46 +62,66 @@ $cars = $cars_stmt->fetchAll();
 <link rel="stylesheet" href="assets/css/fleet.css">
 <link rel="stylesheet" href="assets/css/footer.css">
 <style>
-    .results-page { background: #f4f7f9; padding: 40px 0; min-height: 80vh; font-family: 'Inter', sans-serif; }
+    .results-page { background: #f8fafc; padding: 30px 0; min-height: 80vh; font-family: 'Inter', sans-serif; }
     .results-header-card { 
-        background: #fff; border-radius: 8px; padding: 25px; margin-bottom: 30px; 
-        box-shadow: 0 5px 15px rgba(0,0,0,0.05); border-left: 5px solid #28a745;
+        background: #fff; border-radius: 12px; padding: 15px 25px; margin-bottom: 25px; 
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #edf2f7;
     }
-    .trip-summary-title { font-size: 28px; font-weight: 800; color: #333; margin-bottom: 20px; }
-    .loc-badge { 
-        display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 13px; 
-        font-weight: 700; margin-right: 10px; color: #fff;
-    }
-    .loc-pickup { background: #e3342f; }
-    .loc-drop { background: #28a745; }
-    .trip-info-row { display: flex; flex-wrap: wrap; gap: 30px; margin-bottom: 15px; }
-    .trip-info-item label { display: block; font-size: 12px; color: #888; text-transform: uppercase; font-weight: 700; margin-bottom: 5px; }
-    .trip-info-item span { font-size: 16px; font-weight: 600; color: #333; }
-    .editable-input { border: 1px solid #ddd; padding: 8px 12px; border-radius: 4px; font-weight: 600; width: 100%; }
+    .trip-summary-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; }
+    .trip-route-info { display: flex; flex: 1; min-width: 300px; gap: 15px; align-items: center; }
+    .route-item { display: flex; flex-direction: column; gap: 2px; }
+    .route-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+    .route-value { font-size: 14px; font-weight: 600; color: #1e293b; max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .route-arrow { color: #cbd5e1; font-size: 14px; margin-top: 15px; }
+    
+    .trip-details-info { display: flex; gap: 20px; align-items: center; }
+    .trip-type-badge { background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+    .info-box { display: flex; flex-direction: column; gap: 2px; }
+    .info-box label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; }
+    .info-box input { border: 1px solid #e2e8f0; border-radius: 6px; padding: 5px 10px; font-size: 13px; font-weight: 600; width: 110px; background: #f8fafc; }
+    
+    .stop-dot { width: 8px; height: 8px; background: #ffc107; border-radius: 50%; margin-top: 15px; }
 </style>
 
 <div class="results-page">
     <div class="container" style="width: 90%; max-width: 1200px; margin: 0 auto;">
         <!-- Header Info -->
         <div class="results-header-card">
-            <h2 class="trip-summary-title">Trip: <?= htmlspecialchars($trip_type) ?></h2>
-            <div style="margin-bottom: 15px;">
-                <span class="loc-badge loc-pickup">Pickup:</span>
-                <span style="font-size: 16px; font-weight: 600;"><?= htmlspecialchars($pickup) ?></span>
-            </div>
-            <div style="margin-bottom: 25px;">
-                <span class="loc-badge loc-drop">Drop:</span>
-                <span style="font-size: 16px; font-weight: 600;"><?= htmlspecialchars($drop) ?></span>
-            </div>
+            <div class="trip-summary-header">
+                <!-- Route Part -->
+                <div class="trip-route-info">
+                    <div class="route-item">
+                        <span class="route-label text-danger">Pickup</span>
+                        <span class="route-value" title="<?= htmlspecialchars($pickup) ?>"><?= htmlspecialchars($pickup) ?></span>
+                    </div>
 
-            <div class="trip-info-row">
-                <div class="trip-info-item">
-                    <label>Start date</label>
-                    <input type="text" class="editable-input" value="<?= htmlspecialchars($date) ?>">
+                    <?php foreach ($stops as $stop): if(!empty($stop)): ?>
+                        <div class="stop-dot" title="Stop: <?= htmlspecialchars($stop) ?>"></div>
+                        <div class="route-item d-none d-lg-flex">
+                            <span class="route-label text-warning">Stop</span>
+                            <span class="route-value" title="<?= htmlspecialchars($stop) ?>"><?= htmlspecialchars($stop) ?></span>
+                        </div>
+                    <?php endif; endforeach; ?>
+
+                    <div class="route-arrow"><i class="fas fa-chevron-right"></i></div>
+
+                    <div class="route-item">
+                        <span class="route-label text-success">Drop</span>
+                        <span class="route-value" title="<?= htmlspecialchars($drop) ?>"><?= htmlspecialchars($drop) ?></span>
+                    </div>
                 </div>
-                <div class="trip-info-item">
-                    <label>Start time</label>
-                    <input type="text" class="editable-input" value="<?= htmlspecialchars($time) ?>">
+
+                <!-- Date/Time Part -->
+                <div class="trip-details-info">
+                    <span class="trip-type-badge"><?= htmlspecialchars($trip_type) ?></span>
+                    <div class="info-box">
+                        <label>Date</label>
+                        <input type="text" value="<?= htmlspecialchars($date) ?>" readonly>
+                    </div>
+                    <div class="info-box">
+                        <label>Time</label>
+                        <input type="text" value="<?= htmlspecialchars($time) ?>" readonly>
+                    </div>
                 </div>
             </div>
         </div>
