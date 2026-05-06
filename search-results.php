@@ -145,12 +145,16 @@ $cars = $cars_stmt->fetchAll();
                     <h3 style="font-weight: 800; color: #333; margin-bottom: 15px;"><?= $display_name ?></h3>
                     <div class="details-grid">
                         <div class="detail-row">
-                            <label>Including Distance:</label>
-                            <span style="color: #28a745; font-weight: 800;"><?= round($total_distance_km) ?> KMs</span>
+                            <label>Package Min. KM:</label>
+                            <span style="color: #28a745; font-weight: 800;"><?= $car['min_km'] ?> KMs</span>
+                        </div>
+                        <div class="detail-row">
+                            <label>Total Trip Distance:</label>
+                            <span style="color: #007bff; font-weight: 800;"><?= round($total_distance_km) ?> KMs</span>
                         </div>
                         <div class="detail-row">
                             <label>Extra price/ KM:</label>
-                            <span style="color: #28a745; font-weight: 800;">Rs. <?= $extra_km_price ?></span>
+                            <span style="color: #d33; font-weight: 800;">Rs. <?= $extra_km_price ?></span>
                         </div>
                         <div class="detail-row">
                             <label>Toll:</label>
