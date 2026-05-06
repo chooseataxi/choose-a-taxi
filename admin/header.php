@@ -25,6 +25,13 @@ $menuItems = [
         ],
     ],
     [
+        "menuTitle" => "Packages",
+        "icon" => "fas fa-box-open",
+        "pages" => [
+            ["title" => "One Way Packages", "url" => "packages/one-way-package.php"]
+        ],
+    ],
+    [
         "menuTitle" => "Trips",
         "icon" => "fas fa-route",
         "pages" => [
