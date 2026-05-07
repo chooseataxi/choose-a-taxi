@@ -49,13 +49,26 @@ class NotificationHelper {
         if (!$apiKey) return false;
 
         $recipientList = is_array($recipients) ? $recipients : [$recipients];
-
+        
         $data['title'] = $title;
         $data['body'] = $body;
 
+        // Use Filters (Tags) for multi-device reliability
+        $filters = [];
+        foreach ($recipientList as $index => $id) {
+            if ($index > 0) $filters[] = ["operator" => "OR"];
+            
+            // Map 'partner_4' to tag check
+            if (strpos($id, 'partner_') === 0) {
+                $filters[] = ["field" => "tag", "key" => "partner_id", "relation" => "=", "value" => str_replace('partner_', '', $id)];
+            } elseif (strpos($id, 'driver_') === 0) {
+                $filters[] = ["field" => "tag", "key" => "driver_id", "relation" => "=", "value" => str_replace('driver_', '', $id)];
+            }
+        }
+
         $fields = array(
             'app_id' => $appId,
-            'include_external_user_ids' => $recipientList,
+            'filters' => $filters, // Using filters instead of include_external_user_ids
             'data' => $data,
             'contents' => array("en" => $body), 
             'headings' => array("en" => $title),
@@ -66,8 +79,7 @@ class NotificationHelper {
             'mutable_content' => true
         );
 
-        $recipientsStr = implode(', ', $recipientList);
-        self::logDebug("Sending targeted notification to: $recipientsStr | Title: $title");
+        self::logDebug("Sending targeted notification via Filters to: " . implode(', ', $recipientList));
 
         return self::executeCurl($fields, $apiKey);
     }
