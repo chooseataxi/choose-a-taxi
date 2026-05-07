@@ -138,11 +138,16 @@ class NotificationHelper {
             $allPartners = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             $recipients = [];
+            $allCount = count($allPartners);
             foreach ($allPartners as $partner) {
                 if (self::shouldNotify($partner, $booking)) {
                     $recipients[] = "partner_" . $partner['partner_id'];
                 }
             }
+            $recipientCount = count($recipients);
+
+            // Log for debugging
+            self::logDebug("sendBookingNotification: Found $allCount active partners, $recipientCount matched criteria for booking ID " . $booking['id']);
 
             if (!empty($recipients)) {
                 $type = $booking['trip_type'] ?? 'Trip';
@@ -162,9 +167,17 @@ class NotificationHelper {
                 ]);
             }
         } catch (Exception $e) {
-            error_log("Error in sendBookingNotification: " . $e->getMessage());
+            self::logDebug("Error in sendBookingNotification: " . $e->getMessage());
         }
         return false;
+    }
+
+    private static function logDebug($message) {
+        $logFile = __DIR__ . '/../../tmp/onesignal_debug.log';
+        $logDir = dirname($logFile);
+        if (!is_dir($logDir)) @mkdir($logDir, 0777, true);
+        $entry = "[" . date('Y-m-d H:i:s') . "] " . $message . PHP_EOL;
+        @file_put_contents($logFile, $entry, FILE_APPEND);
     }
 
     private static function shouldNotify($settings, $booking) {
