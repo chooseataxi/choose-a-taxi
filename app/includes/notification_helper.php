@@ -39,41 +39,8 @@ class NotificationHelper {
                 if ($val) return $val;
             } catch (Exception $e) {}
         }
-        
         self::loadEnv();
-        $key = $_ENV['ONESIGNAL_API_KEY'] ?? '';
-        
-        // Manual fallback if Dotenv failed
-        if (empty($key)) {
-            $path = realpath(__DIR__ . '/../../') . '/.env';
-            if (file_exists($path)) {
-                $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-                foreach ($lines as $line) {
-                    if (strpos(trim($line), '#') === 0) continue;
-                    $parts = explode('=', $line, 2);
-                    if (count($parts) < 2) continue;
-                    list($name, $value) = $parts;
-                    $name = trim($name);
-                    $value = trim($value, " \t\n\r\0\x0B\"'");
-                    if ($name === 'ONESIGNAL_API_KEY') {
-                        $key = $value;
-                        $_ENV['ONESIGNAL_API_KEY'] = $value;
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (empty($key)) {
-             $logFile = __DIR__ . '/../../tmp/onesignal_log.json';
-             $logData = [
-                 'timestamp' => date('Y-m-d H:i:s'),
-                 'error' => 'API KEY NOT FOUND IN DB, $_ENV OR .ENV MANUALLY',
-                 'check_path' => realpath(__DIR__ . '/../../') . '/.env'
-             ];
-             @file_put_contents($logFile, json_encode($logData, JSON_PRETTY_PRINT) . PHP_EOL . "---" . PHP_EOL, FILE_APPEND);
-        }
-        return $key;
+        return $_ENV['ONESIGNAL_API_KEY'] ?? '';
     }
 
     public static function getChannelId($pdo, $box = 1) {
@@ -95,15 +62,10 @@ class NotificationHelper {
         return '';
     }
 
-    /**
-     * Sends a notification to specific user(s) using OneSignal External IDs
-     * $recipients: can be a single string (e.g. "partner_14") or an array of strings
-     */
     public static function send($pdo, $recipients, $title, $body, $data = []) {
         $appId = self::getAppId($pdo);
         $apiKey = self::getApiKey($pdo);
         
-        // Determine box based on type
         $type = $data['type'] ?? '';
         $chat_type = $data['chat_type'] ?? '';
         $box = 1;
@@ -115,12 +77,11 @@ class NotificationHelper {
         elseif (in_array($type, ['trip_start', 'trip_end', 'trip_complete', 'trip_update', 'status_update'])) $box = 6;
         
         $channelId = self::getChannelId($pdo, $box);
-
         if (!$apiKey) return false;
 
         $recipientList = is_array($recipients) ? $recipients : [$recipients];
 
-        // Combine title and body into data for silent push handling
+        // Store title/body in data too for the extension
         $data['title'] = $title;
         $data['body'] = $body;
 
@@ -128,11 +89,11 @@ class NotificationHelper {
             'app_id' => $appId,
             'include_external_user_ids' => $recipientList,
             'data' => $data,
-            'content_available' => true,
-            'contents' => array("en" => " "), 
-            'headings' => array("en" => " "),
+            'contents' => array("en" => $body), 
+            'headings' => array("en" => $title),
             'android_accent_color' => 'FF1A1F36',
-            'small_icon' => 'ic_stat_onesignal_default'
+            'small_icon' => 'ic_stat_onesignal_default',
+            'priority' => 10 // High priority
         );
 
         if ($channelId) {
@@ -142,9 +103,6 @@ class NotificationHelper {
         return self::executeCurl($fields, $apiKey);
     }
 
-    /**
-     * Sends notification to ALL users (broadcasting)
-     */
     public static function broadcastToAll($pdo, $title, $body, $data = [], $box = 1) {
         $appId = self::getAppId($pdo);
         $apiKey = self::getApiKey($pdo);
@@ -159,9 +117,9 @@ class NotificationHelper {
             'app_id' => $appId,
             'included_segments' => array('All'),
             'data' => $data,
-            'content_available' => true,
-            'contents' => array("en" => " "),
-            'headings' => array("en" => " ")
+            'contents' => array("en" => $body),
+            'headings' => array("en" => $title),
+            'priority' => 10
         );
 
         if ($channelId) {
@@ -171,12 +129,8 @@ class NotificationHelper {
         return self::executeCurl($fields, $apiKey);
     }
 
-    /**
-     * Sends a filtered booking notification to eligible partners
-     */
     public static function sendBookingNotification($pdo, $booking) {
         try {
-            // Fetch all active partners
             $stmt = $pdo->query("SELECT p.id as partner_id, pas.vehicle_types, pas.trip_types, pas.routes 
                                  FROM partners p 
                                  LEFT JOIN partner_alert_settings pas ON p.id = pas.partner_id 
@@ -199,8 +153,8 @@ class NotificationHelper {
                 $date = $booking['start_date'] ?? date('d/m/y');
                 $time = $booking['start_time'] ?? '';
 
-                $title = "Box-1: New $type Available";
-                $body = "1__ $type booking ($id)\n$pickup ----- $drop\nCar type :- $car\nDate :- $date @ $time";
+                $title = "New $type Available";
+                $body = "$type booking ($id)\n$pickup ----- $drop\nCar type :- $car\nDate :- $date @ $time";
                 
                 return self::send($pdo, $recipients, $title, $body, [
                     'type' => 'new_booking',
@@ -214,31 +168,19 @@ class NotificationHelper {
     }
 
     private static function shouldNotify($settings, $booking) {
-        // If no settings found, they receive everything by default
         if (empty($settings['vehicle_types']) && empty($settings['trip_types']) && empty($settings['routes'])) {
             return true;
         }
-
-        // 1. Check Vehicle types
         if (!empty($settings['vehicle_types'])) {
             $allowedCars = explode(',', $settings['vehicle_types']);
-            $carType = $booking['car_type_name'] ?? '';
-            if (!in_array($carType, $allowedCars)) return false;
+            if (!in_array($booking['car_type_name'] ?? '', $allowedCars)) return false;
         }
-
-        // 2. Check Trip types
         if (!empty($settings['trip_types'])) {
             $allowedTrips = explode(',', $settings['trip_types']);
-            $tripType = $booking['trip_type'] ?? '';
-            
-            // Normalize: remove spaces and lowercase
-            $normTripType = strtolower(str_replace(' ', '', $tripType));
+            $normTripType = strtolower(str_replace(' ', '', $booking['trip_type'] ?? ''));
             $normAllowed = array_map(function($t) { return strtolower(str_replace(' ', '', $t)); }, $allowedTrips);
-            
             if (!in_array($normTripType, $normAllowed)) return false;
         }
-
-        // 3. Check Routes (City to City)
         if (!empty($settings['routes'])) {
             $routes = json_decode($settings['routes'], true);
             if (!empty($routes) && is_array($routes)) {
@@ -248,7 +190,6 @@ class NotificationHelper {
                     $d1 = strtolower($booking['drop_location'] ?? '');
                     $p2 = strtolower($r['pickup'] ?? '');
                     $d2 = strtolower($r['drop'] ?? '');
-                    
                     if (strpos($p1, $p2) !== false && strpos($d1, $d2) !== false) {
                         $match = true;
                         break;
@@ -257,64 +198,31 @@ class NotificationHelper {
                 if (!$match) return false;
             }
         }
-
         return true;
     }
 
-    /**
-     * Checks if a specific notification type is enabled for a partner
-     */
     public static function isEnabled($pdo, $partner_id, $type) {
         try {
             $stmt = $pdo->prepare("SELECT notification_types FROM partner_alert_settings WHERE partner_id = ?");
             $stmt->execute([$partner_id]);
             $val = $stmt->fetchColumn();
-            
-            // If no record exists, default to ENABLED for everything
             if ($val === false || $val === null) return true; 
-            
-            // If record exists but field is empty, it means everything is DISABLED
             if (trim($val) === '') return false;
-            
-            $types = explode(',', $val);
-            return in_array($type, $types);
-        } catch (Exception $e) {
-            return true;
-        }
+            return in_array($type, explode(',', $val));
+        } catch (Exception $e) { return true; }
     }
 
     private static function executeCurl($fields, $apiKey) {
         $fields = json_encode($fields);
-        
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, "https://onesignal.com/api/v1/notifications");
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-            'Content-Type: application/json; charset=utf-8',
-            'Authorization: Basic ' . $apiKey
-        ));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json; charset=utf-8', 'Authorization: Basic ' . $apiKey));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-        curl_setopt($ch, CURLOPT_HEADER, FALSE);
         curl_setopt($ch, CURLOPT_POST, TRUE);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-
         $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
-
-        // Logging
-        $logFile = __DIR__ . '/../../tmp/onesignal_log.json';
-        $logDir = dirname($logFile);
-        if (!is_dir($logDir)) @mkdir($logDir, 0777, true);
-
-        $logData = [
-            'timestamp' => date('Y-m-d H:i:s'),
-            'http_code' => $httpCode,
-            'payload' => json_decode($fields, true),
-            'response' => json_decode($response, true) ?: $response
-        ];
-        file_put_contents($logFile, json_encode($logData, JSON_PRETTY_PRINT) . PHP_EOL . "---" . PHP_EOL, FILE_APPEND);
-
         return $response;
     }
 }
