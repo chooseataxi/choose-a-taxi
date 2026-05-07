@@ -143,6 +143,8 @@ class NotificationHelper {
         
         if ($httpCode != 200) {
             error_log("OneSignal HTTP Error Code: " . $httpCode . " Response: " . $response);
+        } else {
+            self::logDebug("OneSignal Response: " . $response);
         }
 
         return $response;
