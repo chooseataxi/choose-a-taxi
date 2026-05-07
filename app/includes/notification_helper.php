@@ -61,8 +61,7 @@ class NotificationHelper {
             'headings' => array("en" => $title),
             'android_accent_color' => 'FF1A1F36',
             'small_icon' => 'ic_launcher',
-            'priority' => 10,
-            'android_channel_id' => 'chooseataxi_awesome_channel'
+            'priority' => 10
         );
 
         return self::executeCurl($fields, $apiKey);
@@ -83,8 +82,7 @@ class NotificationHelper {
             'contents' => array("en" => $body),
             'headings' => array("en" => $title),
             'priority' => 10,
-            'small_icon' => 'ic_launcher',
-            'android_channel_id' => 'chooseataxi_awesome_channel'
+            'small_icon' => 'ic_launcher'
         );
 
         return self::executeCurl($fields, $apiKey);
