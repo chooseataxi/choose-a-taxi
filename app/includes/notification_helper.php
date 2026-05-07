@@ -128,8 +128,9 @@ class NotificationHelper {
             'app_id' => $appId,
             'include_external_user_ids' => $recipientList,
             'data' => $data,
-            // 'contents' => array("en" => $body), // Remove to make it a silent push
-            // 'headings' => array("en" => $title),
+            'content_available' => true,
+            'contents' => array("en" => " "), 
+            'headings' => array("en" => " "),
             'android_accent_color' => 'FF1A1F36',
             'small_icon' => 'ic_stat_onesignal_default'
         );
@@ -158,8 +159,9 @@ class NotificationHelper {
             'app_id' => $appId,
             'included_segments' => array('All'),
             'data' => $data,
-            // 'contents' => array("en" => $body),
-            // 'headings' => array("en" => $title)
+            'content_available' => true,
+            'contents' => array("en" => " "),
+            'headings' => array("en" => " ")
         );
 
         if ($channelId) {
