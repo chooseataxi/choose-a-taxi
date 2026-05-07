@@ -115,7 +115,7 @@ if ($action === 'lookup_rc') {
 
     // ── Call Surepass RC Full API (token from .env → $_ENV, with fallback like partner_auth.php) ──
     $surepassToken = $_ENV['SUREPASS_TOKEN'] ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDg3NzAwMywianRpIjoiZGUxNGRmYmUtMmE3NC00NGQ5LWIxMzEtZGZhMWNlODBhMTc2IiwidHlwZSI6ImFjY2VzcyIsImlkZW50aXR5IjoiZGV2LnJvaGl0XzAzNDVAc3VyZXBhc3MuaW8iLCJuYmYiOjE3NzQ4NzcwMDMsImV4cCI6MjQwNTU5NzAwMywiZW1haWwiOiJyb2hpdF8wMzQ1QHN1cmVwYXNzLmlvIiwidGVuYW50X2lkIjoibWFpbiIsInVzZXJfY2xhaW1zIjp7InNjb3BlcyI6WyJ1c2VyIl19fQ.UC3ebDNZdNjyUxDhez-7IIACaf224xpA5rl8DaQRFpU';
-    $surepassUrl   = rtrim($_ENV['SUREPASS_BASE_URL'] ?? 'https://kyc-api.surepass.app/api/v1', '/') . '/rc/rc-full';
+    $surepassUrl   = rtrim($_ENV['SUREPASS_BASE_URL'] ?? 'https://kyc-api.surepass.app/api/v1', '/') . '/rc/rc-v2';
 
     $ch = curl_init($surepassUrl);
     curl_setopt_array($ch, [
@@ -125,7 +125,10 @@ if ($action === 'lookup_rc') {
             'Content-Type: application/json',
             "Authorization: Bearer $surepassToken",
         ],
-        CURLOPT_POSTFIELDS     => json_encode(['id_number' => $rc_number]),
+        CURLOPT_POSTFIELDS     => json_encode([
+            'id_number' => $rc_number,
+            'enrich'    => false
+        ]),
         CURLOPT_TIMEOUT        => 15,
     ]);
     $response = curl_exec($ch);
@@ -337,14 +340,17 @@ if ($action === 'renew_vehicle') {
         // 3. Re-fetch from Surepass
         $rc_number = $vehicle['rc_number'];
         $surepassToken = $_ENV['SUREPASS_TOKEN'] ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NDg3NzAwMywianRpIjoiZGUxNGRmYmUtMmE3NC00NGQ5LWIxMzEtZGZhMWNlODBhMTc2IiwidHlwZSI6ImFjY2VzcyIsImlkZW50aXR5IjoiZGV2LnJvaGl0XzAzNDVAc3VyZXBhc3MuaW8iLCJuYmYiOjE3NzQ4NzcwMDMsImV4cCI6MjQwNTU5NzAwMywiZW1haWwiOiJyb2hpdF8wMzQ1QHN1cmVwYXNzLmlvIiwidGVuYW50X2lkIjoibWFpbiIsInVzZXJfY2xhaW1zIjp7InNjb3BlcyI6WyJ1c2VyIl19fQ.UC3ebDNZdNjyUxDhez-7IIACaf224xpA5rl8DaQRFpU';
-        $surepassUrl   = rtrim($_ENV['SUREPASS_BASE_URL'] ?? 'https://kyc-api.surepass.app/api/v1', '/') . '/rc/rc-full';
+        $surepassUrl   = rtrim($_ENV['SUREPASS_BASE_URL'] ?? 'https://kyc-api.surepass.app/api/v1', '/') . '/rc/rc-v2';
 
         $ch = curl_init($surepassUrl);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST           => true,
             CURLOPT_HTTPHEADER     => ['Content-Type: application/json', "Authorization: Bearer $surepassToken"],
-            CURLOPT_POSTFIELDS     => json_encode(['id_number' => $rc_number]),
+            CURLOPT_POSTFIELDS     => json_encode([
+                'id_number' => $rc_number,
+                'enrich'    => false
+            ]),
             CURLOPT_TIMEOUT        => 15,
         ]);
         $response = curl_exec($ch);

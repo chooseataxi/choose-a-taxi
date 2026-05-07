@@ -120,12 +120,16 @@ class NotificationHelper {
 
         $recipientList = is_array($recipients) ? $recipients : [$recipients];
 
+        // Combine title and body into data for silent push handling
+        $data['title'] = $title;
+        $data['body'] = $body;
+
         $fields = array(
             'app_id' => $appId,
             'include_external_user_ids' => $recipientList,
             'data' => $data,
-            'contents' => array("en" => $body),
-            'headings' => array("en" => $title),
+            // 'contents' => array("en" => $body), // Remove to make it a silent push
+            // 'headings' => array("en" => $title),
             'android_accent_color' => 'FF1A1F36',
             'small_icon' => 'ic_stat_onesignal_default'
         );
@@ -147,12 +151,15 @@ class NotificationHelper {
 
         if (!$apiKey) return false;
 
+        $data['title'] = $title;
+        $data['body'] = $body;
+
         $fields = array(
             'app_id' => $appId,
             'included_segments' => array('All'),
             'data' => $data,
-            'contents' => array("en" => $body),
-            'headings' => array("en" => $title)
+            // 'contents' => array("en" => $body),
+            // 'headings' => array("en" => $title)
         );
 
         if ($channelId) {
