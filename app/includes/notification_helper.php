@@ -60,7 +60,7 @@ class NotificationHelper {
             'contents' => array("en" => $body), 
             'headings' => array("en" => $title),
             'android_accent_color' => 'FF1A1F36',
-            'small_icon' => 'ic_launcher',
+            'small_icon' => 'launcher_icon',
             'priority' => 10
         );
 
@@ -82,7 +82,9 @@ class NotificationHelper {
             'contents' => array("en" => $body),
             'headings' => array("en" => $title),
             'priority' => 10,
-            'small_icon' => 'ic_launcher'
+            'small_icon' => 'launcher_icon',
+            'content_available' => true,
+            'mutable_content' => true
         );
 
         return self::executeCurl($fields, $apiKey);
