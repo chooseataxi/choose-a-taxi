@@ -1,7 +1,7 @@
 <?php
 // require_once __DIR__ . '/../../includes/db.php';
 require_once __DIR__ . '/../includes/notification_helper.php';
-set_exception_handler(function($e) {
+set_exception_handler(function ($e) {
     header("Content-Type: application/json");
     echo json_encode(["status" => "error", "message" => "Critical Error: " . $e->getMessage()]);
     exit;
@@ -28,32 +28,39 @@ if (empty($partner_id) || (empty($booking_id) && !in_array($action, $no_booking_
 }
 
 // Helper: Get Razorpay Keys
-function getRazorpayConfig($pdo) {
+function getRazorpayConfig($pdo)
+{
     try {
         $stmt = $pdo->query("SELECT setting_key, setting_value FROM payment_settings WHERE setting_key LIKE 'razorpay_%'");
         $settings = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
         return [
-            'key_id'     => $settings['razorpay_key_id'] ?? '',
+            'key_id' => $settings['razorpay_key_id'] ?? '',
             'key_secret' => $settings['razorpay_key_secret'] ?? '',
-            'status'     => $settings['razorpay_status'] ?? 'Inactive'
+            'status' => $settings['razorpay_status'] ?? 'Inactive'
         ];
-    } catch (Exception $e) { return null; }
+    } catch (Exception $e) {
+        return null;
+    }
 }
 
 try {
     // Lazy Migration: Add is_read if not exists
     try {
         $pdo->exec("ALTER TABLE booking_chats ADD COLUMN is_read TINYINT(1) DEFAULT 0");
-    } catch (PDOException $e) {}
+    } catch (PDOException $e) {
+    }
 
     // Lazy Migration: Add phone to drivers if not exists
     try {
         $pdo->exec("ALTER TABLE drivers ADD COLUMN phone VARCHAR(20) DEFAULT NULL AFTER full_name");
-    } catch (PDOException $e) {}
+    } catch (PDOException $e) {
+    }
 
     // Helper: Update Wallet & Log Transaction
-    function updateWallet($pdo, $partner_id, $amount, $type, $source, $source_id, $description) {
-        if (!$pdo->inTransaction()) $pdo->beginTransaction();
+    function updateWallet($pdo, $partner_id, $amount, $type, $source, $source_id, $description)
+    {
+        if (!$pdo->inTransaction())
+            $pdo->beginTransaction();
         try {
             $stmt = $pdo->prepare("INSERT IGNORE INTO partner_wallet (partner_id, balance) VALUES (?, 0)");
             $stmt->execute([$partner_id]);
@@ -85,7 +92,8 @@ try {
                                   WHERE b.id = ?");
             $stmt->execute([$booking_id]);
             $booking = $stmt->fetch();
-            if (!$booking) throw new Exception("Booking not found");
+            if (!$booking)
+                throw new Exception("Booking not found");
 
             // 2. Check if already accepted
             $stmt = $pdo->prepare("SELECT a.*, p.full_name as accepter_name, p.id as accepter_id, p.selfie_link as accepter_image,
@@ -108,9 +116,10 @@ try {
             // 4. Aggressive Hotfix: Force 'Accept' UI by overriding key fields
             $booking['pricing_option'] = 'fixed';
             $booking['approach_type'] = 'first_driver';
-            
-            $booking['total_amount'] = (empty($booking['total_amount']) || $booking['total_amount'] == 0) ? "Best Quote" : (float)$booking['total_amount'];
-            $booking['commission'] = (empty($booking['commission']) || $booking['commission'] == 0) ? "Best Quote" : (float)$booking['commission'];
+            if (isset($booking['total_amount']))
+                $booking['total_amount'] = (float) $booking['total_amount'];
+            if (isset($booking['commission']))
+                $booking['commission'] = (float) $booking['commission'];
 
             echo json_encode([
                 'status' => 'success',
@@ -128,7 +137,8 @@ try {
             $type = $_POST['type'] ?? 'text';
             $payload = $_POST['payload'] ?? null;
 
-            if (empty($message) || empty($receiver_id)) throw new Exception("Message and Receiver required");
+            if (empty($message) || empty($receiver_id))
+                throw new Exception("Message and Receiver required");
 
             $stmt = $pdo->prepare("INSERT INTO booking_chats (booking_id, sender_id, receiver_id, message, type, payload) VALUES (?, ?, ?, ?, ?, ?)");
             $stmt->execute([$booking_id, $partner_id, $receiver_id, $message, $type, $payload]);
@@ -138,15 +148,16 @@ try {
             if ($type === 'quote_request' && !empty($payload)) {
                 $p = json_decode($payload, true);
                 if (isset($p['fare']) && isset($p['comm'])) {
-                    // We update the booking commission/total_amount
-                    $stmtUpdate = $pdo->prepare("UPDATE partner_bookings SET total_amount = ?, commission = ? WHERE id = ?");
+                    // We update the booking only if it is a manual_selection booking
+                    $stmtUpdate = $pdo->prepare("UPDATE partner_bookings SET total_amount = ?, commission = ? WHERE id = ? AND approach_type = 'manual_selection'");
                     $stmtUpdate->execute([$p['fare'], $p['comm'], $booking_id]);
-                    
+
                     // Trigger market list update via Pusher if something changed
                     if ($stmtUpdate->rowCount() > 0) {
                         try {
                             $pusher->trigger('market-channel', 'list-updated', ['id' => $booking_id, 'action' => 'updated']);
-                        } catch (Exception $e) {}
+                        } catch (Exception $e) {
+                        }
                     }
                 }
             }
@@ -161,16 +172,17 @@ try {
                 'payload' => $payload,
                 'created_at' => date('Y-m-d H:i:s')
             ];
-            
+
             try {
                 $pusher->trigger("booking-chat-$booking_id", 'new-message', $event_data);
                 $pusher->trigger("partner-$receiver_id", 'chat-update', $event_data);
                 $pusher->trigger("partner-$partner_id", 'chat-update', $event_data);
-            } catch (Exception $e) { /* Log pusher error but don't fail message insertion */ }
+            } catch (Exception $e) { /* Log pusher error but don't fail message insertion */
+            }
 
             // ── Send OneSignal Push Notification ──
             try {
-                                
+
                 // Identify recipient role to construct External ID
                 $isDriver = false;
                 $stmtCheck = $pdo->prepare("SELECT id FROM drivers WHERE id = ?");
@@ -180,11 +192,11 @@ try {
                 }
 
                 $externalId = ($isDriver ? "driver_" : "partner_") . $receiver_id;
-                
+
                 $stName = $pdo->prepare("SELECT full_name FROM partners WHERE id = ?");
                 $stName->execute([$partner_id]);
                 $senderName = $stName->fetchColumn() ?: 'Partner';
-                
+
                 $notifType = ($type === 'quote_request' || $type === 'quote_response') ? 'Commission Request' : 'Chat Notifications';
                 $title = ($type === 'quote_request') ? "New Commission Request" : (($type === 'quote_response') ? "Quote Received" : "New message from $senderName");
 
@@ -194,7 +206,8 @@ try {
                     'sender_id' => $partner_id,
                     'chat_type' => $type
                 ]);
-            } catch (Exception $nf) {}
+            } catch (Exception $nf) {
+            }
 
             echo json_encode(['status' => 'success', 'chat' => $event_data]);
             break;
@@ -208,13 +221,14 @@ try {
                                   ORDER BY id ASC");
             $stmt->execute([$booking_id, $partner_id, $other_id, $other_id, $partner_id]);
             $chats = $stmt->fetchAll();
-            
+
             echo json_encode(['status' => 'success', 'chats' => $chats]);
             break;
 
         case 'mark_as_read':
             $other_id = $_POST['other_id'] ?? '';
-            if (empty($other_id)) throw new Exception("Other ID required");
+            if (empty($other_id))
+                throw new Exception("Other ID required");
             $stmt = $pdo->prepare("UPDATE booking_chats SET is_read = 1 
                                   WHERE booking_id = ? AND sender_id = ? AND receiver_id = ? AND is_read = 0");
             $stmt->execute([$booking_id, $other_id, $partner_id]);
@@ -226,8 +240,9 @@ try {
             $stmt = $pdo->prepare("SELECT * FROM accepted_bookings WHERE booking_id = ? AND partner_id = ? AND status = 'Accepted'");
             $stmt->execute([$booking_id, $partner_id]);
             $accepted = $stmt->fetch();
-            
-            if (!$accepted) throw new Exception("You have not active acceptance for this booking");
+
+            if (!$accepted)
+                throw new Exception("You have not active acceptance for this booking");
 
             $pdo->beginTransaction();
             try {
@@ -236,7 +251,7 @@ try {
                 $currentTime = time();
                 $diffMinutes = ($currentTime - $acceptedAt) / 60;
                 $body = "Route: " . $accepted['pickup_city'] . " ➔ " . $accepted['drop_city'] . ". Check the marketplace for details.";
-                
+
                 $penalty = 0;
                 if ($diffMinutes > 30) {
                     $penalty = 1500;
@@ -245,7 +260,7 @@ try {
                 } elseif ($diffMinutes > 5) {
                     $penalty = 100;
                 }
-                
+
                 $penaltyMsg = "";
                 if ($penalty > 0) {
                     if (!updateWallet($pdo, $partner_id, $penalty, 'Debit', 'Penalty', $accepted['id'], "Penalty for Cancelling Booking ID-$booking_id after " . ceil($diffMinutes) . " minutes")) {
@@ -263,18 +278,19 @@ try {
                 $stmt->execute([$booking_id]);
 
                 // 4. Refund commission if > 0 (always refund to wallet as Credits)
-                $commission = (float)$accepted['commission'];
+                $commission = (float) $accepted['commission'];
                 if ($commission > 0) {
                     if (!updateWallet($pdo, $partner_id, $commission, 'Credit', 'Refund', $accepted['id'], "Refund for Cancelling Booking ID-$booking_id")) {
                         throw new Exception("Refund failed");
                     }
                 }
-                
+
                 $pdo->commit();
-                
+
                 try {
                     $pusher->trigger('market-channel', 'list-updated', ['id' => $booking_id, 'action' => 'updated']);
-                } catch (Exception $e) {}
+                } catch (Exception $e) {
+                }
 
                 echo json_encode(['status' => 'success', 'message' => 'Booking cancelled and is now Open again. Commission has been refunded.' . $penaltyMsg]);
             } catch (Exception $e) {
@@ -290,26 +306,30 @@ try {
         case 'accept_with_wallet':
             $driver_id = $_POST['driver_id'] ?? '';
             $commission = $_POST['commission'] ?? 0;
-            if (empty($driver_id)) throw new Exception("Driver assignment is mandatory");
+            if (empty($driver_id))
+                throw new Exception("Driver assignment is mandatory");
 
             // 1. Get meta and check for self-acceptance
             $stmt = $pdo->prepare("SELECT partner_id, total_amount FROM partner_bookings WHERE id = ?");
             $stmt->execute([$booking_id]);
             $bookingMeta = $stmt->fetch();
-            if (!$bookingMeta) throw new Exception("Booking not found");
-            if ($bookingMeta['partner_id'] == $partner_id) throw new Exception("You cannot accept your own booking. Please chat with a partner to request a commission.");
+            if (!$bookingMeta)
+                throw new Exception("Booking not found");
+            if ($bookingMeta['partner_id'] == $partner_id)
+                throw new Exception("You cannot accept your own booking. Please chat with a partner to request a commission.");
 
             // 2. Check if already taken by someone else
             $stmt = $pdo->prepare("SELECT partner_id FROM accepted_bookings WHERE booking_id = ? AND status != 'Cancelled'");
             $stmt->execute([$booking_id]);
             $accepted = $stmt->fetch();
-            if ($accepted && $accepted['partner_id'] != $partner_id) throw new Exception("Already accepted by another partner");
+            if ($accepted && $accepted['partner_id'] != $partner_id)
+                throw new Exception("Already accepted by another partner");
 
             // 2. Check Wallet (Must have commission + 300 minimum balance)
             $stmt = $pdo->prepare("SELECT balance FROM partner_wallet WHERE partner_id = ?");
             $stmt->execute([$partner_id]);
             $wallet = $stmt->fetch();
-            $required = (float)$commission + 300;
+            $required = (float) $commission + 300;
             if (!$wallet || $wallet['balance'] < $required) {
                 throw new Exception("Insufficient wallet balance. You need a minimum balance of ₹" . number_format($required, 2) . " (₹300 security deposit + ₹" . $commission . " commission) to accept this booking.");
             }
@@ -318,7 +338,7 @@ try {
             try {
                 // 2.5 Fetch Total Amount for DB storage
                 $total_amount = $bookingMeta['total_amount'] ?? 0;
-                
+
                 // 2.6 Fallback for Negotiable bookings
                 if ($total_amount == 0 || $total_amount == 'Negotiable') {
                     $qStmt = $pdo->prepare("SELECT payload FROM booking_chats WHERE booking_id = ? AND type = 'quote_request' ORDER BY id DESC LIMIT 1");
@@ -355,12 +375,13 @@ try {
                     $stmtPoster->execute([$booking_id]);
                     $poster_id = $stmtPoster->fetchColumn();
                     if ($poster_id) {
-                                                NotificationHelper::send($pdo, "partner_" . $poster_id, "Booking Accepted!", "Your booking ID-$booking_id has been accepted.", [
+                        NotificationHelper::send($pdo, "partner_" . $poster_id, "Booking Accepted!", "Your booking ID-$booking_id has been accepted.", [
                             'type' => 'booking_accepted',
                             'booking_id' => $booking_id
                         ]);
                     }
-                } catch (Exception $nf) {}
+                } catch (Exception $nf) {
+                }
 
                 echo json_encode(['status' => 'success', 'message' => 'Booking accepted successfully using wallet balance.']);
             } catch (Exception $e) {
@@ -376,14 +397,17 @@ try {
             $stmt = $pdo->prepare("SELECT partner_id, total_amount FROM partner_bookings WHERE id = ?");
             $stmt->execute([$booking_id]);
             $bookingMeta = $stmt->fetch();
-            if (!$bookingMeta) throw new Exception("Booking not found");
-            if ($bookingMeta['partner_id'] == $partner_id) throw new Exception("You cannot accept your own booking.");
+            if (!$bookingMeta)
+                throw new Exception("Booking not found");
+            if ($bookingMeta['partner_id'] == $partner_id)
+                throw new Exception("You cannot accept your own booking.");
 
             // 2. Already accepted check
             $stmt = $pdo->prepare("SELECT partner_id FROM accepted_bookings WHERE booking_id = ? AND status != 'Cancelled'");
             $stmt->execute([$booking_id]);
             $accepted = $stmt->fetch();
-            if ($accepted && $accepted['partner_id'] != $partner_id) throw new Exception("Already accepted by another partner");
+            if ($accepted && $accepted['partner_id'] != $partner_id)
+                throw new Exception("Already accepted by another partner");
 
             // 2.1 Check Wallet Minimum Balance (₹300)
             $stmt = $pdo->prepare("SELECT balance FROM partner_wallet WHERE partner_id = ?");
@@ -404,9 +428,10 @@ try {
             }
 
             $config = getRazorpayConfig($pdo);
-            if (!$config || $config['status'] !== 'Active') throw new Exception("Payment gateway not active");
+            if (!$config || $config['status'] !== 'Active')
+                throw new Exception("Payment gateway not active");
 
-            $amount_paise = (int)(round((float)$commission, 2) * 100);
+            $amount_paise = (int) (round((float) $commission, 2) * 100);
             if ($amount_paise < 100) {
                 throw new Exception("Minimum commission for Razorpay is ₹1.00. Your current commission is ₹$commission. Please use Wallet or request a higher commission.");
             }
@@ -464,7 +489,7 @@ try {
                                                                payment_status='Paid', razorpay_order_id=VALUES(razorpay_order_id), 
                                                                razorpay_payment_id=VALUES(razorpay_payment_id), razorpay_signature=VALUES(razorpay_signature)");
                 $stmt->execute([$booking_id, $partner_id, $driver_id, $total_fare, $commission, $order_id, $payment_id, $signature]);
-                
+
                 $stmt = $pdo->prepare("UPDATE partner_bookings SET status = 'Accepted' WHERE id = ?");
                 $stmt->execute([$booking_id]);
 
@@ -480,22 +505,25 @@ try {
                     $stmtPoster->execute([$booking_id]);
                     $poster_id = $stmtPoster->fetchColumn();
                     if ($poster_id) {
-                                                NotificationHelper::send($pdo, "partner_" . $poster_id, "Booking Accepted!", "Your booking ID-$booking_id has been accepted.", [
+                        NotificationHelper::send($pdo, "partner_" . $poster_id, "Booking Accepted!", "Your booking ID-$booking_id has been accepted.", [
                             'type' => 'booking_accepted',
                             'booking_id' => $booking_id
                         ]);
                     }
-                } catch (Exception $nf) {}
+                } catch (Exception $nf) {
+                }
 
                 echo json_encode(['status' => 'success', 'message' => 'Payment verified. Booking accepted.']);
             } catch (Exception $e) {
-                if ($pdo->inTransaction()) $pdo->rollBack();
+                if ($pdo->inTransaction())
+                    $pdo->rollBack();
                 throw new Exception("Payment verification failed: " . $e->getMessage());
             }
             break;
 
         case 'get_my_received':
-            if (empty($partner_id)) throw new Exception("Partner ID required");
+            if (empty($partner_id))
+                throw new Exception("Partner ID required");
             $stmt = $pdo->prepare("SELECT a.id as acceptance_id, a.booking_id, a.status as acceptance_status, a.driver_id,
                                   b.pickup_location, b.drop_location, b.start_date, b.start_time, b.status as booking_status,
                                   a.total_fare as total_amount, a.commission as commission, 
@@ -555,7 +583,8 @@ try {
             break;
 
         case 'get_latest_quote_request':
-            if (empty($partner_id)) throw new Exception("Partner ID required");
+            if (empty($partner_id))
+                throw new Exception("Partner ID required");
             $stmt = $pdo->prepare("SELECT bc.*, pb.pickup_location, pb.drop_location, pb.start_date, pb.start_time, 
                                           pb.status as booking_status, pb.booking_type, pb.note,
                                           p.full_name as sender_name, p.selfie_link as sender_image,
@@ -572,7 +601,8 @@ try {
             break;
 
         case 'get_latest_completed_booking':
-            if (empty($partner_id)) throw new Exception("Partner ID required");
+            if (empty($partner_id))
+                throw new Exception("Partner ID required");
             // Find bookings posted by this partner that are now completed
             $stmt = $pdo->prepare("SELECT pb.*, ct.name as car_type_name, ab.partner_id as accepter_id,
                                           COALESCE(NULLIF(ab.total_fare, 0), pb.total_amount) as display_amount

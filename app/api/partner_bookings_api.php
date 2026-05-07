@@ -309,7 +309,8 @@ if ($action === 'update_booking') {
         // Broadcast real-time update via Pusher
         try {
             $pusher->trigger('market-channel', 'list-updated', ['id' => $booking_id, 'action' => 'updated']);
-        } catch (Exception $e) {}
+        } catch (Exception $e) {
+        }
 
         echo json_encode(["status" => "success", "message" => "Booking updated successfully!", "booking_id" => $booking_id]);
     } catch (PDOException $e) {
@@ -381,8 +382,10 @@ if ($action === 'get_bookings') {
         foreach ($bookings as &$b) {
             $b['pricing_option'] = 'fixed';
             $b['approach_type'] = 'first_driver';
-            $b['total_amount'] = (empty($b['total_amount']) || $b['total_amount'] == 0) ? "Best Quote" : (float)$b['total_amount'];
-            $b['commission'] = (empty($b['commission']) || $b['commission'] == 0) ? "Best Quote" : (float)$b['commission'];
+            if (isset($b['total_amount']))
+                $b['total_amount'] = (float) $b['total_amount'];
+            if (isset($b['commission']))
+                $b['commission'] = (float) $b['commission'];
         }
 
         echo json_encode(["status" => "success", "bookings" => $bookings, "server_time" => $now]);
@@ -443,8 +446,10 @@ if ($action === 'get_market_bookings') {
         foreach ($bookings as &$b) {
             $b['pricing_option'] = 'fixed';
             $b['approach_type'] = 'first_driver';
-            $b['total_amount'] = (empty($b['total_amount']) || $b['total_amount'] == 0) ? "Best Quote" : (float)$b['total_amount'];
-            $b['commission'] = (empty($b['commission']) || $b['commission'] == 0) ? "Best Quote" : (float)$b['commission'];
+            if (isset($b['total_amount']))
+                $b['total_amount'] = (float) $b['total_amount'];
+            if (isset($b['commission']))
+                $b['commission'] = (float) $b['commission'];
         }
 
         echo json_encode(["status" => "success", "bookings" => $bookings, "server_time" => $now]);
@@ -488,7 +493,8 @@ if ($action === 'delete_booking') {
 
         try {
             $pusher->trigger('market-channel', 'list-updated', ['id' => $booking_id, 'action' => 'deleted']);
-        } catch (Exception $e) {}
+        } catch (Exception $e) {
+        }
 
         echo json_encode(["status" => "success", "message" => "Booking deleted successfully"]);
     } catch (Exception $e) {
@@ -544,14 +550,15 @@ if ($action === 'cancel_booking') {
             $stmtAcc = $pdo->prepare("SELECT partner_id FROM accepted_bookings WHERE booking_id = ? AND status = 'Cancelled' ORDER BY id DESC LIMIT 1");
             $stmtAcc->execute([$booking_id]);
             $accepter_id = $stmtAcc->fetchColumn();
-            
+
             if ($accepter_id) {
                 NotificationHelper::send($pdo, "partner_" . $accepter_id, "Booking Cancelled", "Booking ID-$booking_id has been cancelled by the poster.", [
                     'type' => 'booking_cancelled',
                     'booking_id' => $booking_id
                 ]);
             }
-        } catch (Exception $nf) {}
+        } catch (Exception $nf) {
+        }
 
         echo json_encode(["status" => "success", "message" => "Booking cancelled successfully"]);
     } catch (Exception $e) {
