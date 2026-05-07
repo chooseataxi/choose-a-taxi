@@ -92,13 +92,10 @@ class NotificationHelper {
             'contents' => array("en" => $body), 
             'headings' => array("en" => $title),
             'android_accent_color' => 'FF1A1F36',
-            'small_icon' => 'ic_stat_onesignal_default',
-            'priority' => 10 // High priority
+            'small_icon' => 'ic_launcher', // Guaranteed to exist
+            'priority' => 10,
+            'android_channel_id' => 'chooseataxi_awesome_channel'
         );
-
-        if ($channelId) {
-            $fields['android_channel_id'] = $channelId;
-        }
 
         return self::executeCurl($fields, $apiKey);
     }
@@ -119,12 +116,10 @@ class NotificationHelper {
             'data' => $data,
             'contents' => array("en" => $body),
             'headings' => array("en" => $title),
-            'priority' => 10
+            'priority' => 10,
+            'small_icon' => 'ic_launcher',
+            'android_channel_id' => 'chooseataxi_awesome_channel'
         );
-
-        if ($channelId) {
-            $fields['android_channel_id'] = $channelId;
-        }
 
         return self::executeCurl($fields, $apiKey);
     }
@@ -138,16 +133,10 @@ class NotificationHelper {
             $allPartners = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             $recipients = [];
-            $allCount = count($allPartners);
             foreach ($allPartners as $partner) {
-                if (self::shouldNotify($partner, $booking)) {
-                    $recipients[] = "partner_" . $partner['partner_id'];
-                }
+                // Sending to ALL active partners to ensure 100% delivery like Admin panel
+                $recipients[] = "partner_" . $partner['partner_id'];
             }
-            $recipientCount = count($recipients);
-
-            // Log for debugging
-            self::logDebug("sendBookingNotification: Found $allCount active partners, $recipientCount matched criteria for booking ID " . $booking['id']);
 
             if (!empty($recipients)) {
                 $type = $booking['trip_type'] ?? 'Trip';
