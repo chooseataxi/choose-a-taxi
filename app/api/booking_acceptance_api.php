@@ -108,8 +108,9 @@ try {
             // 4. Aggressive Hotfix: Force 'Accept' UI by overriding key fields
             $booking['pricing_option'] = 'fixed';
             $booking['approach_type'] = 'first_driver';
-            if (isset($booking['total_amount'])) $booking['total_amount'] = (float)$booking['total_amount'];
-            if (isset($booking['commission'])) $booking['commission'] = (float)$booking['commission'];
+            
+            $booking['total_amount'] = (empty($booking['total_amount']) || $booking['total_amount'] == 0) ? "Best Quote" : (float)$booking['total_amount'];
+            $booking['commission'] = (empty($booking['commission']) || $booking['commission'] == 0) ? "Best Quote" : (float)$booking['commission'];
 
             echo json_encode([
                 'status' => 'success',
@@ -137,8 +138,8 @@ try {
             if ($type === 'quote_request' && !empty($payload)) {
                 $p = json_decode($payload, true);
                 if (isset($p['fare']) && isset($p['comm'])) {
-                    // We update the booking only if it is a manual_selection booking
-                    $stmtUpdate = $pdo->prepare("UPDATE partner_bookings SET total_amount = ?, commission = ? WHERE id = ? AND approach_type = 'manual_selection'");
+                    // We update the booking commission/total_amount
+                    $stmtUpdate = $pdo->prepare("UPDATE partner_bookings SET total_amount = ?, commission = ? WHERE id = ?");
                     $stmtUpdate->execute([$p['fare'], $p['comm'], $booking_id]);
                     
                     // Trigger market list update via Pusher if something changed
