@@ -61,8 +61,13 @@ class NotificationHelper {
             'headings' => array("en" => $title),
             'android_accent_color' => 'FF1A1F36',
             'small_icon' => 'launcher_icon',
-            'priority' => 10
+            'priority' => 10,
+            'content_available' => true,
+            'mutable_content' => true
         );
+
+        $recipientsStr = implode(', ', $recipientList);
+        self::logDebug("Sending targeted notification to: $recipientsStr | Title: $title");
 
         return self::executeCurl($fields, $apiKey);
     }
@@ -91,8 +96,6 @@ class NotificationHelper {
     }
 
     public static function sendBookingNotification($pdo, $booking) {
-        // Broadacasting to ALL users to ensure 100% delivery like Admin panel
-        // This bypasses any login/sync issues.
         $type = $booking['trip_type'] ?? 'Trip';
         $id = $booking['id'];
         $pickup = $booking['pickup_location'] ?? 'N/A';
@@ -108,6 +111,14 @@ class NotificationHelper {
             'type' => 'new_booking',
             'booking_id' => $id
         ]);
+    }
+
+    private static function logDebug($message) {
+        $logFile = __DIR__ . '/../../tmp/onesignal_debug.log';
+        $logDir = dirname($logFile);
+        if (!is_dir($logDir)) @mkdir($logDir, 0777, true);
+        $entry = "[" . date('Y-m-d H:i:s') . "] " . $message . PHP_EOL;
+        @file_put_contents($logFile, $entry, FILE_APPEND);
     }
 
     private static function executeCurl($fields, $apiKey) {
