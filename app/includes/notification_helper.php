@@ -111,16 +111,29 @@ class NotificationHelper {
     }
 
     private static function executeCurl($fields, $apiKey) {
-        $fields = json_encode($fields);
+        $fieldsJson = json_encode($fields);
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, "https://onesignal.com/api/v1/notifications");
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json; charset=utf-8', 'Authorization: Basic ' . $apiKey));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
         curl_setopt($ch, CURLOPT_POST, TRUE);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $fieldsJson);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        
         $response = curl_exec($ch);
+        $error = curl_error($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
+
+        if ($error) {
+            error_log("OneSignal CURL Error: " . $error);
+            return json_encode(['error' => $error, 'status' => 'failed']);
+        }
+        
+        if ($httpCode != 200) {
+            error_log("OneSignal HTTP Error Code: " . $httpCode . " Response: " . $response);
+        }
+
         return $response;
     }
 }
