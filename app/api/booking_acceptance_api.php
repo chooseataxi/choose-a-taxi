@@ -549,6 +549,8 @@ try {
                                   b.booking_type, 'fixed' as pricing_option, b.toll_tax, b.parking, b.note,
                                   p.full_name as partner_name, 
                                   p.mobile as partner_phone,
+                                  p.selfie_link as partner_image,
+                                  p.manual_verification_status as poster_verification,
                                   ct.name as car_type_name, ct.image as car_type_image
                                   FROM accepted_bookings a 
                                   JOIN partner_bookings b ON a.booking_id = b.id 
