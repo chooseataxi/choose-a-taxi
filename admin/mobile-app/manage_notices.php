@@ -1,11 +1,6 @@
 <?php
-include '../../includes/db.php';
-session_start();
-
-if (!isset($_SESSION['admin_id'])) {
-    header("Location: ../login.php");
-    exit;
-}
+require_once __DIR__ . '/../auth_check.php';
+include __DIR__ . '/../header.php';
 
 $message = "";
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
@@ -27,76 +22,92 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
 // Fetch active notice
 $active_notice = $pdo->query("SELECT * FROM app_notices WHERE status = 'active' ORDER BY id DESC LIMIT 1")->fetch();
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Manage App Notices - Admin</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;900&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Outfit', sans-serif; background: #f4f6f9; }
-        .card { border-radius: 15px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        .btn-primary { background: #2E3E5C; border: none; padding: 12px 30px; border-radius: 10px; font-weight: 600; }
-        .btn-primary:hover { background: #1a2538; }
-        .header { background: #2E3E5C; color: white; padding: 40px 0; margin-bottom: 40px; }
-    </style>
-</head>
-<body>
 
-<div class="header">
-    <div class="container">
-        <h1>Manage App Notices</h1>
-        <p class="mb-0">Broadcast messages to all partners in real-time.</p>
-    </div>
-</div>
-
-<div class="container">
-    <div class="row">
-        <div class="col-md-8 mx-auto">
-            <?php if ($message): ?>
-                <div class="alert alert-success"><?php echo $message; ?></div>
-            <?php endif; ?>
-
-            <div class="card mb-4">
-                <div class="card-body p-4">
-                    <h5 class="fw-bold mb-4">Post New Notice</h5>
-                    <form method="POST">
-                        <input type="hidden" name="action" value="save_notice">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Notice Title</label>
-                            <input type="text" name="title" class="form-control" placeholder="e.g. Important Security Update" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Message Content (Hindi/English)</label>
-                            <textarea name="content" class="form-control" rows="6" placeholder="Type your notice here..." required></textarea>
-                        </div>
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">POST NOTICE NOW</button>
-                        </div>
-                    </form>
-                </div>
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0 text-dark fw-bold"><i class="fas fa-bullhorn me-2"></i>Manage App Notices</h1>
             </div>
-
-            <?php if ($active_notice): ?>
-            <div class="card">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="fw-bold mb-0">Currently Active Notice</h5>
-                        <span class="badge bg-success">LIVE</span>
-                    </div>
-                    <div class="p-3 bg-light rounded-3">
-                        <h6 class="fw-bold"><?php echo htmlspecialchars($active_notice['title']); ?></h6>
-                        <p class="mb-0 text-muted"><?php echo nl2br(htmlspecialchars($active_notice['content'])); ?></p>
-                        <hr>
-                        <small class="text-secondary">Posted on: <?php echo $active_notice['created_at']; ?></small>
-                    </div>
-                </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="../index.php">Admin</a></li>
+                    <li class="breadcrumb-item active">Mobile App Notices</li>
+                </ol>
             </div>
-            <?php endif; ?>
         </div>
     </div>
 </div>
 
-</body>
-</html>
+<div class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <?php if ($message): ?>
+                    <div class="alert alert-success shadow-sm border-0 rounded-3">
+                        <i class="fas fa-check-circle me-2"></i><?php echo $message; ?>
+                    </div>
+                <?php endif; ?>
+
+                <div class="card shadow-lg border-0 rounded-4 mb-4">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h5 class="mb-0 fw-bold text-dark">Post New Notice</h5>
+                        <p class="text-muted small mb-0">Broadcast messages to all partners in real-time.</p>
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="POST">
+                            <input type="hidden" name="action" value="save_notice">
+                            <div class="mb-4">
+                                <label class="form-label small fw-bold text-muted text-uppercase mb-2">Notice Title</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-tag text-muted"></i></span>
+                                    <input type="text" name="title" class="form-control border-start-0 ps-0 shadow-none" placeholder="e.g. Important Security Update" required>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label small fw-bold text-muted text-uppercase mb-2">Message Content (Hindi/English)</label>
+                                <textarea name="content" class="form-control shadow-none" rows="6" placeholder="Type your notice here..." required style="border-radius: 12px;"></textarea>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary rounded-pill py-3 fw-bold shadow-sm">
+                                    <i class="fas fa-paper-plane me-2"></i>POST NOTICE NOW
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <?php if ($active_notice): ?>
+                <div class="card shadow border-0 rounded-4 overflow-hidden">
+                    <div class="card-header bg-success-subtle py-3 border-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="fw-bold mb-0 text-success"><i class="fas fa-broadcast-tower me-2"></i>Currently Active Notice</h5>
+                            <span class="badge bg-success rounded-pill px-3 py-2">LIVE NOW</span>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="p-4 bg-light rounded-4 border border-dashed">
+                            <h6 class="fw-bold text-dark mb-2" style="font-size: 1.1rem;"><?php echo htmlspecialchars($active_notice['title']); ?></h6>
+                            <p class="mb-0 text-secondary" style="line-height: 1.6;"><?php echo nl2br(htmlspecialchars($active_notice['content'])); ?></p>
+                            <hr class="my-4 opacity-10">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted"><i class="far fa-calendar-alt me-1"></i> Posted on: <?php echo date('d M Y, h:i A', strtotime($active_notice['created_at'])); ?></small>
+                                <div class="text-primary small fw-bold">Active for all partners</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-success-subtle { background-color: #e8f5e9; }
+    .border-dashed { border-style: dashed !important; border-width: 2px !important; border-color: #dee2e6 !important; }
+    .btn-primary { background-color: #28a745; border: none; }
+    .btn-primary:hover { background-color: #218838; }
+</style>
+
+<?php include __DIR__ . '/../footer.php'; ?>
