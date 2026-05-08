@@ -116,18 +116,37 @@ try {
             // 4. Aggressive Hotfix: Force 'Accept' UI by overriding key fields
             $booking['pricing_option'] = 'fixed';
             $booking['approach_type'] = 'first_driver';
-            if (isset($booking['total_amount']))
-                $booking['total_amount'] = (float) $booking['total_amount'];
-            if (isset($booking['commission']))
-                $booking['commission'] = (float) $booking['commission'];
+            
+            $booking['total_amount'] = (empty($booking['total_amount']) || $booking['total_amount'] == 0) ? "Best Quote" : (float)$booking['total_amount'];
+            $booking['commission'] = (empty($booking['commission']) || $booking['commission'] == 0) ? "Best Quote" : (float)$booking['commission'];
 
+            // 5. If is_poster and no acceptance yet, but we are in a chat (other_id provided)
+            $other_id = $_GET['other_id'] ?? null;
+            if ($booking['partner_id'] == $partner_id && empty($acceptance) && !empty($other_id)) {
+                $stmtOther = $pdo->prepare("SELECT id as accepter_id, full_name as accepter_name, selfie_link as accepter_image, mobile as accepter_mobile, manual_verification_status as accepter_verification FROM partners WHERE id = ?");
+                $stmtOther->execute([$other_id]);
+                $other_data = $stmtOther->fetch(PDO::FETCH_ASSOC);
+                if ($other_data) {
+                    $acceptance = $other_data; // Temporary mock acceptance for UI purposes
+                    $acceptance['status'] = 'Negotiating';
+                }
+            }
+
+            $is_poster = ($booking['partner_id'] == $partner_id);
+            $other_partner = null;
+
+            // If poster is viewing, and it's not accepted yet, check if we should show 'other' partner from chat
+            // In Flutter, we often pass 'other_id' or it's inferred. 
+            // For now, let's just ensure if an acceptance exists, it's returned.
+            // If the user wants to call ANY partner they are chatting with, we might need a more dynamic lookup.
+            
             echo json_encode([
                 'status' => 'success',
                 'booking' => $booking,
                 'acceptance' => $acceptance,
                 'drivers' => $drivers,
                 'vehicles' => $vehicles,
-                'is_poster' => ($booking['partner_id'] == $partner_id)
+                'is_poster' => $is_poster
             ]);
             break;
 
@@ -148,8 +167,8 @@ try {
             if ($type === 'quote_request' && !empty($payload)) {
                 $p = json_decode($payload, true);
                 if (isset($p['fare']) && isset($p['comm'])) {
-                    // We update the booking only if it is a manual_selection booking
-                    $stmtUpdate = $pdo->prepare("UPDATE partner_bookings SET total_amount = ?, commission = ? WHERE id = ? AND approach_type = 'manual_selection'");
+                    // We update the booking commission/total_amount
+                    $stmtUpdate = $pdo->prepare("UPDATE partner_bookings SET total_amount = ?, commission = ? WHERE id = ?");
                     $stmtUpdate->execute([$p['fare'], $p['comm'], $booking_id]);
 
                     // Trigger market list update via Pusher if something changed
