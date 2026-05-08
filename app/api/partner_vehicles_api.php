@@ -47,7 +47,17 @@ try {
 $action = $_REQUEST['action'] ?? '';
 $partner_id = $_REQUEST['partner_id'] ?? '';
 
-if (empty($partner_id) && $action !== 'lookup_rc' && $action !== 'options') {
+// Support JSON body for partner_id (e.g. for update_car_type)
+$rawInput = file_get_contents("php://input");
+$jsonData = json_decode($rawInput, true);
+
+if (empty($partner_id)) {
+    if (isset($jsonData['partner_id'])) {
+        $partner_id = $jsonData['partner_id'];
+    }
+}
+
+if (empty($partner_id) && !in_array($action, ['lookup_rc', 'options', 'get_car_types'])) {
     echo json_encode(['status' => 'error', 'message' => 'partner_id required']);
     exit;
 }
@@ -400,8 +410,7 @@ if ($action === 'renew_vehicle') {
 // ACTION: update_car_type — for existing vehicles
 // ──────────────────────────────────────────────
 if ($action === 'update_car_type') {
-    $raw  = file_get_contents("php://input");
-    $data = json_decode($raw, true);
+    $data = $jsonData;
     if (!is_array($data)) $data = $_POST;
 
     $vehicle_id = $data['vehicle_id'] ?? '';
