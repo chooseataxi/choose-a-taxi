@@ -387,4 +387,27 @@ if ($action === 'renew_vehicle') {
     exit;
 }
 
+// ──────────────────────────────────────────────
+// ACTION: options — fetch car types
+// ──────────────────────────────────────────────
+if ($action === 'options') {
+    try {
+        $stmt = $pdo->query("SELECT id, name, image AS type_image FROM car_types WHERE status = 'Active'");
+        $cars = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        $formatted = array_map(function ($c) {
+            return [
+                'id' => $c['id'],
+                'name' => $c['name'] ?? 'Unknown Type',
+                'type_image' => $c['type_image'] ?? '',
+            ];
+        }, $cars);
+
+        echo json_encode(["status" => "success", "cars" => $formatted]);
+    } catch (PDOException $e) {
+        echo json_encode(["status" => "error", "message" => $e->getMessage()]);
+    }
+    exit;
+}
+
 echo json_encode(['status' => 'error', 'message' => 'Invalid action']);
