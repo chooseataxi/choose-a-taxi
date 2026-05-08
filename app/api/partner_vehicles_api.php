@@ -38,6 +38,10 @@ try {
         status                  ENUM('Active','Inactive','Pending') DEFAULT 'Active',
         created_at              TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )");
+    // Lazy Migration: Add car_type if not exists
+    try {
+        $pdo->exec("ALTER TABLE partner_vehicles ADD COLUMN car_type INT DEFAULT NULL AFTER partner_id");
+    } catch(PDOException $e) {}
 } catch(PDOException $e) {}
 
 $action = $_REQUEST['action'] ?? '';
@@ -191,6 +195,7 @@ if ($action === 'add_vehicle') {
     $permit_type             = $_POST['permit_type'] ?? '';
     $permit_valid_upto       = $_POST['permit_valid_upto'] ?? '';
     $raw_rc_data             = $_POST['raw_rc_data'] ?? '{}';
+    $car_type                = $_POST['car_type'] ?? '';
 
     // ── Pre-Check Compliance ──
     $compliance = isVehicleCompliant([
@@ -236,14 +241,14 @@ if ($action === 'add_vehicle') {
             (partner_id, rc_number, owner_name, maker_description, maker_model, body_type, fuel_type, color,
              seat_capacity, vehicle_category_desc, registration_date, fit_up_to, insurance_company,
              insurance_policy_number, insurance_upto, norms_type, rc_status, permit_type, permit_valid_upto,
-             raw_rc_data, front_image, back_image)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+             raw_rc_data, front_image, back_image, car_type)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
 
         $stmt->execute([
             $partner_id, $rc_number, $owner_name, $maker_description, $maker_model, $body_type, $fuel_type, $color,
             $seat_capacity, $vehicle_category_desc, $registration_date, $fit_up_to, $insurance_company,
             $insurance_policy_number, $insurance_upto, $norms_type, $rc_status, $permit_type, $permit_valid_upto,
-            $raw_rc_data, $front_image, $back_image
+            $raw_rc_data, $front_image, $back_image, $car_type
         ]);
 
         // Fee already deducted during lookup_rc
