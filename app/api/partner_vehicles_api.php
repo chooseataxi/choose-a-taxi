@@ -265,7 +265,10 @@ if ($action === 'get_vehicles') {
         exit;
     }
     try {
-        $stmt = $pdo->prepare("SELECT * FROM partner_vehicles WHERE partner_id = ? ORDER BY id DESC");
+        $stmt = $pdo->prepare("SELECT v.*, ct.name as car_type_name, ct.image as car_type_image 
+                               FROM partner_vehicles v 
+                               LEFT JOIN car_types ct ON v.car_type = ct.id 
+                               WHERE v.partner_id = ? ORDER BY v.id DESC");
         $stmt->execute([$partner_id]);
         $vehicles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -382,6 +385,34 @@ if ($action === 'renew_vehicle') {
         echo json_encode(['status' => 'success', 'message' => 'Vehicle documents renewed and updated successfully.']);
     } catch (Exception $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
+        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+    }
+    exit;
+}
+
+
+// ──────────────────────────────────────────────
+// ACTION: update_car_type — for existing vehicles
+// ──────────────────────────────────────────────
+if ($action === 'update_car_type') {
+    $raw  = file_get_contents("php://input");
+    $data = json_decode($raw, true);
+    if (!is_array($data)) $data = $_POST;
+
+    $vehicle_id = $data['vehicle_id'] ?? '';
+    $partner_id = $data['partner_id'] ?? '';
+    $car_type   = $data['car_type'] ?? '';
+
+    if (empty($vehicle_id) || empty($partner_id) || empty($car_type)) {
+        echo json_encode(['status' => 'error', 'message' => 'Missing required fields']);
+        exit;
+    }
+
+    try {
+        $stmt = $pdo->prepare("UPDATE partner_vehicles SET car_type = ? WHERE id = ? AND partner_id = ?");
+        $stmt->execute([$car_type, $vehicle_id, $partner_id]);
+        echo json_encode(['status' => 'success', 'message' => 'Car type updated successfully']);
+    } catch (PDOException $e) {
         echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     }
     exit;
