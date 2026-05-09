@@ -159,7 +159,7 @@ class NotificationHelper {
             'small_icon' => 'launcher_icon',
             'content_available' => true,
             'mutable_content' => true,
-            'android_channel_id' => $channel,
+            'android_channel_id' => !empty($androidChannelId) ? $androidChannelId : $channel,
             'android_sound' => $sound,
             'ios_sound' => $sound . '.mp3',
             'collapse_id' => 'booking_' . ($data['booking_id'] ?? 'general'),
