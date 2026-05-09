@@ -124,11 +124,15 @@ if ($action === 'get_cars') {
         }
 
         $formatted = array_map(function ($c) {
+            $img = $c['type_image'] ?? '';
+            if (!empty($img) && !preg_match('~^(?:f|ht)tps?://~i', $img)) {
+                $img = 'https://chooseataxi.com/' . ltrim($img, '/');
+            }
             return [
                 'id' => $c['id'],
                 'name' => $c['name'] ?? 'Unknown Type',
                 'type_name' => $c['name'] ?? '',
-                'type_image' => $c['type_image'] ?? '',
+                'type_image' => $img,
             ];
         }, $cars);
 
@@ -217,12 +221,17 @@ if ($action === 'create_booking') {
         } catch (Exception $e) {
         }
 
-            // Fetch car image for notification
+            // Fetch car info for notification
             $carImg = '';
+            $carName = $car_type; 
             try {
-                $stmtImg = $pdo->prepare("SELECT image FROM car_types WHERE name = ? OR id = ? LIMIT 1");
+                $stmtImg = $pdo->prepare("SELECT name, image FROM car_types WHERE name = ? OR id = ? LIMIT 1");
                 $stmtImg->execute([$car_type, $car_type]);
-                $carImg = $stmtImg->fetchColumn();
+                $carData = $stmtImg->fetch(PDO::FETCH_ASSOC);
+                if ($carData) {
+                    $carImg = $carData['image'] ?? '';
+                    $carName = $carData['name'] ?? $car_type;
+                }
             } catch (Exception $e) {}
 
             require_once __DIR__ . '/../includes/notification_helper.php';
@@ -231,7 +240,7 @@ if ($action === 'create_booking') {
                 'trip_type' => $booking_type,
                 'pickup_location' => $pickup,
                 'drop_location' => $drop,
-                'car_type_name' => $car_type,
+                'car_type_name' => $carName,
                 'car_type_image' => $carImg,
                 'start_date' => $start_date,
                 'start_time' => $start_time

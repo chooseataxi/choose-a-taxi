@@ -46,7 +46,10 @@ class NotificationHelper {
 
     private static function getAppUrl() {
         self::loadEnv();
-        $url = $_ENV['APP_URL'] ?? $_SERVER['APP_URL'] ?? getenv('APP_URL') ?? 'https://chooseataxi.com';
+        $url = $_ENV['APP_URL'] ?? $_SERVER['APP_URL'] ?? getenv('APP_URL');
+        if (empty($url) || $url === 'https://chooseataxi.com') {
+            $url = 'https://chooseataxi.com';
+        }
         return rtrim($url, '/');
     }
 
@@ -153,7 +156,7 @@ class NotificationHelper {
         $dropCity = self::getCityOnly($dropFull);
 
         $appUrl = self::getAppUrl();
-        $fullImageUrl = !empty($carImg) ? "$appUrl/$carImg" : "";
+        $fullImageUrl = !empty($carImg) ? $appUrl . '/' . ltrim($carImg, '/') : "";
 
         // Requested Format: {"Trip Type" ( Booking Id : id )}
         $title = "$type (Booking Id : $id)";
