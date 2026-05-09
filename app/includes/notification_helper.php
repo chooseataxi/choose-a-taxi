@@ -103,11 +103,6 @@ class NotificationHelper {
             'mutable_content' => true
         );
 
-        if (isset($data['image_url']) && !empty($data['image_url'])) {
-            $fields['big_picture'] = $data['image_url'];
-            $fields['ios_attachments'] = array('id1' => $data['image_url']);
-        }
-
         return self::executeCurl($fields, $apiKey);
     }
 
@@ -158,11 +153,6 @@ class NotificationHelper {
             $fields['android_channel_id'] = $androidChannelId;
         }
 
-        if (isset($data['image_url']) && !empty($data['image_url'])) {
-            $fields['big_picture'] = $data['image_url'];
-            $fields['ios_attachments'] = array('id1' => $data['image_url']);
-        }
-
         return self::executeCurl($fields, $apiKey);
     }
 
@@ -182,8 +172,8 @@ class NotificationHelper {
         $appUrl = self::getAppUrl();
         $fullImageUrl = !empty($carImg) ? $appUrl . '/' . ltrim($carImg, '/') : "";
 
-        // Requested Format: {"Trip Type" ( Booking Id : id )}
-        $title = "$type (Booking Id : $id)";
+        // Requested Format: {Trip Type} Booking (Id: {id})
+        $title = "$type Booking (Id: $id)";
         
         // Body Format: 
         // Pickup City ➔ Drop City
