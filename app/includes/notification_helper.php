@@ -100,7 +100,10 @@ class NotificationHelper {
             'small_icon' => 'launcher_icon',
             'priority' => 10,
             'content_available' => true,
-            'mutable_content' => true
+            'mutable_content' => true,
+            'android_channel_id' => 'chooseataxi_urgent_channel',
+            'android_sound' => $sound,
+            'ios_sound' => $sound . '.mp3'
         );
 
         return self::executeCurl($fields, $apiKey);
@@ -146,7 +149,10 @@ class NotificationHelper {
             'priority' => 10,
             'small_icon' => 'launcher_icon',
             'content_available' => true,
-            'mutable_content' => true
+            'mutable_content' => true,
+            'android_channel_id' => $androidChannelId ?: 'chooseataxi_urgent_channel',
+            'android_sound' => $sound,
+            'ios_sound' => $sound . '.mp3'
         );
 
         if (!empty($androidChannelId)) {
