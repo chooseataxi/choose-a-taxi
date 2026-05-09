@@ -101,11 +101,26 @@ class NotificationHelper {
             'priority' => 10,
             'content_available' => true,
             'mutable_content' => true,
-            'android_channel_id' => 'booking_channel',
+        $channel = 'booking_channel';
+        if ($type == 'chat' || $type == 'chat_message') $channel = 'chat_channel';
+        if ($type == 'cancelled' || $type == 'cancel') $channel = 'cancel_channel';
+
+        $fields = array(
+            'app_id' => $appId,
+            'filters' => $filters,
+            'data' => $data,
+            'contents' => array("en" => $body), 
+            'headings' => array("en" => $title),
+            'android_accent_color' => 'FF1A1F36',
+            'small_icon' => 'launcher_icon',
+            'priority' => 10,
+            'content_available' => true,
+            'mutable_content' => true,
+            'android_channel_id' => $channel,
             'android_sound' => $sound,
             'ios_sound' => $sound . '.mp3',
             'collapse_id' => 'booking_' . ($data['booking_id'] ?? 'general'),
-            'android_group' => 'bookings'
+            'android_group' => $type == 'chat' ? 'chats' : 'bookings'
         );
 
         return self::executeCurl($fields, $apiKey);
@@ -142,6 +157,10 @@ class NotificationHelper {
             } catch (Exception $e) {}
         }
 
+        $channel = 'booking_channel';
+        if ($type == 'chat' || $type == 'chat_message') $channel = 'chat_channel';
+        if ($type == 'cancelled' || $type == 'cancel') $channel = 'cancel_channel';
+
         $fields = array(
             'app_id' => $appId,
             'included_segments' => array('All'),
@@ -152,17 +171,13 @@ class NotificationHelper {
             'small_icon' => 'launcher_icon',
             'content_available' => true,
             'mutable_content' => true,
-            'android_channel_id' => $androidChannelId ?: 'booking_channel',
+            'android_channel_id' => $channel,
             'android_sound' => $sound,
             'ios_sound' => $sound . '.mp3',
             'collapse_id' => 'booking_' . ($data['booking_id'] ?? 'general'),
             'android_group' => 'bookings',
             'android_group_message' => array("en" => "You have $[notif_count] new bookings")
         );
-
-        if (!empty($androidChannelId)) {
-            $fields['android_channel_id'] = $androidChannelId;
-        }
 
         return self::executeCurl($fields, $apiKey);
     }
