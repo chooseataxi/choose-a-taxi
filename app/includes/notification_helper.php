@@ -69,10 +69,14 @@ class NotificationHelper {
         }
 
         // 2. Production Sound Mapping
-        $sound = 'other';
-        if ($type == 'new_booking' || $type == 'booking') $sound = 'newbooking';
-        elseif (strpos($type, 'chat') !== false) $sound = 'chat';
-        elseif (strpos($type, 'cancel') !== false) $sound = 'cencel';
+        $sound = 'newbooking'; 
+        if (strpos($type, 'chat') !== false) {
+            $sound = 'chat';
+        } elseif (strpos($type, 'cancel') !== false) {
+            $sound = 'cencel';
+        } elseif (strpos($type, 'commission') !== false || strpos($type, 'accepted') !== false) {
+            $sound = 'other';
+        }
 
         // 3. Dynamic Channel Selection (Enterprise Sync with v2)
         $channelMap = [
