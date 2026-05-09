@@ -186,6 +186,24 @@ try {
 
                 $pdo->commit();
 
+                // NOTIFICATION LOGIC
+                try {
+                    $stmtP = $pdo->prepare("SELECT full_name FROM partners WHERE id = ?");
+                    $stmtP->execute([$partner_id]);
+                    $accepterName = $stmtP->fetchColumn() ?: "Partner";
+
+                    require_once __DIR__ . '/../includes/notification_helper.php';
+                    NotificationHelper::send($pdo, "partner_" . $bookingMeta['partner_id'], "Booking Accepted Successfully", "Commission Paid By $accepterName, Booking $booking_id, Assign Successfully", [
+                        'type' => 'booking_accepted',
+                        'booking_id' => $booking_id
+                    ]);
+                    NotificationHelper::send($pdo, "partner_" . $partner_id, "Commission Paid Successfully", "Booking $booking_id Successfully Assigned to you.", [
+                        'type' => 'commission_paid',
+                        'booking_id' => $booking_id
+                    ]);
+                } catch (Exception $ne) {}
+
+
                 // Trigger real-time update
                 try {
                     $pusher->trigger("booking-chat-$booking_id", 'booking-update', ['status' => 'Accepted', 'partner_id' => $partner_id]);
@@ -247,6 +265,28 @@ try {
                 $stmt->execute([$partner_id, $commission, $payment_id, "Commission payment for Booking ID-$booking_id (Razorpay)"]);
 
                 $pdo->commit();
+
+                // NOTIFICATION LOGIC
+                try {
+                    $stmtB = $pdo->prepare("SELECT partner_id FROM partner_bookings WHERE id = ?");
+                    $stmtB->execute([$booking_id]);
+                    $posterId = $stmtB->fetchColumn();
+
+                    $stmtP = $pdo->prepare("SELECT full_name FROM partners WHERE id = ?");
+                    $stmtP->execute([$partner_id]);
+                    $accepterName = $stmtP->fetchColumn() ?: "Partner";
+
+                    require_once __DIR__ . '/../includes/notification_helper.php';
+                    NotificationHelper::send($pdo, "partner_" . $posterId, "Booking Accepted Successfully", "Commission Paid By $accepterName, Booking $booking_id, Assign Successfully", [
+                        'type' => 'booking_accepted',
+                        'booking_id' => $booking_id
+                    ]);
+                    NotificationHelper::send($pdo, "partner_" . $partner_id, "Commission Paid Successfully", "Booking $booking_id Successfully Assigned to you.", [
+                        'type' => 'commission_paid',
+                        'booking_id' => $booking_id
+                    ]);
+                } catch (Exception $ne) {}
+
 
                 // Trigger real-time update
                 try {
