@@ -201,7 +201,6 @@ try {
 
             // ── Send OneSignal Push Notification ──
             try {
-
                 // Identify recipient role to construct External ID
                 $isDriver = false;
                 $stmtCheck = $pdo->prepare("SELECT id FROM drivers WHERE id = ?");
@@ -216,10 +215,19 @@ try {
                 $stName->execute([$partner_id]);
                 $senderName = $stName->fetchColumn() ?: 'Partner';
 
-                $notifType = ($type === 'quote_request' || $type === 'quote_response') ? 'Commission Request' : 'Chat Notifications';
-                $title = ($type === 'quote_request') ? "New Commission Request" : (($type === 'quote_response') ? "Quote Received" : "New message from $senderName");
+                $title = "New message from $senderName";
+                $body = $message;
 
-                NotificationHelper::send($pdo, $externalId, $title, $message, [
+                if ($type === 'quote_request') {
+                    $title = "Commission payment request";
+                    $p = json_decode($payload, true);
+                    $amount = $p['comm'] ?? '0';
+                    $body = "$senderName Requested Rs. $amount, Advance payment for the booking (id: $booking_id)";
+                } else if ($type === 'quote_response') {
+                    $title = "Quote Received";
+                }
+
+                NotificationHelper::send($pdo, $externalId, $title, $body, [
                     'type' => 'chat',
                     'booking_id' => $booking_id,
                     'sender_id' => $partner_id,

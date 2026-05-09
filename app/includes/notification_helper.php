@@ -94,6 +94,11 @@ class NotificationHelper {
         if ($type == 'chat' || $type == 'chat_message') $channel = 'chat_channel';
         if ($type == 'cancelled' || $type == 'cancel') $channel = 'cancel_channel';
 
+        $collapseId = 'booking_' . ($data['booking_id'] ?? 'general');
+        if ($type == 'chat' || $type == 'chat_message') {
+            $collapseId = 'chat_' . ($data['booking_id'] ?? 'gen') . '_' . time();
+        }
+
         $fields = array(
             'app_id' => $appId,
             'filters' => $filters,
@@ -108,7 +113,7 @@ class NotificationHelper {
             'android_channel_id' => $channel,
             'android_sound' => $sound,
             'ios_sound' => $sound . '.mp3',
-            'collapse_id' => 'booking_' . ($data['booking_id'] ?? 'general'),
+            'collapse_id' => $collapseId,
             'android_group' => $type == 'chat' ? 'chats' : 'bookings'
         );
         return self::executeCurl($fields, $apiKey);
@@ -149,6 +154,11 @@ class NotificationHelper {
         if ($type == 'chat' || $type == 'chat_message') $channel = 'chat_channel';
         if ($type == 'cancelled' || $type == 'cancel') $channel = 'cancel_channel';
 
+        $collapseId = 'booking_' . ($data['booking_id'] ?? 'general');
+        if ($type == 'chat' || $type == 'chat_message') {
+            $collapseId = 'chat_' . ($data['booking_id'] ?? 'gen') . '_' . time();
+        }
+
         $fields = array(
             'app_id' => $appId,
             'included_segments' => array('All'),
@@ -162,7 +172,7 @@ class NotificationHelper {
             'android_channel_id' => !empty($androidChannelId) ? $androidChannelId : $channel,
             'android_sound' => $sound,
             'ios_sound' => $sound . '.mp3',
-            'collapse_id' => 'booking_' . ($data['booking_id'] ?? 'general'),
+            'collapse_id' => $collapseId,
             'android_group' => 'bookings',
             'android_group_message' => array("en" => "You have $[notif_count] new bookings")
         );
