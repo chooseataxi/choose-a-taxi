@@ -47,7 +47,7 @@ class NotificationHelper {
     }
 
     /**
-     * Production Send Logic
+     * Send targeted notification to specific users
      */
     public static function send($pdo, $recipients, $title, $body, $data = []) {
         $appId = self::getAppId($pdo);
@@ -56,27 +56,49 @@ class NotificationHelper {
 
         $recipientList = is_array($recipients) ? $recipients : [$recipients];
         
+        $data['title'] = $title;
+        $data['body'] = $body;
+
+        $type = $data['type'] ?? 'default';
+        $bookingId = $data['booking_id'] ?? 'gen';
+
         // 1. Precise Targeting (External User IDs)
         $externalIds = [];
         foreach ($recipientList as $id) {
             $externalIds[] = str_replace(['partner_', 'driver_'], '', $id);
         }
 
-        $type = $data['type'] ?? 'default';
-        $bookingId = $data['booking_id'] ?? 'gen';
+        // 2. Production Sound Mapping
+        $sound = 'other';
+        if ($type == 'new_booking' || $type == 'booking') $sound = 'newbooking';
+        elseif (strpos($type, 'chat') !== false) $sound = 'chat';
+        elseif (strpos($type, 'cancel') !== false) $sound = 'cencel';
 
-        // 2. Channel Mapping with Versioning
-        // This ensures settings updates propagate to Android
-        $channelKey = 'general_channel_' . self::$channelVersion;
-        if (strpos($type, 'booking') !== false) {
-            $channelKey = 'onesignal_new_booking_channel_' . self::$channelVersion;
-        } elseif (strpos($type, 'chat') !== false) {
-            $channelKey = 'onesignal_chat_channel_' . self::$channelVersion;
-        } elseif (strpos($type, 'cancel') !== false) {
-            $channelKey = 'onesignal_cancel_channel_' . self::$channelVersion;
+        // 3. Dynamic Channel Selection (Enterprise Sync with v2)
+        $channelMap = [
+            'booking' => 'onesignal_new_booking_channel',
+            'chat' => 'onesignal_chat_channel',
+            'cancel' => 'onesignal_cancel_channel',
+            'trip' => 'onesignal_trip_status_channel',
+            'commission' => 'onesignal_commission_channel'
+        ];
+        
+        $baseKey = 'onesignal_new_booking_channel';
+        foreach ($channelMap as $key => $dbKey) {
+            if (strpos($type, $key) !== false) {
+                $baseKey = $dbKey;
+                break;
+            }
         }
 
-        // 3. Enterprise Payload
+        // Attempt to fetch versioned key first, then fallback to base key from DB
+        $versionedKey = $baseKey . '_' . self::$channelVersion;
+        $channelId = self::getDbSetting($pdo, $versionedKey, null);
+        if (!$channelId) {
+            $channelId = self::getDbSetting($pdo, $baseKey, $baseKey . '_' . self::$channelVersion);
+        }
+
+        // 4. Enterprise Payload
         $fields = array(
             'app_id' => $appId,
             'include_external_user_ids' => $externalIds,
@@ -85,8 +107,9 @@ class NotificationHelper {
             'headings' => array("en" => $title),
             'priority' => 10,
             'small_icon' => 'launcher_icon',
-            'android_channel_id' => $channelKey,
-            'ios_sound' => 'newbooking.mp3', // Map sound for iOS
+            'android_channel_id' => $channelId,
+            'android_sound' => $sound,
+            'ios_sound' => $sound . '.mp3',
             'collapse_id' => (strpos($type, 'chat') !== false) ? 'chat_'.$bookingId.'_'.time() : 'booking_'.$bookingId,
             'android_group' => (strpos($type, 'chat') !== false) ? "chat_$bookingId" : "booking_$bookingId",
         );
@@ -101,6 +124,11 @@ class NotificationHelper {
         $appId = self::getAppId($pdo);
         $apiKey = self::getApiKey($pdo);
         
+        $channelId = self::getDbSetting($pdo, 'onesignal_new_booking_channel_' . self::$channelVersion, null);
+        if (!$channelId) {
+            $channelId = self::getDbSetting($pdo, 'onesignal_new_booking_channel', 'onesignal_new_booking_channel_' . self::$channelVersion);
+        }
+
         $fields = array(
             'app_id' => $appId,
             'included_segments' => array('All'),
@@ -108,10 +136,22 @@ class NotificationHelper {
             'contents' => array("en" => $body),
             'headings' => array("en" => $title),
             'priority' => 10,
-            'android_channel_id' => 'onesignal_new_booking_channel_' . self::$channelVersion,
+            'android_channel_id' => $channelId,
         );
 
         return self::executeCurl($fields, $apiKey);
+    }
+
+    private static function getDbSetting($pdo, $key, $default) {
+        if (!$pdo) return $default;
+        try {
+            $stmt = $pdo->prepare("SELECT setting_value FROM site_settings WHERE setting_key = ?");
+            $stmt->execute([$key]);
+            $val = $stmt->fetchColumn();
+            return $val ?: $default;
+        } catch (Exception $e) {
+            return $default;
+        }
     }
 
     private static function executeCurl($fields, $apiKey) {
