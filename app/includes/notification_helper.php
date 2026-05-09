@@ -27,7 +27,8 @@ class NotificationHelper {
             } catch (Exception $e) {}
         }
         self::loadEnv();
-        return $_ENV['ONESIGNAL_APP_ID'] ?? '8af20809-09e9-4ce1-9377-989b6b4e4600';
+        $id = $_ENV['ONESIGNAL_APP_ID'] ?? $_SERVER['ONESIGNAL_APP_ID'] ?? getenv('ONESIGNAL_APP_ID');
+        return $id ?: '8af20809-09e9-4ce1-9377-989b6b4e4600';
     }
 
     public static function getApiKey($pdo = null) {
@@ -40,12 +41,12 @@ class NotificationHelper {
             } catch (Exception $e) {}
         }
         self::loadEnv();
-        return $_ENV['ONESIGNAL_API_KEY'] ?? '';
+        return $_ENV['ONESIGNAL_API_KEY'] ?? $_SERVER['ONESIGNAL_API_KEY'] ?? getenv('ONESIGNAL_API_KEY') ?? '';
     }
 
     private static function getAppUrl() {
         self::loadEnv();
-        $url = $_ENV['APP_URL'] ?? 'https://chooseataxi.com';
+        $url = $_ENV['APP_URL'] ?? $_SERVER['APP_URL'] ?? getenv('APP_URL') ?? 'https://chooseataxi.com';
         return rtrim($url, '/');
     }
 
@@ -197,6 +198,7 @@ class NotificationHelper {
 
     private static function executeCurl($fields, $apiKey) {
         $fieldsJson = json_encode($fields);
+        self::logDebug("Sending to OneSignal: " . $fieldsJson);
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, "https://onesignal.com/api/v1/notifications");
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json; charset=utf-8', 'Authorization: Basic ' . $apiKey));
