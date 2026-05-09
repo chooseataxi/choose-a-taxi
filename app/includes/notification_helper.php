@@ -85,7 +85,7 @@ class NotificationHelper {
         
         $baseKey = 'onesignal_new_booking_channel';
         foreach ($channelMap as $key => $dbKey) {
-            if (strpos($type, $key) !== false) {
+            if (strpos($type, $key) !== false || strpos(strtolower($title), $key) !== false) {
                 $baseKey = $dbKey;
                 break;
             }
