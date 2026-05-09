@@ -235,7 +235,15 @@ if ($action === 'create_booking') {
             } catch (Exception $e) {}
 
             require_once __DIR__ . '/../includes/notification_helper.php';
-            NotificationHelper::broadcastToAll($pdo, "New Booking Alert", "New $booking_type booking from $pickup to $drop", [
+            
+            // Extract City Names (assuming comma separated addresses)
+            $pickupCity = trim(explode(',', $pickup)[0]);
+            $dropCity = trim(explode(',', $drop)[0]);
+            
+            $notifTitle = "$booking_type ( Booking Id : $bookingId )";
+            $notifBody = "$pickupCity ➔ $dropCity";
+            
+            NotificationHelper::broadcastToAll($pdo, $notifTitle, $notifBody, [
                 'type' => 'new_booking',
                 'booking_id' => $bookingId,
                 'trip_type' => $booking_type,
