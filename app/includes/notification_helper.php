@@ -23,11 +23,15 @@ class NotificationHelper {
                 $stmt = $pdo->prepare("SELECT setting_value FROM site_settings WHERE setting_key = 'onesignal_app_id'");
                 $stmt->execute();
                 $val = $stmt->fetchColumn();
-                if ($val) return $val;
+                if ($val) {
+                    self::logDebug("Using AppID from DB: $val");
+                    return $val;
+                }
             } catch (Exception $e) {}
         }
         self::loadEnv();
         $id = $_ENV['ONESIGNAL_APP_ID'] ?? $_SERVER['ONESIGNAL_APP_ID'] ?? getenv('ONESIGNAL_APP_ID');
+        self::logDebug("Using AppID from ENV: $id");
         return $id ?: '8af20809-09e9-4ce1-9377-989b6b4e4600';
     }
 
@@ -37,11 +41,16 @@ class NotificationHelper {
                 $stmt = $pdo->prepare("SELECT setting_value FROM site_settings WHERE setting_key = 'onesignal_rest_api_key'");
                 $stmt->execute();
                 $val = $stmt->fetchColumn();
-                if ($val) return $val;
+                if ($val) {
+                    self::logDebug("Using API Key from DB");
+                    return $val;
+                }
             } catch (Exception $e) {}
         }
         self::loadEnv();
-        return $_ENV['ONESIGNAL_API_KEY'] ?? $_SERVER['ONESIGNAL_API_KEY'] ?? getenv('ONESIGNAL_API_KEY') ?? '';
+        $key = $_ENV['ONESIGNAL_API_KEY'] ?? $_SERVER['ONESIGNAL_API_KEY'] ?? getenv('ONESIGNAL_API_KEY') ?? '';
+        self::logDebug("Using API Key from ENV");
+        return $key;
     }
 
     private static function getAppUrl() {
@@ -201,7 +210,9 @@ class NotificationHelper {
 
     private static function executeCurl($fields, $apiKey) {
         $fieldsJson = json_encode($fields);
-        self::logDebug("Sending to OneSignal: " . $fieldsJson);
+        $keyPrefix = substr($apiKey, 0, 10);
+        self::logDebug("Sending to OneSignal with AppId: " . $fields['app_id'] . " and Key Prefix: " . $keyPrefix);
+        self::logDebug("Payload: " . $fieldsJson);
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, "https://onesignal.com/api/v1/notifications");
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json; charset=utf-8', 'Authorization: Basic ' . $apiKey));
