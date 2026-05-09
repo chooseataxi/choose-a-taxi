@@ -105,7 +105,6 @@ class NotificationHelper {
             'data' => $data,
             'contents' => array("en" => $body), 
             'headings' => array("en" => $title),
-            'android_accent_color' => 'FF1A1F36',
             'small_icon' => 'launcher_icon',
             'priority' => 10,
             'content_available' => true,
