@@ -90,17 +90,6 @@ class NotificationHelper {
             }
         }
 
-        $fields = array(
-            'app_id' => $appId,
-            'filters' => $filters,
-            'data' => $data,
-            'contents' => array("en" => $body), 
-            'headings' => array("en" => $title),
-            'android_accent_color' => 'FF1A1F36',
-            'small_icon' => 'launcher_icon',
-            'priority' => 10,
-            'content_available' => true,
-            'mutable_content' => true,
         $channel = 'booking_channel';
         if ($type == 'chat' || $type == 'chat_message') $channel = 'chat_channel';
         if ($type == 'cancelled' || $type == 'cancel') $channel = 'cancel_channel';
@@ -122,7 +111,6 @@ class NotificationHelper {
             'collapse_id' => 'booking_' . ($data['booking_id'] ?? 'general'),
             'android_group' => $type == 'chat' ? 'chats' : 'bookings'
         );
-
         return self::executeCurl($fields, $apiKey);
     }
 
