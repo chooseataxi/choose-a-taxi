@@ -101,9 +101,11 @@ class NotificationHelper {
             'priority' => 10,
             'content_available' => true,
             'mutable_content' => true,
-            'android_channel_id' => 'chooseataxi_urgent_channel',
+            'android_channel_id' => 'booking_channel',
             'android_sound' => $sound,
-            'ios_sound' => $sound . '.mp3'
+            'ios_sound' => $sound . '.mp3',
+            'collapse_id' => 'booking_' . ($data['booking_id'] ?? 'general'),
+            'android_group' => 'bookings'
         );
 
         return self::executeCurl($fields, $apiKey);
@@ -150,9 +152,12 @@ class NotificationHelper {
             'small_icon' => 'launcher_icon',
             'content_available' => true,
             'mutable_content' => true,
-            'android_channel_id' => $androidChannelId ?: 'chooseataxi_urgent_channel',
+            'android_channel_id' => $androidChannelId ?: 'booking_channel',
             'android_sound' => $sound,
-            'ios_sound' => $sound . '.mp3'
+            'ios_sound' => $sound . '.mp3',
+            'collapse_id' => 'booking_' . ($data['booking_id'] ?? 'general'),
+            'android_group' => 'bookings',
+            'android_group_message' => array("en" => "You have $[notif_count] new bookings")
         );
 
         if (!empty($androidChannelId)) {
