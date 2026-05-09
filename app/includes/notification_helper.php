@@ -100,10 +100,7 @@ class NotificationHelper {
             'small_icon' => 'launcher_icon',
             'priority' => 10,
             'content_available' => true,
-            'mutable_content' => true,
-            'android_channel_id' => 'chooseataxi_awesome_channel',
-            'android_sound' => $sound,
-            'ios_sound' => $sound . '.mp3'
+            'mutable_content' => true
         );
 
         if (isset($data['image_url']) && !empty($data['image_url'])) {
@@ -137,10 +134,7 @@ class NotificationHelper {
             'priority' => 10,
             'small_icon' => 'launcher_icon',
             'content_available' => true,
-            'mutable_content' => true,
-            'android_channel_id' => 'chooseataxi_awesome_channel',
-            'android_sound' => $sound,
-            'ios_sound' => $sound . '.mp3'
+            'mutable_content' => true
         );
 
         if (isset($data['image_url']) && !empty($data['image_url'])) {
