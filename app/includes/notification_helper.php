@@ -111,7 +111,7 @@ class NotificationHelper {
         return self::executeCurl($fields, $apiKey);
     }
 
-    public static function broadcastToAll($pdo, $title, $body, $data = []) {
+    public static function broadcastToAll($pdo, $title, $body, $data = [], $boxId = 1) {
         $appId = self::getAppId($pdo);
         $apiKey = self::getApiKey($pdo);
         if (!$apiKey) return false;
@@ -125,9 +125,26 @@ class NotificationHelper {
         if ($type == 'chat' || $type == 'chat_message') $sound = 'chat';
         if ($type == 'cancelled' || $type == 'cancel') $sound = 'cencel';
 
+        // Map boxId to channel settings in DB
+        $channelKey = 'onesignal_new_booking_channel';
+        if ($boxId == 2) $channelKey = 'onesignal_chat_channel';
+        if ($boxId == 3) $channelKey = 'onesignal_commission_channel';
+        if ($boxId == 4) $channelKey = 'onesignal_accept_channel';
+        if ($boxId == 5) $channelKey = 'onesignal_cancel_channel';
+        if ($boxId == 6) $channelKey = 'onesignal_trip_status_channel';
+
+        $androidChannelId = '';
+        if ($pdo) {
+            try {
+                $stmt = $pdo->prepare("SELECT setting_value FROM site_settings WHERE setting_key = ?");
+                $stmt->execute([$channelKey]);
+                $androidChannelId = $stmt->fetchColumn();
+            } catch (Exception $e) {}
+        }
+
         $fields = array(
             'app_id' => $appId,
-            'included_segments' => array('Subscribed Users'),
+            'included_segments' => array('All'),
             'data' => $data,
             'contents' => array("en" => $body),
             'headings' => array("en" => $title),
@@ -136,6 +153,10 @@ class NotificationHelper {
             'content_available' => true,
             'mutable_content' => true
         );
+
+        if (!empty($androidChannelId)) {
+            $fields['android_channel_id'] = $androidChannelId;
+        }
 
         if (isset($data['image_url']) && !empty($data['image_url'])) {
             $fields['big_picture'] = $data['image_url'];
