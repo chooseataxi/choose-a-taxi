@@ -43,6 +43,12 @@ class NotificationHelper {
         return $_ENV['ONESIGNAL_API_KEY'] ?? '';
     }
 
+    private static function getAppUrl() {
+        self::loadEnv();
+        $url = $_ENV['APP_URL'] ?? 'https://chooseataxi.com';
+        return rtrim($url, '/');
+    }
+
     public static function send($pdo, $recipients, $title, $body, $data = []) {
         $appId = self::getAppId($pdo);
         $apiKey = self::getApiKey($pdo);
@@ -53,12 +59,17 @@ class NotificationHelper {
         $data['title'] = $title;
         $data['body'] = $body;
 
+        $type = $data['type'] ?? 'default';
+        $sound = 'other';
+        if ($type == 'new_booking' || $type == 'booking') $sound = 'newbooking';
+        if ($type == 'chat' || $type == 'chat_message') $sound = 'chat';
+        if ($type == 'cancelled' || $type == 'cancel') $sound = 'cencel';
+
         // Use Filters (Tags) for multi-device reliability
         $filters = [];
         foreach ($recipientList as $index => $id) {
             if ($index > 0) $filters[] = ["operator" => "OR"];
             
-            // Map 'partner_4' to tag check
             if (strpos($id, 'partner_') === 0) {
                 $filters[] = ["field" => "tag", "key" => "partner_id", "relation" => "=", "value" => str_replace('partner_', '', $id)];
             } elseif (strpos($id, 'driver_') === 0) {
@@ -68,7 +79,7 @@ class NotificationHelper {
 
         $fields = array(
             'app_id' => $appId,
-            'filters' => $filters, // Using filters instead of include_external_user_ids
+            'filters' => $filters,
             'data' => $data,
             'contents' => array("en" => $body), 
             'headings' => array("en" => $title),
@@ -76,10 +87,16 @@ class NotificationHelper {
             'small_icon' => 'launcher_icon',
             'priority' => 10,
             'content_available' => true,
-            'mutable_content' => true
+            'mutable_content' => true,
+            'android_channel_id' => 'chooseataxi_awesome_channel',
+            'android_sound' => $sound,
+            'ios_sound' => $sound . '.mp3'
         );
 
-        self::logDebug("Sending targeted notification via Filters to: " . implode(', ', $recipientList));
+        if (isset($data['image_url']) && !empty($data['image_url'])) {
+            $fields['big_picture'] = $data['image_url'];
+            $fields['ios_attachments'] = array('id1' => $data['image_url']);
+        }
 
         return self::executeCurl($fields, $apiKey);
     }
@@ -92,6 +109,12 @@ class NotificationHelper {
         $data['title'] = $title;
         $data['body'] = $body;
 
+        $type = $data['type'] ?? 'default';
+        $sound = 'other';
+        if ($type == 'new_booking' || $type == 'booking') $sound = 'newbooking';
+        if ($type == 'chat' || $type == 'chat_message') $sound = 'chat';
+        if ($type == 'cancelled' || $type == 'cancel') $sound = 'cencel';
+
         $fields = array(
             'app_id' => $appId,
             'included_segments' => array('All'),
@@ -101,8 +124,16 @@ class NotificationHelper {
             'priority' => 10,
             'small_icon' => 'launcher_icon',
             'content_available' => true,
-            'mutable_content' => true
+            'mutable_content' => true,
+            'android_channel_id' => 'chooseataxi_awesome_channel',
+            'android_sound' => $sound,
+            'ios_sound' => $sound . '.mp3'
         );
+
+        if (isset($data['image_url']) && !empty($data['image_url'])) {
+            $fields['big_picture'] = $data['image_url'];
+            $fields['ios_attachments'] = array('id1' => $data['image_url']);
+        }
 
         return self::executeCurl($fields, $apiKey);
     }
@@ -110,18 +141,35 @@ class NotificationHelper {
     public static function sendBookingNotification($pdo, $booking) {
         $type = $booking['trip_type'] ?? 'Trip';
         $id = $booking['id'];
-        $pickup = $booking['pickup_location'] ?? 'N/A';
-        $drop = $booking['drop_location'] ?? 'N/A';
+        $pickupFull = $booking['pickup_location'] ?? 'N/A';
+        $dropFull = $booking['drop_location'] ?? 'N/A';
         $car = $booking['car_type_name'] ?? 'Any';
-        $date = $booking['start_date'] ?? date('d/m/y');
+        $carImg = $booking['car_type_image'] ?? '';
+        $date = $booking['start_date'] ?? date('d/m/Y');
         $time = $booking['start_time'] ?? '';
 
-        $title = "New $type Available";
-        $body = "$type booking ($id)\n$pickup ----- $drop\nCar type :- $car\nDate :- $date @ $time";
+        $pickupCity = self::getCityOnly($pickupFull);
+        $dropCity = self::getCityOnly($dropFull);
+
+        $appUrl = self::getAppUrl();
+        $fullImageUrl = !empty($carImg) ? "$appUrl/$carImg" : "";
+
+        // Requested Format: {"Trip Type" ( Booking Id : id )}
+        $title = "$type (Booking Id : $id)";
+        
+        // Body Format: 
+        // Pickup City ➔ Drop City
+        // Car Type: {Vehicle Type}
+        // Date: {Date} @ Time: {Time}
+        $arrow = "➔";
+        $body = "$pickupCity $arrow $dropCity\nCar Type: $car\nDate: $date @ Time: $time";
         
         return self::broadcastToAll($pdo, $title, $body, [
             'type' => 'new_booking',
-            'booking_id' => $id
+            'booking_id' => $id,
+            'pickup_city' => $pickupCity,
+            'drop_city' => $dropCity,
+            'image_url' => $fullImageUrl
         ]);
     }
 

@@ -217,18 +217,25 @@ if ($action === 'create_booking') {
         } catch (Exception $e) {
         }
 
-        // Send Filtered Push Notifications
-        try {
+            // Fetch car image for notification
+            $carImg = '';
+            try {
+                $stmtImg = $pdo->prepare("SELECT image FROM car_types WHERE name = ? OR id = ? LIMIT 1");
+                $stmtImg->execute([$car_type, $car_type]);
+                $carImg = $stmtImg->fetchColumn();
+            } catch (Exception $e) {}
+
             require_once __DIR__ . '/../includes/notification_helper.php';
             NotificationHelper::sendBookingNotification($pdo, [
                 'id' => $bookingId,
                 'trip_type' => $booking_type,
                 'pickup_location' => $pickup,
                 'drop_location' => $drop,
-                'car_type_name' => $car_type
+                'car_type_name' => $car_type,
+                'car_type_image' => $carImg,
+                'start_date' => $start_date,
+                'start_time' => $start_time
             ]);
-        } catch (Exception $nf) {
-        }
 
         echo json_encode(["status" => "success", "message" => "Booking created successfully!", "booking_id" => $bookingId]);
     } catch (PDOException $e) {
