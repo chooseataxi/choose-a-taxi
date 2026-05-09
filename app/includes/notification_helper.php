@@ -78,21 +78,42 @@ class NotificationHelper {
         if ($type == 'chat' || $type == 'chat_message') $sound = 'chat';
         if ($type == 'cancelled' || $type == 'cancel') $sound = 'cencel';
 
-        // Use Filters (Tags) for multi-device reliability
+        // Production targeting: Use both External IDs and Filters for maximum reliability
+        $externalIds = [];
         $filters = [];
+        
         foreach ($recipientList as $index => $id) {
-            if ($index > 0) $filters[] = ["operator" => "OR"];
+            $rawId = str_replace(['partner_', 'driver_'], '', $id);
+            $externalIds[] = $rawId; // Target by External User ID (OneSignal 5.x)
             
+            if ($index > 0) $filters[] = ["operator" => "OR"];
             if (strpos($id, 'partner_') === 0) {
-                $filters[] = ["field" => "tag", "key" => "partner_id", "relation" => "=", "value" => str_replace('partner_', '', $id)];
+                $filters[] = ["field" => "tag", "key" => "partner_id", "relation" => "=", "value" => $rawId];
             } elseif (strpos($id, 'driver_') === 0) {
-                $filters[] = ["field" => "tag", "key" => "driver_id", "relation" => "=", "value" => str_replace('driver_', '', $id)];
+                $filters[] = ["field" => "tag", "key" => "driver_id", "relation" => "=", "value" => $rawId];
             }
         }
 
         $channel = 'booking_channel';
-        if ($type == 'chat' || $type == 'chat_message') $channel = 'chat_channel';
-        if ($type == 'cancelled' || $type == 'cancel') $channel = 'cancel_channel';
+        $channelKey = 'onesignal_new_booking_channel';
+        if ($type == 'chat' || $type == 'chat_message') {
+            $channel = 'chat_channel';
+            $channelKey = 'onesignal_chat_channel';
+        }
+        if ($type == 'cancelled' || $type == 'cancel') {
+            $channel = 'cancel_channel';
+            $channelKey = 'onesignal_cancel_channel';
+        }
+
+        // Fetch dynamic channel ID from DB if possible
+        $androidChannelId = '';
+        if (isset($GLOBALS['pdo'])) {
+            try {
+                $stmt = $GLOBALS['pdo']->prepare("SELECT setting_value FROM site_settings WHERE setting_key = ?");
+                $stmt->execute([$channelKey]);
+                $androidChannelId = $stmt->fetchColumn();
+            } catch (Exception $e) {}
+        }
 
         $collapseId = 'booking_' . ($data['booking_id'] ?? 'general');
         if ($type == 'chat' || $type == 'chat_message') {
@@ -101,6 +122,7 @@ class NotificationHelper {
 
         $fields = array(
             'app_id' => $appId,
+            'include_external_user_ids' => $externalIds,
             'filters' => $filters,
             'data' => $data,
             'contents' => array("en" => $body), 
@@ -109,13 +131,16 @@ class NotificationHelper {
             'priority' => 10,
             'content_available' => true,
             'mutable_content' => true,
-            'android_channel_id' => $channel,
+            'android_channel_id' => !empty($androidChannelId) ? $androidChannelId : $channel,
             'android_sound' => $sound,
             'ios_sound' => $sound . '.mp3',
             'collapse_id' => $collapseId,
-            'android_group' => $type == 'chat' ? 'chats' : 'bookings'
+            'android_group' => (strpos($type, 'chat') !== false) ? 'chats' : 'bookings'
         );
-        return self::executeCurl($fields, $apiKey);
+        
+        $response = self::executeCurl($fields, $apiKey);
+        self::logDebug("Push Response ($type): " . $response);
+        return $response;
     }
 
     public static function broadcastToAll($pdo, $title, $body, $data = [], $boxId = 1) {
@@ -228,13 +253,6 @@ class NotificationHelper {
         return $parts[0];
     }
 
-    private static function logDebug($message) {
-        $logFile = __DIR__ . '/../../tmp/onesignal_debug.log';
-        $logDir = dirname($logFile);
-        if (!is_dir($logDir)) @mkdir($logDir, 0777, true);
-        $entry = "[" . date('Y-m-d H:i:s') . "] " . $message . PHP_EOL;
-        @file_put_contents($logFile, $entry, FILE_APPEND);
-    }
 
     private static function executeCurl($fields, $apiKey) {
         $fieldsJson = json_encode($fields);
@@ -266,5 +284,15 @@ class NotificationHelper {
         }
 
         return $response;
+    }
+
+    private static function logDebug($message) {
+        $logDir = __DIR__ . '/../logs';
+        if (!is_dir($logDir)) {
+            @mkdir($logDir, 0777, true);
+        }
+        $logFile = $logDir . '/notification.log';
+        $timestamp = date('Y-m-d H:i:s');
+        @file_put_contents($logFile, "[$timestamp] $message\n", FILE_APPEND);
     }
 }
