@@ -240,8 +240,8 @@ if ($action === 'create_booking') {
             $pickupCity = trim(explode(',', $pickup)[0]);
             $dropCity = trim(explode(',', $drop)[0]);
             
-            $notifTitle = "$booking_type ( Booking Id : $bookingId )";
-            $notifBody = "$pickupCity ➔ $dropCity";
+            $notifTitle = "Booking $booking_type ( Id : $bookingId )";
+            $notifBody = "$pickupCity ➔ $dropCity\nCar Type - $carName\nDate: $start_date $start_time";
             
             NotificationHelper::broadcastToAll($pdo, $notifTitle, $notifBody, [
                 'type' => 'new_booking',

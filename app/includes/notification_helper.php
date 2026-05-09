@@ -137,6 +137,8 @@ class NotificationHelper {
             'headings' => array("en" => $title),
             'priority' => 10,
             'android_channel_id' => $channelId,
+            'android_sound' => 'newbooking',
+            'small_icon' => 'launcher_icon',
         );
 
         return self::executeCurl($fields, $apiKey);
