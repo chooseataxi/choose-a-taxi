@@ -235,8 +235,9 @@ if ($action === 'create_booking') {
             } catch (Exception $e) {}
 
             require_once __DIR__ . '/../includes/notification_helper.php';
-            NotificationHelper::sendBookingNotification($pdo, [
-                'id' => $bookingId,
+            NotificationHelper::broadcastToAll($pdo, "New Booking Alert", "New $booking_type booking from $pickup to $drop", [
+                'type' => 'new_booking',
+                'booking_id' => $bookingId,
                 'trip_type' => $booking_type,
                 'pickup_location' => $pickup,
                 'drop_location' => $drop,
