@@ -121,11 +121,7 @@ class NotificationHelper {
 
         $fields = array(
             'app_id' => $appId,
-            'filters' => [
-                ['field' => 'tag', 'key' => 'user_role', 'relation' => '=', 'value' => 'partner'],
-                ['operator' => 'OR'],
-                ['field' => 'tag', 'key' => 'user_role', 'relation' => '=', 'value' => 'driver']
-            ],
+            'included_segments' => array('Subscribed Users'),
             'data' => $data,
             'contents' => array("en" => $body),
             'headings' => array("en" => $title),
