@@ -173,6 +173,20 @@ class NotificationHelper {
         ]);
     }
 
+    private static function getCityOnly($location) {
+        if (!$location || $location == '-') return 'N/A';
+        $parts = array_map('trim', explode(',', $location));
+        // Common logic: if last is India, city is usually 3rd from last.
+        // If not enough parts, take the first one.
+        $count = count($parts);
+        if ($count >= 3 && strtolower(end($parts)) == 'india') {
+            return $parts[$count - 3];
+        } elseif ($count >= 2) {
+            return $parts[$count - 2];
+        }
+        return $parts[0];
+    }
+
     private static function logDebug($message) {
         $logFile = __DIR__ . '/../../tmp/onesignal_debug.log';
         $logDir = dirname($logFile);
