@@ -102,7 +102,8 @@ class NotificationHelper {
         // 4. Enterprise Payload
         $fields = array(
             'app_id' => $appId,
-            'include_external_user_ids' => $externalIds,
+            'include_aliases' => array('external_id' => $externalIds),
+            'target_channel' => 'push',
             'data' => $data,
             'contents' => array("en" => $body),
             'headings' => array("en" => $title),
