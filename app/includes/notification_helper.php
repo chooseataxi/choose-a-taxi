@@ -170,11 +170,10 @@ class NotificationHelper {
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        // Logging
-        $logDir = __DIR__ . '/../logs';
+        $logFile = realpath(__DIR__ . '/../../') . '/tmp/notif_v2.log';
+        $logDir = dirname($logFile);
         if (!is_dir($logDir)) @mkdir($logDir, 0777, true);
-        $logMsg = "[" . date('Y-m-d H:i:s') . "] HTTP $httpCode | Response: $response\n";
-        @file_put_contents($logDir . '/notification_v2.log', $logMsg, FILE_APPEND);
+        file_put_contents($logFile, "[" . date('Y-m-d H:i:s') . "] HTTP $httpCode: $response\n", FILE_APPEND);
 
         return $response;
     }
