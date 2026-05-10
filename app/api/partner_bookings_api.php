@@ -125,9 +125,6 @@ if ($action === 'get_cars') {
 
         $formatted = array_map(function ($c) {
             $img = $c['type_image'] ?? '';
-            if (!empty($img) && !preg_match('~^(?:f|ht)tps?://~i', $img)) {
-                $img = 'https://chooseataxi.com/' . ltrim($img, '/');
-            }
             return [
                 'id' => $c['id'],
                 'name' => $c['name'] ?? 'Unknown Type',
@@ -230,9 +227,6 @@ if ($action === 'create_booking') {
                 $carData = $stmtImg->fetch(PDO::FETCH_ASSOC);
                 if ($carData) {
                     $carImg = $carData['image'] ?? '';
-                    if (!empty($carImg) && !preg_match('~^(?:f|ht)tps?://~i', $carImg)) {
-                        $carImg = 'https://chooseataxi.com/' . ltrim($carImg, '/');
-                    }
                     $carName = $carData['name'] ?? $car_type;
                 }
             } catch (Exception $e) {}

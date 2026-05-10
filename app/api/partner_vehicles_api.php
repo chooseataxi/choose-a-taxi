@@ -444,7 +444,9 @@ if ($action === 'options') {
             return [
                 'id' => $c['id'],
                 'name' => $c['name'] ?? 'Unknown Type',
+                'type_name' => $c['name'] ?? '',
                 'type_image' => $c['type_image'] ?? '',
+                'car_type_image' => $c['type_image'] ?? '',
             ];
         }, $cars);
 
