@@ -62,22 +62,8 @@ class NotificationHelper {
         $type = $data['type'] ?? 'default';
         $bookingId = $data['booking_id'] ?? 'gen';
 
-        // 1. Precise Targeting (Tags)
-        $filters = [];
-        foreach ($recipientList as $index => $recipient) {
-            if ($index > 0) {
-                $filters[] = array("operator" => "OR");
-            }
-            if (strpos($recipient, 'partner_') === 0) {
-                $id = str_replace('partner_', '', $recipient);
-                $filters[] = array("field" => "tag", "key" => "partner_id", "relation" => "=", "value" => $id);
-            } elseif (strpos($recipient, 'driver_') === 0) {
-                $id = str_replace('driver_', '', $recipient);
-                $filters[] = array("field" => "tag", "key" => "driver_id", "relation" => "=", "value" => $id);
-            } else {
-                $filters[] = array("field" => "tag", "key" => "external_id", "relation" => "=", "value" => $recipient);
-            }
-        }
+        // 1. Precise Targeting (External User IDs)
+        $externalIds = $recipientList;
 
         // 2. Production Sound Mapping
         $sound = 'newbooking'; 
@@ -116,7 +102,8 @@ class NotificationHelper {
         // 4. Enterprise Payload
         $fields = array(
             'app_id' => $appId,
-            'filters' => $filters,
+            'include_external_user_ids' => $externalIds,
+            'channel_for_external_user_ids' => 'push',
             'data' => $data,
             'contents' => array("en" => $body),
             'headings' => array("en" => $title),
