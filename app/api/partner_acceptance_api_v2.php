@@ -229,11 +229,11 @@ try {
                     $accepterName = $stmtP->fetchColumn() ?: "Partner";
 
                     require_once __DIR__ . '/../includes/notification_helper.php';
-                    NotificationHelper::send($pdo, "partner_" . $posterId, "Booking Accepted Successfully", "Commission Paid By $accepterName, Booking $booking_id, Assign Successfully", [
+                    NotificationHelper::send($pdo, "partner_" . $posterId, "booking accepted successfully", "commission paid by accepter $accepterName. Booking $booking_id assign successfully.", [
                         'type' => 'commission_accepted',
                         'booking_id' => $booking_id
                     ]);
-                    NotificationHelper::send($pdo, "partner_" . $partner_id, "Commission Paid Successfully", "Booking $booking_id Successfully Assigned to you.", [
+                    NotificationHelper::send($pdo, "partner_" . $partner_id, "Commission paid successfully", "Booking $booking_id successfully assign to you.", [
                         'type' => 'commission_paid',
                         'booking_id' => $booking_id
                     ]);
@@ -313,11 +313,11 @@ try {
                     $accepterName = $stmtP->fetchColumn() ?: "Partner";
 
                     require_once __DIR__ . '/../includes/notification_helper.php';
-                    NotificationHelper::send($pdo, "partner_" . $posterId, "Booking Accepted Successfully", "Commission Paid By $accepterName, Booking $booking_id, Assign Successfully", [
+                    NotificationHelper::send($pdo, "partner_" . $posterId, "booking accepted successfully", "commission paid by accepter $accepterName. Booking $booking_id assign successfully.", [
                         'type' => 'commission_accepted',
                         'booking_id' => $booking_id
                     ]);
-                    NotificationHelper::send($pdo, "partner_" . $partner_id, "Commission Paid Successfully", "Booking $booking_id Successfully Assigned to you.", [
+                    NotificationHelper::send($pdo, "partner_" . $partner_id, "Commission paid successfully", "Booking $booking_id successfully assign to you.", [
                         'type' => 'commission_paid',
                         'booking_id' => $booking_id
                     ]);
