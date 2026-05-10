@@ -129,6 +129,44 @@ try {
                 $pusher->trigger("partner-$partner_id", 'chat-update', $event_data);
             } catch (Exception $e) {}
 
+            // ── Send OneSignal Push Notification ──
+            try {
+                // Identify recipient role to construct External ID
+                $isDriver = false;
+                $stmtCheck = $pdo->prepare("SELECT id FROM drivers WHERE id = ?");
+                $stmtCheck->execute([$receiver_id]);
+                if ($stmtCheck->fetch()) {
+                    $isDriver = true;
+                }
+
+                $externalId = ($isDriver ? "driver_" : "partner_") . $receiver_id;
+
+                $stName = $pdo->prepare("SELECT full_name FROM partners WHERE id = ?");
+                $stName->execute([$partner_id]);
+                $senderName = $stName->fetchColumn() ?: 'Partner';
+
+                $title = "New message from $senderName";
+                $body = $message;
+
+                if ($type === 'quote_request') {
+                    $title = "Commission payment request";
+                    $p = json_decode($payload, true);
+                    $amount = $p['comm'] ?? '0';
+                    $body = "$senderName Requested Rs. $amount, Advance payment for the booking (id: $booking_id)";
+                } else if ($type === 'quote_response') {
+                    $title = "Quote Received";
+                }
+
+                require_once __DIR__ . '/../includes/notification_helper.php';
+                NotificationHelper::send($pdo, $externalId, $title, $body, [
+                    'type' => 'chat',
+                    'booking_id' => $booking_id,
+                    'sender_id' => $partner_id,
+                    'chat_type' => $type
+                ]);
+            } catch (Exception $nf) {
+            }
+
             echo json_encode(['status' => 'success', 'chat' => $event_data]);
             break;
 

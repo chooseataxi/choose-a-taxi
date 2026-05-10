@@ -5,12 +5,14 @@ require_once __DIR__ . '/../../vendor/autoload.php';
  * Enterprise Notification Helper for OneSignal v5
  * Focused on External ID targeting and Channel Versioning
  */
-class NotificationHelper {
-    
+class NotificationHelper
+{
+
     // Channel Version (MUST Match Flutter LocalNotificationService)
     private static $channelVersion = 'v2';
 
-    private static function loadEnv() {
+    private static function loadEnv()
+    {
         if (!isset($_ENV['ONESIGNAL_APP_ID'])) {
             $rootPath = realpath(__DIR__ . '/../../');
             if (class_exists('Dotenv\Dotenv')) {
@@ -20,27 +22,33 @@ class NotificationHelper {
         }
     }
 
-    public static function getAppId($pdo = null) {
+    public static function getAppId($pdo = null)
+    {
         if ($pdo) {
             try {
                 $stmt = $pdo->prepare("SELECT setting_value FROM site_settings WHERE setting_key = 'onesignal_app_id'");
                 $stmt->execute();
                 $val = $stmt->fetchColumn();
-                if ($val) return $val;
-            } catch (Exception $e) {}
+                if ($val)
+                    return $val;
+            } catch (Exception $e) {
+            }
         }
         self::loadEnv();
         return $_ENV['ONESIGNAL_APP_ID'] ?? '8af20809-09e9-4ce1-9377-989b6b4e4600';
     }
 
-    public static function getApiKey($pdo = null) {
+    public static function getApiKey($pdo = null)
+    {
         if ($pdo) {
             try {
                 $stmt = $pdo->prepare("SELECT setting_value FROM site_settings WHERE setting_key = 'onesignal_rest_api_key'");
                 $stmt->execute();
                 $val = $stmt->fetchColumn();
-                if ($val) return $val;
-            } catch (Exception $e) {}
+                if ($val)
+                    return $val;
+            } catch (Exception $e) {
+            }
         }
         self::loadEnv();
         return $_ENV['ONESIGNAL_API_KEY'] ?? '';
@@ -49,13 +57,15 @@ class NotificationHelper {
     /**
      * Send targeted notification to specific users
      */
-    public static function send($pdo, $recipients, $title, $body, $data = []) {
+    public static function send($pdo, $recipients, $title, $body, $data = [])
+    {
         $appId = self::getAppId($pdo);
         $apiKey = self::getApiKey($pdo);
-        if (!$apiKey) return false;
+        if (!$apiKey)
+            return false;
 
         $recipientList = is_array($recipients) ? $recipients : [$recipients];
-        
+
         $data['title'] = $title;
         $data['body'] = $body;
 
@@ -66,7 +76,7 @@ class NotificationHelper {
         $externalIds = $recipientList;
 
         // 2. Production Sound Mapping
-        $sound = 'newbooking'; 
+        $sound = 'newbooking';
         if (strpos($type, 'chat') !== false) {
             $sound = 'chat';
         } elseif (strpos($type, 'cancel') !== false) {
@@ -83,7 +93,7 @@ class NotificationHelper {
             'trip' => 'onesignal_trip_status_channel',
             'commission' => 'onesignal_commission_channel'
         ];
-        
+
         $baseKey = 'onesignal_new_booking_channel';
         foreach ($channelMap as $key => $dbKey) {
             if (strpos($type, $key) !== false || strpos(strtolower($title), $key) !== false) {
@@ -94,10 +104,7 @@ class NotificationHelper {
 
         // Attempt to fetch versioned key first, then fallback to base key from DB
         $versionedKey = $baseKey . '_' . self::$channelVersion;
-        $channelId = self::getDbSetting($pdo, $versionedKey, null);
-        if (!$channelId) {
-            $channelId = self::getDbSetting($pdo, $baseKey, $baseKey . '_' . self::$channelVersion);
-        }
+        $channelId = $versionedKey; // STRICT OVERRIDE: We MUST use the v2 channel string to match Flutter exactly
 
         // 4. Enterprise Payload
         $fields = array(
@@ -112,8 +119,8 @@ class NotificationHelper {
             'android_channel_id' => $channelId,
             'android_sound' => $sound,
             'ios_sound' => $sound . '.mp3',
-            'collapse_id' => (strpos($type, 'chat') !== false) ? 'chat_'.$bookingId.'_'.time() : 'booking_'.$bookingId,
-            'android_group' => (strpos($type, 'chat') !== false) ? "chat_$bookingId" : "booking_$bookingId",
+            'collapse_id' => (strpos($type, 'chat') !== false || strpos($type, 'commission') !== false || strpos($type, 'accepted') !== false) ? $type . '_' . $bookingId . '_' . time() : 'booking_' . $bookingId,
+            'android_group' => (strpos($type, 'chat') !== false) ? "chat_$bookingId" : ((strpos($type, 'commission') !== false || strpos($type, 'accepted') !== false) ? "comm_$bookingId" : "booking_$bookingId"),
         );
 
         return self::executeCurl($fields, $apiKey);
@@ -122,14 +129,12 @@ class NotificationHelper {
     /**
      * Broadcast to all segments
      */
-    public static function broadcastToAll($pdo, $title, $body, $data = []) {
+    public static function broadcastToAll($pdo, $title, $body, $data = [])
+    {
         $appId = self::getAppId($pdo);
         $apiKey = self::getApiKey($pdo);
-        
-        $channelId = self::getDbSetting($pdo, 'onesignal_new_booking_channel_' . self::$channelVersion, null);
-        if (!$channelId) {
-            $channelId = self::getDbSetting($pdo, 'onesignal_new_booking_channel', 'onesignal_new_booking_channel_' . self::$channelVersion);
-        }
+
+        $channelId = 'onesignal_new_booking_channel_' . self::$channelVersion;
 
         $fields = array(
             'app_id' => $appId,
@@ -146,8 +151,10 @@ class NotificationHelper {
         return self::executeCurl($fields, $apiKey);
     }
 
-    private static function getDbSetting($pdo, $key, $default) {
-        if (!$pdo) return $default;
+    private static function getDbSetting($pdo, $key, $default)
+    {
+        if (!$pdo)
+            return $default;
         try {
             $stmt = $pdo->prepare("SELECT setting_value FROM site_settings WHERE setting_key = ?");
             $stmt->execute([$key]);
@@ -158,7 +165,8 @@ class NotificationHelper {
         }
     }
 
-    private static function executeCurl($fields, $apiKey) {
+    private static function executeCurl($fields, $apiKey)
+    {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, "https://onesignal.com/api/v1/notifications");
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Authorization: Basic ' . $apiKey));
@@ -166,14 +174,15 @@ class NotificationHelper {
         curl_setopt($ch, CURLOPT_POST, TRUE);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-        
+
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
         $logFile = realpath(__DIR__ . '/../../') . '/tmp/notif_v2.log';
         $logDir = dirname($logFile);
-        if (!is_dir($logDir)) @mkdir($logDir, 0777, true);
+        if (!is_dir($logDir))
+            @mkdir($logDir, 0777, true);
         file_put_contents($logFile, "[" . date('Y-m-d H:i:s') . "] HTTP $httpCode: $response\n", FILE_APPEND);
 
         return $response;
