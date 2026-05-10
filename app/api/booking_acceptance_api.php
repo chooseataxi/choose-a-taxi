@@ -321,7 +321,7 @@ try {
                     $accepterName = $stmtP->fetchColumn() ?: "Partner";
 
                     if ($poster_id) {
-                        NotificationHelper::send($pdo, "partner_" . $poster_id, "Booking Cencled", "Booking $booking_id has been cancelled by accepter $accepterName. It is now open in the market.", [
+                        NotificationHelper::send($pdo, "partner_" . $poster_id, "booking cancelled", "booking $booking_id cancelled by the agent. Your commission amount will be refunded shortly.", [
                             'type' => 'booking_cancelled',
                             'booking_id' => $booking_id
                         ]);
