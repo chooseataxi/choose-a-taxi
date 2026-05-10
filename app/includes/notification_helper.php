@@ -119,7 +119,7 @@ class NotificationHelper
             'android_channel_id' => $channelId,
             'android_sound' => $sound,
             'ios_sound' => $sound . '.mp3',
-            'collapse_id' => (strpos($type, 'chat') !== false || strpos($type, 'commission') !== false || strpos($type, 'accepted') !== false) ? $type . '_' . $bookingId . '_' . time() : 'booking_' . $bookingId,
+            'collapse_id' => (strpos($type, 'chat') !== false || strpos($type, 'commission') !== false || strpos($type, 'accepted') !== false) ? $type . '_' . $bookingId . '_' . uniqid() : 'booking_' . $bookingId,
             'android_group' => (strpos($type, 'chat') !== false) ? "chat_$bookingId" : ((strpos($type, 'commission') !== false || strpos($type, 'accepted') !== false) ? "comm_$bookingId" : "booking_$bookingId"),
         );
 
