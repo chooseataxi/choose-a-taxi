@@ -390,17 +390,26 @@ try {
 
                 $pdo->commit();
 
-                // Send Notification to Poster
+                // Send Notification to Poster and Accepter
                 try {
                     $stmtPoster = $pdo->prepare("SELECT partner_id FROM partner_bookings WHERE id = ?");
                     $stmtPoster->execute([$booking_id]);
                     $poster_id = $stmtPoster->fetchColumn();
+
+                    $stmtP = $pdo->prepare("SELECT full_name FROM partners WHERE id = ?");
+                    $stmtP->execute([$partner_id]);
+                    $accepterName = $stmtP->fetchColumn() ?: "Partner";
+
                     if ($poster_id) {
-                        NotificationHelper::send($pdo, "partner_" . $poster_id, "Booking Accepted!", "Your booking ID-$booking_id has been accepted.", [
+                        NotificationHelper::send($pdo, "partner_" . $poster_id, "booking accepted successfully", "commission paid by accepter $accepterName. Booking $booking_id assign successfully.", [
                             'type' => 'commission_accepted',
                             'booking_id' => $booking_id
                         ]);
                     }
+                    NotificationHelper::send($pdo, "partner_" . $partner_id, "Commission paid successfully", "Booking $booking_id successfully assign to you.", [
+                        'type' => 'commission_paid',
+                        'booking_id' => $booking_id
+                    ]);
                 } catch (Exception $nf) {
                 }
 
@@ -520,17 +529,26 @@ try {
 
                 $pdo->commit();
 
-                // Send Notification to Poster
+                // Send Notification to Poster and Accepter
                 try {
                     $stmtPoster = $pdo->prepare("SELECT partner_id FROM partner_bookings WHERE id = ?");
                     $stmtPoster->execute([$booking_id]);
                     $poster_id = $stmtPoster->fetchColumn();
+
+                    $stmtP = $pdo->prepare("SELECT full_name FROM partners WHERE id = ?");
+                    $stmtP->execute([$partner_id]);
+                    $accepterName = $stmtP->fetchColumn() ?: "Partner";
+
                     if ($poster_id) {
-                        NotificationHelper::send($pdo, "partner_" . $poster_id, "Booking Accepted!", "Your booking ID-$booking_id has been accepted.", [
+                        NotificationHelper::send($pdo, "partner_" . $poster_id, "booking accepted successfully", "commission paid by accepter $accepterName. Booking $booking_id assign successfully.", [
                             'type' => 'commission_accepted',
                             'booking_id' => $booking_id
                         ]);
                     }
+                    NotificationHelper::send($pdo, "partner_" . $partner_id, "Commission paid successfully", "Booking $booking_id successfully assign to you.", [
+                        'type' => 'commission_paid',
+                        'booking_id' => $booking_id
+                    ]);
                 } catch (Exception $nf) {
                 }
 
