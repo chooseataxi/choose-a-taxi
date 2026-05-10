@@ -230,6 +230,9 @@ if ($action === 'create_booking') {
                 $carData = $stmtImg->fetch(PDO::FETCH_ASSOC);
                 if ($carData) {
                     $carImg = $carData['image'] ?? '';
+                    if (!empty($carImg) && !preg_match('~^(?:f|ht)tps?://~i', $carImg)) {
+                        $carImg = 'https://chooseataxi.com/' . ltrim($carImg, '/');
+                    }
                     $carName = $carData['name'] ?? $car_type;
                 }
             } catch (Exception $e) {}
@@ -407,6 +410,12 @@ if ($action === 'get_bookings') {
         foreach ($bookings as &$b) {
             $b['pricing_option'] = 'fixed';
             $b['approach_type'] = 'first_driver';
+            if (!empty($b['car_type_image']) && !preg_match('~^(?:f|ht)tps?://~i', $b['car_type_image'])) {
+                $b['car_type_image'] = 'https://chooseataxi.com/' . ltrim($b['car_type_image'], '/');
+            }
+            if (!empty($b['partner_image']) && !preg_match('~^(?:f|ht)tps?://~i', $b['partner_image'])) {
+                $b['partner_image'] = 'https://chooseataxi.com/' . ltrim($b['partner_image'], '/');
+            }
             if (isset($b['total_amount']))
                 $b['total_amount'] = (float) $b['total_amount'];
             if (isset($b['commission']))
@@ -471,6 +480,12 @@ if ($action === 'get_market_bookings') {
         foreach ($bookings as &$b) {
             $b['pricing_option'] = 'fixed';
             $b['approach_type'] = 'first_driver';
+            if (!empty($b['car_type_image']) && !preg_match('~^(?:f|ht)tps?://~i', $b['car_type_image'])) {
+                $b['car_type_image'] = 'https://chooseataxi.com/' . ltrim($b['car_type_image'], '/');
+            }
+            if (!empty($b['partner_image']) && !preg_match('~^(?:f|ht)tps?://~i', $b['partner_image'])) {
+                $b['partner_image'] = 'https://chooseataxi.com/' . ltrim($b['partner_image'], '/');
+            }
             if (isset($b['total_amount']))
                 $b['total_amount'] = (float) $b['total_amount'];
             if (isset($b['commission']))
