@@ -574,7 +574,7 @@ if ($action === 'cancel_booking') {
             $accepter_id = $stmtAcc->fetchColumn();
 
             if ($accepter_id) {
-                NotificationHelper::send($pdo, "partner_" . $accepter_id, "Booking Cancelled", "Booking ID-$booking_id has been cancelled by the poster.", [
+                NotificationHelper::send($pdo, "partner_" . $accepter_id, "Booking Cencled", "booking $booking_id cancelled by the agent. Your commission amount will be refunded shortly.", [
                     'type' => 'booking_cancelled',
                     'booking_id' => $booking_id
                 ]);

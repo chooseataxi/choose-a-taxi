@@ -87,11 +87,12 @@ class NotificationHelper
 
         // 3. Dynamic Channel Selection (Enterprise Sync with v2)
         $channelMap = [
-            'booking' => 'onesignal_new_booking_channel',
-            'chat' => 'onesignal_chat_channel',
             'cancel' => 'onesignal_cancel_channel',
+            'accepted' => 'onesignal_accepted_channel',
+            'chat' => 'onesignal_chat_channel',
+            'commission' => 'onesignal_commission_channel',
             'trip' => 'onesignal_trip_status_channel',
-            'commission' => 'onesignal_commission_channel'
+            'booking' => 'onesignal_new_booking_channel'
         ];
 
         $baseKey = 'onesignal_new_booking_channel';
@@ -121,6 +122,17 @@ class NotificationHelper
             }
         }
 
+        $androidGroup = 'booking_group';
+        if (strpos($type, 'chat') !== false) {
+            $androidGroup = 'chat_group';
+        } elseif (strpos($type, 'commission') !== false) {
+            $androidGroup = 'commission_group';
+        } elseif (strpos($type, 'accepted') !== false) {
+            $androidGroup = 'accepted_group';
+        } elseif (strpos($type, 'cancel') !== false) {
+            $androidGroup = 'cancel_group';
+        }
+
         // 4. Enterprise Payload
         $fields = array(
             'app_id' => $appId,
@@ -134,7 +146,7 @@ class NotificationHelper
             'android_sound' => $sound,
             'ios_sound' => $sound . '.mp3',
             'collapse_id' => (strpos($type, 'chat') !== false || strpos($type, 'commission') !== false || strpos($type, 'accepted') !== false) ? $type . '_' . $bookingId . '_' . uniqid() : 'booking_' . $bookingId,
-            'android_group' => (strpos($type, 'chat') !== false) ? "chat_$bookingId" : ((strpos($type, 'commission') !== false || strpos($type, 'accepted') !== false) ? "comm_$bookingId" : "booking_$bookingId"),
+            'android_group' => $androidGroup,
         );
 
         return self::executeCurl($fields, $apiKey);
@@ -160,6 +172,7 @@ class NotificationHelper
             'existing_android_channel_id' => $channelId,
             'android_sound' => 'newbooking',
             'small_icon' => 'launcher_icon',
+            'android_group' => 'booking_group',
         );
 
         return self::executeCurl($fields, $apiKey);
