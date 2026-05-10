@@ -106,11 +106,25 @@ class NotificationHelper
         $versionedKey = $baseKey . '_' . self::$channelVersion;
         $channelId = $versionedKey; // STRICT OVERRIDE: We MUST use the v2 channel string to match Flutter exactly
 
+        $filters = array();
+        foreach ($externalIds as $idx => $extId) {
+            if ($idx > 0) {
+                $filters[] = array("operator" => "OR");
+            }
+            $parts = explode('_', $extId);
+            if (count($parts) == 2) {
+                $role = $parts[0];
+                $id = $parts[1];
+                $filters[] = array("field" => "tag", "key" => "user_role", "relation" => "=", "value" => $role);
+                $filters[] = array("operator" => "AND");
+                $filters[] = array("field" => "tag", "key" => $role . "_id", "relation" => "=", "value" => $id);
+            }
+        }
+
         // 4. Enterprise Payload
         $fields = array(
             'app_id' => $appId,
-            'include_aliases' => array('external_id' => $externalIds),
-            'target_channel' => 'push',
+            'filters' => $filters,
             'data' => $data,
             'contents' => array("en" => $body),
             'headings' => array("en" => $title),
