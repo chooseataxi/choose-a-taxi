@@ -201,15 +201,9 @@ try {
 
             // ── Send OneSignal Push Notification ──
             try {
-                // Identify recipient role to construct External ID
-                $isDriver = false;
-                $stmtCheck = $pdo->prepare("SELECT id FROM drivers WHERE id = ?");
-                $stmtCheck->execute([$receiver_id]);
-                if ($stmtCheck->fetch()) {
-                    $isDriver = true;
-                }
-
-                $externalId = ($isDriver ? "driver_" : "partner_") . $receiver_id;
+                // Chats are ALWAYS partner-to-partner. 
+                // The previous driver check was causing overlapping IDs to misroute notifications to 'driver_X' instead of 'partner_X'
+                $externalId = "partner_" . $receiver_id;
 
                 $stName = $pdo->prepare("SELECT full_name FROM partners WHERE id = ?");
                 $stName->execute([$partner_id]);
