@@ -310,6 +310,22 @@ try {
 
                 try {
                     $pusher->trigger('market-channel', 'list-updated', ['id' => $booking_id, 'action' => 'updated']);
+                    
+                    // Notify Poster that the accepter cancelled
+                    $stmtPoster = $pdo->prepare("SELECT partner_id FROM partner_bookings WHERE id = ?");
+                    $stmtPoster->execute([$booking_id]);
+                    $poster_id = $stmtPoster->fetchColumn();
+
+                    $stmtP = $pdo->prepare("SELECT full_name FROM partners WHERE id = ?");
+                    $stmtP->execute([$partner_id]);
+                    $accepterName = $stmtP->fetchColumn() ?: "Partner";
+
+                    if ($poster_id) {
+                        NotificationHelper::send($pdo, "partner_" . $poster_id, "Booking Cencled", "Booking $booking_id has been cancelled by accepter $accepterName. It is now open in the market.", [
+                            'type' => 'booking_cancelled',
+                            'booking_id' => $booking_id
+                        ]);
+                    }
                 } catch (Exception $e) {
                 }
 
