@@ -63,10 +63,7 @@ class NotificationHelper {
         $bookingId = $data['booking_id'] ?? 'gen';
 
         // 1. Precise Targeting (External User IDs)
-        $externalIds = [];
-        foreach ($recipientList as $id) {
-            $externalIds[] = str_replace(['partner_', 'driver_'], '', $id);
-        }
+        $externalIds = $recipientList;
 
         // 2. Production Sound Mapping
         $sound = 'newbooking'; 
