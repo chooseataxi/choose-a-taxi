@@ -116,7 +116,7 @@ class NotificationHelper
             'headings' => array("en" => $title),
             'priority' => 10,
             'small_icon' => 'launcher_icon',
-            'android_channel_id' => $channelId,
+            'existing_android_channel_id' => $channelId,
             'android_sound' => $sound,
             'ios_sound' => $sound . '.mp3',
             'collapse_id' => (strpos($type, 'chat') !== false || strpos($type, 'commission') !== false || strpos($type, 'accepted') !== false) ? $type . '_' . $bookingId . '_' . uniqid() : 'booking_' . $bookingId,
@@ -143,7 +143,7 @@ class NotificationHelper
             'contents' => array("en" => $body),
             'headings' => array("en" => $title),
             'priority' => 10,
-            'android_channel_id' => $channelId,
+            'existing_android_channel_id' => $channelId,
             'android_sound' => 'newbooking',
             'small_icon' => 'launcher_icon',
         );
