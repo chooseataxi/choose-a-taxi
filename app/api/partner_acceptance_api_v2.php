@@ -194,7 +194,7 @@ try {
 
                     require_once __DIR__ . '/../includes/notification_helper.php';
                     NotificationHelper::send($pdo, "partner_" . $bookingMeta['partner_id'], "Booking Accepted Successfully", "Commission Paid By $accepterName, Booking $booking_id, Assign Successfully", [
-                        'type' => 'booking_accepted',
+                        'type' => 'commission_accepted',
                         'booking_id' => $booking_id
                     ]);
                     NotificationHelper::send($pdo, "partner_" . $partner_id, "Commission Paid Successfully", "Booking $booking_id Successfully Assigned to you.", [
@@ -278,7 +278,7 @@ try {
 
                     require_once __DIR__ . '/../includes/notification_helper.php';
                     NotificationHelper::send($pdo, "partner_" . $posterId, "Booking Accepted Successfully", "Commission Paid By $accepterName, Booking $booking_id, Assign Successfully", [
-                        'type' => 'booking_accepted',
+                        'type' => 'commission_accepted',
                         'booking_id' => $booking_id
                     ]);
                     NotificationHelper::send($pdo, "partner_" . $partner_id, "Commission Paid Successfully", "Booking $booking_id Successfully Assigned to you.", [

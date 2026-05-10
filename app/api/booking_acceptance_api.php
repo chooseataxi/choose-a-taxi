@@ -403,7 +403,7 @@ try {
                     $poster_id = $stmtPoster->fetchColumn();
                     if ($poster_id) {
                         NotificationHelper::send($pdo, "partner_" . $poster_id, "Booking Accepted!", "Your booking ID-$booking_id has been accepted.", [
-                            'type' => 'booking_accepted',
+                            'type' => 'commission_accepted',
                             'booking_id' => $booking_id
                         ]);
                     }
@@ -533,7 +533,7 @@ try {
                     $poster_id = $stmtPoster->fetchColumn();
                     if ($poster_id) {
                         NotificationHelper::send($pdo, "partner_" . $poster_id, "Booking Accepted!", "Your booking ID-$booking_id has been accepted.", [
-                            'type' => 'booking_accepted',
+                            'type' => 'commission_accepted',
                             'booking_id' => $booking_id
                         ]);
                     }
