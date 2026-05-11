@@ -98,13 +98,33 @@ try {
 
             // 5. If is_poster and no acceptance yet, but we are in a chat (other_id provided)
             $other_id = $_GET['other_id'] ?? null;
-            if ($booking['partner_id'] == $partner_id && empty($acceptance) && !empty($other_id)) {
+            if (empty($acceptance) && !empty($other_id)) {
                 $stmtOther = $pdo->prepare("SELECT id as accepter_id, full_name as accepter_name, selfie_link as accepter_image, mobile as accepter_mobile, manual_verification_status as accepter_verification FROM partners WHERE id = ?");
                 $stmtOther->execute([$other_id]);
                 $other_data = $stmtOther->fetch(PDO::FETCH_ASSOC);
                 if ($other_data) {
                     $acceptance = $other_data; // Temporary mock acceptance for UI purposes
                     $acceptance['status'] = 'Negotiating';
+                }
+            }
+
+            // 6. Enrich acceptance with LATEST quote details for this specific interaction
+            if (!empty($acceptance) && !empty($other_id)) {
+                // Find latest quote_request between these two
+                $stmtQuote = $pdo->prepare("SELECT payload, quote_status FROM booking_chats 
+                                           WHERE booking_id = ? 
+                                           AND type = 'quote_request'
+                                           AND ((sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?))
+                                           ORDER BY id DESC LIMIT 1");
+                $stmtQuote->execute([$booking_id, $partner_id, $other_id, $other_id, $partner_id]);
+                $latestQuote = $stmtQuote->fetch(PDO::FETCH_ASSOC);
+                if ($latestQuote && !empty($latestQuote['payload'])) {
+                    $payload = json_decode($latestQuote['payload'], true);
+                    if ($payload) {
+                        $acceptance['total_fare'] = $payload['total_fare'] ?? ($payload['fare'] ?? 0);
+                        $acceptance['commission'] = $payload['commission'] ?? ($payload['comm'] ?? 0);
+                        $acceptance['quote_status'] = $latestQuote['quote_status'];
+                    }
                 }
             }
 
@@ -153,9 +173,10 @@ try {
                 }
 
                 if ($hasQuoteStatus) {
+                    // Only expire the previous quote for THIS specific receiver
                     $stmtExpire = $pdo->prepare("UPDATE booking_chats SET quote_status = 'expired' 
-                                                WHERE booking_id = ? AND type = 'quote_request' AND quote_status = 'active'");
-                    $stmtExpire->execute([$booking_id]);
+                                                WHERE booking_id = ? AND receiver_id = ? AND type = 'quote_request' AND quote_status = 'active'");
+                    $stmtExpire->execute([$booking_id, $receiver_id]);
                 }
             }
 
