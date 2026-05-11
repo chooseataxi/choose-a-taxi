@@ -44,40 +44,10 @@ function getRazorpayConfig($pdo)
 }
 
 try {
-    // Lazy Migration: Add is_read if not exists
+    // Lazy Migration: Add quote_status if not exists
     try {
-        $pdo->exec("ALTER TABLE booking_chats ADD COLUMN is_read TINYINT(1) DEFAULT 0");
+        $pdo->exec("ALTER TABLE booking_chats ADD COLUMN quote_status VARCHAR(20) DEFAULT 'active'");
     } catch (PDOException $e) {
-    }
-
-    // Lazy Migration: Add phone to drivers if not exists
-    try {
-        $pdo->exec("ALTER TABLE drivers ADD COLUMN phone VARCHAR(20) DEFAULT NULL AFTER full_name");
-    } catch (PDOException $e) {
-    }
-
-    // Helper: Update Wallet & Log Transaction
-    function updateWallet($pdo, $partner_id, $amount, $type, $source, $source_id, $description)
-    {
-        if (!$pdo->inTransaction())
-            $pdo->beginTransaction();
-        try {
-            $stmt = $pdo->prepare("INSERT IGNORE INTO partner_wallet (partner_id, balance) VALUES (?, 0)");
-            $stmt->execute([$partner_id]);
-
-            if ($type === 'Credit') {
-                $stmt = $pdo->prepare("UPDATE partner_wallet SET balance = balance + ? WHERE partner_id = ?");
-            } else {
-                $stmt = $pdo->prepare("UPDATE partner_wallet SET balance = balance - ? WHERE partner_id = ?");
-            }
-            $stmt->execute([$amount, $partner_id]);
-
-            $stmt = $pdo->prepare("INSERT INTO partner_transactions (partner_id, type, amount, source, source_id, description) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$partner_id, $type, $amount, $source, $source_id, $description]);
-            return true;
-        } catch (Exception $e) {
-            return false;
-        }
     }
 
     switch ($action) {
@@ -159,7 +129,24 @@ try {
             if (empty($message) || empty($receiver_id))
                 throw new Exception("Message and Receiver required");
 
-            $stmt = $pdo->prepare("INSERT INTO booking_chats (booking_id, sender_id, receiver_id, message, type, payload) VALUES (?, ?, ?, ?, ?, ?)");
+            // ── Privacy & Logic Implementation ──
+            if ($type === 'quote_request') {
+                // 1. Verify that ONLY the poster can send a quote_request
+                $stmtCheck = $pdo->prepare("SELECT partner_id FROM partner_bookings WHERE id = ?");
+                $stmtCheck->execute([$booking_id]);
+                $realPosterId = $stmtCheck->fetchColumn();
+                
+                if ($realPosterId != $partner_id) {
+                    throw new Exception("Privacy Error: Only the booking poster can send commission requests.");
+                }
+
+                // 2. Auto-Expire previous active quotes for this booking
+                $stmtExpire = $pdo->prepare("UPDATE booking_chats SET quote_status = 'expired' 
+                                            WHERE booking_id = ? AND type = 'quote_request' AND quote_status = 'active'");
+                $stmtExpire->execute([$booking_id]);
+            }
+
+            $stmt = $pdo->prepare("INSERT INTO booking_chats (booking_id, sender_id, receiver_id, message, type, payload, quote_status) VALUES (?, ?, ?, ?, ?, ?, 'active')");
             $stmt->execute([$booking_id, $partner_id, $receiver_id, $message, $type, $payload]);
             $chat_id = $pdo->lastInsertId();
 
@@ -189,6 +176,7 @@ try {
                 'message' => $message,
                 'type' => $type,
                 'payload' => $payload,
+                'quote_status' => 'active',
                 'created_at' => date('Y-m-d H:i:s')
             ];
 
@@ -202,7 +190,6 @@ try {
             // ── Send OneSignal Push Notification ──
             try {
                 // Chats are ALWAYS partner-to-partner. 
-                // The previous driver check was causing overlapping IDs to misroute notifications to 'driver_X' instead of 'partner_X'
                 $externalId = "partner_" . $receiver_id;
 
                 $stName = $pdo->prepare("SELECT full_name FROM partners WHERE id = ?");
