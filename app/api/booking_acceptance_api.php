@@ -88,12 +88,13 @@ try {
             $stmt->execute([$partner_id]);
             $vehicles = $stmt->fetchAll();
 
-            // 4. Aggressive Hotfix: Force 'Accept' UI by overriding key fields
-            $booking['pricing_option'] = 'fixed';
-            $booking['approach_type'] = 'first_driver';
-            
-            $booking['total_amount'] = (empty($booking['total_amount']) || $booking['total_amount'] == 0) ? "Best Quote" : (float)$booking['total_amount'];
-            $booking['commission'] = (empty($booking['commission']) || $booking['commission'] == 0) ? "Best Quote" : (float)$booking['commission'];
+            // 4. Aggressive Hotfix: Ensure numeric fields are floats if present
+            if (isset($booking['total_amount']) && is_numeric($booking['total_amount']) && $booking['total_amount'] > 0) {
+                $booking['total_amount'] = (float)$booking['total_amount'];
+            }
+            if (isset($booking['commission']) && is_numeric($booking['commission']) && $booking['commission'] > 0) {
+                $booking['commission'] = (float)$booking['commission'];
+            }
 
             // 5. If is_poster and no acceptance yet, but we are in a chat (other_id provided)
             $other_id = $_GET['other_id'] ?? null;
@@ -163,23 +164,6 @@ try {
             $stmt->execute([$booking_id, $partner_id, $receiver_id, $message, $type, $payload]);
             $chat_id = $pdo->lastInsertId();
 
-            // If it's a quote request and approach_type is manual_selection, update the booking's commission/total_amount
-            if ($type === 'quote_request' && !empty($payload)) {
-                $p = json_decode($payload, true);
-                if (isset($p['fare']) && isset($p['comm'])) {
-                    // We update the booking commission/total_amount
-                    $stmtUpdate = $pdo->prepare("UPDATE partner_bookings SET total_amount = ?, commission = ? WHERE id = ?");
-                    $stmtUpdate->execute([$p['fare'], $p['comm'], $booking_id]);
-
-                    // Trigger market list update via Pusher if something changed
-                    if ($stmtUpdate->rowCount() > 0) {
-                        try {
-                            $pusher->trigger('market-channel', 'list-updated', ['id' => $booking_id, 'action' => 'updated']);
-                        } catch (Exception $e) {
-                        }
-                    }
-                }
-            }
 
             // Trigger Pusher
             $event_data = [
