@@ -44,10 +44,15 @@ function getRazorpayConfig($pdo)
 }
 
 try {
-    // Lazy Migration: Add quote_status if not exists
-    try {
-        $pdo->exec("ALTER TABLE booking_chats ADD COLUMN quote_status VARCHAR(20) DEFAULT 'active'");
-    } catch (PDOException $e) {
+    // Robust Migration: Add quote_status column if it doesn't exist
+    $checkColumn = $pdo->prepare("SHOW COLUMNS FROM booking_chats LIKE 'quote_status'");
+    $checkColumn->execute();
+    if (!$checkColumn->fetch()) {
+        try {
+            $pdo->exec("ALTER TABLE booking_chats ADD COLUMN quote_status VARCHAR(20) DEFAULT 'active'");
+        } catch (PDOException $e) {
+            // Log or ignore if already exists or other non-critical error
+        }
     }
 
     switch ($action) {
@@ -129,24 +134,32 @@ try {
             if (empty($message) || empty($receiver_id))
                 throw new Exception("Message and Receiver required");
 
-            // ── Privacy & Logic Implementation ──
+            // 2. Auto-Expire previous active quotes for this booking
+            $hasQuoteStatus = false;
+            try {
+                $check = $pdo->query("SHOW COLUMNS FROM booking_chats LIKE 'quote_status'");
+                if ($check->fetch()) $hasQuoteStatus = true;
+            } catch (Exception $e) {}
+
             if ($type === 'quote_request') {
-                // 1. Verify that ONLY the poster can send a quote_request
+                // Verify that ONLY the poster can send a quote_request
                 $stmtCheck = $pdo->prepare("SELECT partner_id FROM partner_bookings WHERE id = ?");
                 $stmtCheck->execute([$booking_id]);
                 $realPosterId = $stmtCheck->fetchColumn();
                 
-                if ($realPosterId != $partner_id) {
-                    throw new Exception("Privacy Error: Only the booking poster can send commission requests.");
+                if (strval($realPosterId) !== strval($partner_id)) {
+                    throw new Exception("Privacy Error: Only the booking poster can send commission requests. (Ref: $realPosterId vs $partner_id)");
                 }
 
-                // 2. Auto-Expire previous active quotes for this booking
-                $stmtExpire = $pdo->prepare("UPDATE booking_chats SET quote_status = 'expired' 
-                                            WHERE booking_id = ? AND type = 'quote_request' AND quote_status = 'active'");
-                $stmtExpire->execute([$booking_id]);
+                if ($hasQuoteStatus) {
+                    $stmtExpire = $pdo->prepare("UPDATE booking_chats SET quote_status = 'expired' 
+                                                WHERE booking_id = ? AND type = 'quote_request' AND quote_status = 'active'");
+                    $stmtExpire->execute([$booking_id]);
+                }
             }
 
-            $stmt = $pdo->prepare("INSERT INTO booking_chats (booking_id, sender_id, receiver_id, message, type, payload, quote_status) VALUES (?, ?, ?, ?, ?, ?, 'active')");
+            $sql = "INSERT INTO booking_chats (booking_id, sender_id, receiver_id, message, type, payload" . ($hasQuoteStatus ? ", quote_status" : "") . ") VALUES (?, ?, ?, ?, ?, ?" . ($hasQuoteStatus ? ", 'active'" : "") . ")";
+            $stmt = $pdo->prepare($sql);
             $stmt->execute([$booking_id, $partner_id, $receiver_id, $message, $type, $payload]);
             $chat_id = $pdo->lastInsertId();
 
