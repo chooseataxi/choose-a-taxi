@@ -170,6 +170,7 @@ try {
                 'id' => $chat_id,
                 'booking_id' => $booking_id,
                 'sender_id' => $partner_id,
+                'receiver_id' => $receiver_id,
                 'message' => $message,
                 'type' => $type,
                 'payload' => $payload,
@@ -584,19 +585,22 @@ try {
 
         case 'get_chat_list':
             // ── 1. Open (My own bookings) ──
+            // We join partners by identifying who is NOT the current user in the chat
             $sqlPosted = "SELECT BC.booking_id, BC.message, BC.created_at, P.full_name as partner_name, BC.type, P.id as other_id, P.selfie_link as partner_image, P.manual_verification_status as partner_verification,
                           (SELECT COUNT(*) FROM booking_chats WHERE booking_id = BC.booking_id AND receiver_id = ? AND sender_id = P.id AND is_read = 0) as unread_count
                           FROM booking_chats BC
                           JOIN partner_bookings PB ON BC.booking_id = PB.id
                           JOIN partners P ON P.id = (CASE WHEN BC.sender_id = ? THEN BC.receiver_id ELSE BC.sender_id END)
                           WHERE PB.partner_id = ?
+                          AND P.id != 0 AND P.id IS NOT NULL
                           AND BC.id IN (
                               SELECT MAX(id) FROM booking_chats 
+                              WHERE booking_id IN (SELECT id FROM partner_bookings WHERE partner_id = ?)
                               GROUP BY booking_id, (CASE WHEN sender_id = ? THEN receiver_id ELSE sender_id END)
                           )
                           ORDER BY BC.id DESC";
             $stmt = $pdo->prepare($sqlPosted);
-            $stmt->execute([$partner_id, $partner_id, $partner_id, $partner_id]);
+            $stmt->execute([$partner_id, $partner_id, $partner_id, $partner_id, $partner_id]);
             $posted = $stmt->fetchAll();
 
             // ── 2. Received (Others' bookings I chatted on / Accepted) ──
@@ -609,11 +613,12 @@ try {
                             AND PB.partner_id != ?
                             AND BC.id IN (
                                 SELECT MAX(id) FROM booking_chats 
-                                GROUP BY booking_id, (CASE WHEN sender_id = ? THEN receiver_id ELSE sender_id END)
+                                WHERE (sender_id = ? OR receiver_id = ?)
+                                GROUP BY booking_id
                             )
                             ORDER BY BC.id DESC";
             $stmt = $pdo->prepare($sqlReceived);
-            $stmt->execute([$partner_id, $partner_id, $partner_id, $partner_id, $partner_id]);
+            $stmt->execute([$partner_id, $partner_id, $partner_id, $partner_id, $partner_id, $partner_id]);
             $received = $stmt->fetchAll();
 
             echo json_encode([
