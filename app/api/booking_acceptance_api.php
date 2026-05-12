@@ -667,7 +667,7 @@ try {
             // We join partners by identifying who is NOT the current user in the chat
             $sqlPosted = "SELECT BC.booking_id, BC.message, BC.created_at, P.full_name as partner_name, BC.type, P.id as other_id, P.selfie_link as partner_image, P.manual_verification_status as partner_verification,
                           PB.status as booking_status, PB.preferences,
-                          AB.status as acceptance_status, AP.full_name as accepter_name,
+                          AB.status as acceptance_status, AP.full_name as accepter_name, AB.partner_id as accepter_id,
                           (SELECT COUNT(*) FROM booking_chats WHERE booking_id = BC.booking_id AND receiver_id = ? AND sender_id = P.id AND is_read = 0) as unread_count
                           FROM booking_chats BC
                           JOIN partner_bookings PB ON BC.booking_id = PB.id
@@ -689,7 +689,7 @@ try {
             // ── 2. Received (Others' bookings I chatted on / Accepted) ──
             $sqlReceived = "SELECT BC.booking_id, BC.message, BC.created_at, P.full_name as partner_name, BC.type, PB.partner_id as other_id, P.selfie_link as partner_image, P.manual_verification_status as partner_verification,
                             PB.status as booking_status, PB.preferences,
-                            AB.status as acceptance_status, AP.full_name as accepter_name,
+                            AB.status as acceptance_status, AP.full_name as accepter_name, AB.partner_id as accepter_id,
                             (SELECT COUNT(*) FROM booking_chats WHERE booking_id = BC.booking_id AND receiver_id = ? AND sender_id = P.id AND is_read = 0) as unread_count
                             FROM booking_chats BC
                             JOIN partner_bookings PB ON BC.booking_id = PB.id
