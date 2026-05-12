@@ -4,6 +4,7 @@ ini_set('display_errors', 1);
 
 require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../../includes/db.php';
+require_once __DIR__ . '/../includes/wallet_helper.php';
 
 use Razorpay\Api\Api;
 
@@ -20,9 +21,6 @@ if (empty($partner_id) && $action !== 'options') {
     exit;
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
-// Helper: Get Razorpay Keys from Database
-// ──────────────────────────────────────────────────────────────────────────────
 function getRazorpayConfig($pdo) {
     try {
         $stmt = $pdo->query("SELECT setting_key, setting_value FROM payment_settings WHERE setting_key LIKE 'razorpay_%'");
@@ -35,37 +33,6 @@ function getRazorpayConfig($pdo) {
         ];
     } catch (Exception $e) {
         return null;
-    }
-}
-
-// ──────────────────────────────────────────────────────────────────────────────
-// Helper: Update Wallet & Log Transaction
-// ──────────────────────────────────────────────────────────────────────────────
-function updateWallet($pdo, $partner_id, $amount, $type, $source, $source_id, $description) {
-    $isNested = $pdo->inTransaction();
-    if (!$isNested) $pdo->beginTransaction();
-    try {
-        // 1. Ensure wallet exists
-        $stmt = $pdo->prepare("INSERT IGNORE INTO partner_wallet (partner_id, balance) VALUES (?, 0)");
-        $stmt->execute([$partner_id]);
-
-        // 2. Update balance
-        if ($type === 'Credit') {
-            $stmt = $pdo->prepare("UPDATE partner_wallet SET balance = balance + ? WHERE partner_id = ?");
-        } else {
-            $stmt = $pdo->prepare("UPDATE partner_wallet SET balance = balance - ? WHERE partner_id = ?");
-        }
-        $stmt->execute([$amount, $partner_id]);
-
-        // 3. Log transaction
-        $stmt = $pdo->prepare("INSERT INTO partner_transactions (partner_id, type, amount, source, source_id, description) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$partner_id, $type, $amount, $source, $source_id, $description]);
-
-        if (!$isNested) $pdo->commit();
-        return true;
-    } catch (Exception $e) {
-        if (!$isNested) $pdo->rollBack();
-        return false;
     }
 }
 

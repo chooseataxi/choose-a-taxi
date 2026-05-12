@@ -2,6 +2,8 @@
 error_reporting(0);
 ini_set('display_errors', 0);
 require_once __DIR__ . '/../../includes/db.php';
+require_once __DIR__ . '/../includes/wallet_helper.php';
+
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
@@ -62,26 +64,7 @@ if (empty($partner_id) && !in_array($action, ['lookup_rc', 'options', 'get_car_t
     exit;
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
-// Helper: Update Wallet & Log Transaction
-// ──────────────────────────────────────────────────────────────────────────────
-function updateWallet($pdo, $partner_id, $amount, $type, $description) {
-    try {
-        $stmt = $pdo->prepare("INSERT IGNORE INTO partner_wallet (partner_id, balance) VALUES (?, 0)");
-        $stmt->execute([$partner_id]);
-
-        if ($type === 'Credit') {
-            $stmt = $pdo->prepare("UPDATE partner_wallet SET balance = balance + ? WHERE partner_id = ?");
-        } else {
-            $stmt = $pdo->prepare("UPDATE partner_wallet SET balance = balance - ? WHERE partner_id = ?");
-        }
-        $stmt->execute([$amount, $partner_id]);
-
-        $stmt = $pdo->prepare("INSERT INTO partner_transactions (partner_id, type, amount, source, description) VALUES (?, ?, ?, 'Vehicle Registration', ?)");
-        $stmt->execute([$partner_id, $type, $amount, $description]);
-        return true;
-    } catch (Exception $e) { return false; }
-}
+// Removed redundant local updateWallet definition as it is now provided by wallet_helper.php
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Helper: Check Vehicle Compliance (Dates & Permit)
@@ -167,7 +150,7 @@ if ($action === 'lookup_rc') {
 
     // ── Deduct Fee immediately on lookup ──
     $fee = 7.50;
-    updateWallet($pdo, $partner_id, $fee, 'Debit', "Lookup fee for RC: $rc_number");
+    updateWallet($pdo, $partner_id, $fee, 'Debit', 'Vehicle Registration', 0, "Lookup fee for RC: $rc_number");
 
     echo json_encode(['status' => 'success', 'data' => $rcJson['data']]);
     exit;
@@ -394,7 +377,7 @@ if ($action === 'renew_vehicle') {
             $newData['rc_status'] ?? 'Active', json_encode($newData), $vehicle_id
         ]);
 
-        updateWallet($pdo, $partner_id, $fee, 'Debit', "Document renewal fee for Vehicle: " . $vehicle['maker_model'] . " ($rc_number)");
+        updateWallet($pdo, $partner_id, $fee, 'Debit', 'Vehicle Registration', $vehicle_id, "Document renewal fee for Vehicle: " . $vehicle['maker_model'] . " ($rc_number)");
         $pdo->commit();
 
         echo json_encode(['status' => 'success', 'message' => 'Vehicle documents renewed and updated successfully.']);

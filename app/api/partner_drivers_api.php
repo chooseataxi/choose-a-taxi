@@ -2,6 +2,8 @@
 
 require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../../includes/db.php';
+require_once __DIR__ . '/../includes/wallet_helper.php';
+
 
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
@@ -43,26 +45,7 @@ if (empty($partner_id) && $action !== 'options') {
     exit;
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
-// Helper: Update Wallet & Log Transaction
-// ──────────────────────────────────────────────────────────────────────────────
-function updateWallet($pdo, $partner_id, $amount, $type, $description) {
-    try {
-        $stmt = $pdo->prepare("INSERT IGNORE INTO partner_wallet (partner_id, balance) VALUES (?, 0)");
-        $stmt->execute([$partner_id]);
-
-        if ($type === 'Credit') {
-            $stmt = $pdo->prepare("UPDATE partner_wallet SET balance = balance + ? WHERE partner_id = ?");
-        } else {
-            $stmt = $pdo->prepare("UPDATE partner_wallet SET balance = balance - ? WHERE partner_id = ?");
-        }
-        $stmt->execute([$amount, $partner_id]);
-
-        $stmt = $pdo->prepare("INSERT INTO partner_transactions (partner_id, type, amount, source, description) VALUES (?, ?, ?, 'Driver Registration', ?)");
-        $stmt->execute([$partner_id, $type, $amount, $description]);
-        return true;
-    } catch (Exception $e) { return false; }
-}
+// Removed redundant local updateWallet definition as it is now provided by wallet_helper.php
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Helper: Surepass DL API call
@@ -198,7 +181,7 @@ try {
             ]);
 
             // ── Deduct Fee ──
-            updateWallet($pdo, $partner_id, $fee, 'Debit', "Registration fee for Driver: " . $data['name']);
+            updateWallet($pdo, $partner_id, $fee, 'Debit', 'Driver Registration', 0, "Registration fee for Driver: " . $data['name']);
 
             echo json_encode(["status" => "success", "message" => "Driver added successfully and ₹$fee deducted from wallet.", "data" => $data]);
             break;
@@ -246,7 +229,7 @@ try {
             }
 
             // 3. Deduct Fee
-            if (!updateWallet($pdo, $partner_id, $fee, 'Debit', "License Renewal fee for Driver: " . $driver['full_name'])) {
+            if (!updateWallet($pdo, $partner_id, $fee, 'Debit', 'Driver Registration', $driver_id, "License Renewal fee for Driver: " . $driver['full_name'])) {
                 throw new Exception("Wallet deduction failed");
             }
 

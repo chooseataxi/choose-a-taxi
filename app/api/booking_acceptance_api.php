@@ -1,5 +1,6 @@
 <?php
 // require_once __DIR__ . '/../../includes/db.php';
+require_once __DIR__ . '/../includes/wallet_helper.php';
 require_once __DIR__ . '/../includes/notification_helper.php';
 set_exception_handler(function ($e) {
     header("Content-Type: application/json");
