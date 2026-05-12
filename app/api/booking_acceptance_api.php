@@ -161,11 +161,12 @@ try {
                 throw new Exception("Message and Receiver required");
 
             // 2. Auto-Expire previous active quotes for this booking
-            $hasQuoteStatus = false;
+            // Ensure quote_status column exists (One-time migration check)
             try {
-                $check = $pdo->query("SHOW COLUMNS FROM booking_chats LIKE 'quote_status'");
-                if ($check->fetch()) $hasQuoteStatus = true;
+                $pdo->exec("ALTER TABLE booking_chats ADD COLUMN IF NOT EXISTS quote_status VARCHAR(20) DEFAULT 'active' AFTER payload");
             } catch (Exception $e) {}
+
+            $hasQuoteStatus = true;
 
             if ($type === 'quote_request') {
                 // Verify that ONLY the poster can send a quote_request
@@ -179,9 +180,10 @@ try {
 
                 if ($hasQuoteStatus) {
                     // Only expire the previous quote for THIS specific receiver
+                    // Only expire the previous quote from THIS sender to THIS receiver for THIS booking
                     $stmtExpire = $pdo->prepare("UPDATE booking_chats SET quote_status = 'expired' 
-                                                WHERE booking_id = ? AND receiver_id = ? AND type = 'quote_request' AND quote_status = 'active'");
-                    $stmtExpire->execute([$booking_id, $receiver_id]);
+                                                WHERE booking_id = ? AND sender_id = ? AND receiver_id = ? AND type = 'quote_request' AND quote_status = 'active'");
+                    $stmtExpire->execute([$booking_id, $partner_id, $receiver_id]);
                 }
             }
 
@@ -430,6 +432,12 @@ try {
                         ->execute([$booking_id]);
                 }
 
+                // Trigger Pusher to refresh chat statuses in real-time
+                try {
+                    $pusher->trigger("booking-chat-$booking_id", 'chat-update', ['booking_id' => $booking_id, 'type' => 'status_update']);
+                    $pusher->trigger("partner-" . $bookingMeta['partner_id'], 'chat-update', ['booking_id' => $booking_id, 'type' => 'status_update']);
+                } catch (Exception $pe) {}
+
                 // 5. Deduct Wallet
                 if (!updateWallet($pdo, $partner_id, $commission, 'Debit', 'Booking Acceptance', $acc_id, "Commission for Booking ID-$booking_id")) {
                     throw new Exception("Wallet update failed");
@@ -586,6 +594,12 @@ try {
                     $pdo->prepare("UPDATE booking_chats SET quote_status = 'expired' WHERE booking_id = ? AND type = 'quote_request'")
                         ->execute([$booking_id]);
                 }
+
+                // Trigger Pusher
+                try {
+                    $pusher->trigger("booking-chat-$booking_id", 'chat-update', ['booking_id' => $booking_id, 'type' => 'status_update']);
+                    $pusher->trigger("partner-" . ($bookingMeta['partner_id'] ?? 0), 'chat-update', ['booking_id' => $booking_id, 'type' => 'status_update']);
+                } catch (Exception $pe) {}
 
                 // Log as transaction (Paid but not from wallet, so maybe just log it)
                 $stmt = $pdo->prepare("INSERT INTO partner_transactions (partner_id, type, amount, source, source_id, description) VALUES (?, 'Debit', ?, 'Razorpay Acceptance', ?, ?)");
