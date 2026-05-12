@@ -9,6 +9,16 @@ try {
     } else {
         echo "Column 'quote_status' already exists.\n";
     }
+
+    // Add performance index for chats
+    try {
+        $pdo->exec("CREATE INDEX IF NOT EXISTS idx_chat_lookup ON booking_chats(booking_id, sender_id, receiver_id)");
+        echo "Index 'idx_chat_lookup' created or already exists.\n";
+    } catch (Exception $e) {
+        // Some older MySQL versions don't support IF NOT EXISTS for indexes
+        $pdo->exec("CREATE INDEX idx_chat_lookup ON booking_chats(booking_id, sender_id, receiver_id)");
+        echo "Index 'idx_chat_lookup' created.\n";
+    }
 } catch (Exception $e) {
     echo "Error: " . $e->getMessage() . "\n";
 }

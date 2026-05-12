@@ -164,6 +164,8 @@ try {
             // Ensure quote_status column exists (One-time migration check)
             try {
                 $pdo->exec("ALTER TABLE booking_chats ADD COLUMN IF NOT EXISTS quote_status VARCHAR(20) DEFAULT 'active' AFTER payload");
+                // Performance index for chat history
+                $pdo->exec("CREATE INDEX IF NOT EXISTS idx_chat_performance ON booking_chats(booking_id, sender_id, receiver_id)");
             } catch (Exception $e) {}
 
             $hasQuoteStatus = true;
@@ -664,10 +666,14 @@ try {
             // ── 1. Open (My own bookings) ──
             // We join partners by identifying who is NOT the current user in the chat
             $sqlPosted = "SELECT BC.booking_id, BC.message, BC.created_at, P.full_name as partner_name, BC.type, P.id as other_id, P.selfie_link as partner_image, P.manual_verification_status as partner_verification,
+                          PB.status as booking_status, PB.preferences,
+                          AB.status as acceptance_status, AP.full_name as accepter_name,
                           (SELECT COUNT(*) FROM booking_chats WHERE booking_id = BC.booking_id AND receiver_id = ? AND sender_id = P.id AND is_read = 0) as unread_count
                           FROM booking_chats BC
                           JOIN partner_bookings PB ON BC.booking_id = PB.id
                           JOIN partners P ON P.id = (CASE WHEN BC.sender_id = ? THEN BC.receiver_id ELSE BC.sender_id END)
+                          LEFT JOIN accepted_bookings AB ON AB.booking_id = PB.id AND AB.status != 'Cancelled'
+                          LEFT JOIN partners AP ON AP.id = AB.partner_id
                           WHERE PB.partner_id = ?
                           AND P.id != 0 AND P.id IS NOT NULL
                           AND BC.id IN (
@@ -682,10 +688,14 @@ try {
 
             // ── 2. Received (Others' bookings I chatted on / Accepted) ──
             $sqlReceived = "SELECT BC.booking_id, BC.message, BC.created_at, P.full_name as partner_name, BC.type, PB.partner_id as other_id, P.selfie_link as partner_image, P.manual_verification_status as partner_verification,
+                            PB.status as booking_status, PB.preferences,
+                            AB.status as acceptance_status, AP.full_name as accepter_name,
                             (SELECT COUNT(*) FROM booking_chats WHERE booking_id = BC.booking_id AND receiver_id = ? AND sender_id = P.id AND is_read = 0) as unread_count
                             FROM booking_chats BC
                             JOIN partner_bookings PB ON BC.booking_id = PB.id
                             JOIN partners P ON P.id = PB.partner_id
+                            LEFT JOIN accepted_bookings AB ON AB.booking_id = PB.id AND AB.status != 'Cancelled'
+                            LEFT JOIN partners AP ON AP.id = AB.partner_id
                             WHERE (BC.sender_id = ? OR BC.receiver_id = ?)
                             AND PB.partner_id != ?
                             AND BC.id IN (
