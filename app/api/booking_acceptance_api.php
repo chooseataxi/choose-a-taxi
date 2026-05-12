@@ -410,6 +410,26 @@ try {
                 $stmt = $pdo->prepare("UPDATE partner_bookings SET status = 'Accepted' WHERE id = ?");
                 $stmt->execute([$booking_id]);
 
+                // 4.5 Manage Quote Statuses: Mark LATEST quote as 'paid', others as 'expired'
+                // First, find the latest quote between these two
+                $stmtQ = $pdo->prepare("SELECT id FROM booking_chats 
+                                       WHERE booking_id = ? AND type = 'quote_request' 
+                                       AND ((sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?))
+                                       ORDER BY id DESC LIMIT 1");
+                $stmtQ->execute([$booking_id, $partner_id, $bookingMeta['partner_id'], $bookingMeta['partner_id'], $partner_id]);
+                $winQuoteId = $stmtQ->fetchColumn();
+
+                if ($winQuoteId) {
+                    $pdo->prepare("UPDATE booking_chats SET quote_status = 'paid' WHERE id = ?")->execute([$winQuoteId]);
+                    // Expire all other quotes for this booking
+                    $pdo->prepare("UPDATE booking_chats SET quote_status = 'expired' WHERE booking_id = ? AND type = 'quote_request' AND id != ?")
+                        ->execute([$booking_id, $winQuoteId]);
+                } else {
+                    // Fallback: Expire all if no specific win found
+                    $pdo->prepare("UPDATE booking_chats SET quote_status = 'expired' WHERE booking_id = ? AND type = 'quote_request'")
+                        ->execute([$booking_id]);
+                }
+
                 // 5. Deduct Wallet
                 if (!updateWallet($pdo, $partner_id, $commission, 'Debit', 'Booking Acceptance', $acc_id, "Commission for Booking ID-$booking_id")) {
                     throw new Exception("Wallet update failed");
@@ -522,7 +542,7 @@ try {
 
                 $pdo->beginTransaction();
                 // 2. Fetch Total Fare from Booking
-                $stmt = $pdo->prepare("SELECT total_amount FROM partner_bookings WHERE id = ?");
+                $stmt = $pdo->prepare("SELECT partner_id, total_amount FROM partner_bookings WHERE id = ?");
                 $stmt->execute([$booking_id]);
                 $bookingMeta = $stmt->fetch();
                 $total_fare = $bookingMeta['total_amount'] ?? 0;
@@ -549,6 +569,23 @@ try {
 
                 $stmt = $pdo->prepare("UPDATE partner_bookings SET status = 'Accepted' WHERE id = ?");
                 $stmt->execute([$booking_id]);
+
+                // 4.5 Manage Quote Statuses
+                $stmtQ = $pdo->prepare("SELECT id FROM booking_chats 
+                                       WHERE booking_id = ? AND type = 'quote_request' 
+                                       AND ((sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?))
+                                       ORDER BY id DESC LIMIT 1");
+                $stmtQ->execute([$booking_id, $partner_id, $bookingMeta['partner_id'] ?? 0, $bookingMeta['partner_id'] ?? 0, $partner_id]);
+                $winQuoteId = $stmtQ->fetchColumn();
+
+                if ($winQuoteId) {
+                    $pdo->prepare("UPDATE booking_chats SET quote_status = 'paid' WHERE id = ?")->execute([$winQuoteId]);
+                    $pdo->prepare("UPDATE booking_chats SET quote_status = 'expired' WHERE booking_id = ? AND type = 'quote_request' AND id != ?")
+                        ->execute([$booking_id, $winQuoteId]);
+                } else {
+                    $pdo->prepare("UPDATE booking_chats SET quote_status = 'expired' WHERE booking_id = ? AND type = 'quote_request'")
+                        ->execute([$booking_id]);
+                }
 
                 // Log as transaction (Paid but not from wallet, so maybe just log it)
                 $stmt = $pdo->prepare("INSERT INTO partner_transactions (partner_id, type, amount, source, source_id, description) VALUES (?, 'Debit', ?, 'Razorpay Acceptance', ?, ?)");

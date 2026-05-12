@@ -8,6 +8,7 @@ set_exception_handler(function ($e) {
 require_once __DIR__ . '/../../includes/db.php';
 require_once __DIR__ . '/../includes/notification_helper.php';
 require_once __DIR__ . '/../../includes/pusher_config.php';
+require_once __DIR__ . '/../includes/wallet_helper.php';
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
@@ -561,9 +562,32 @@ if ($action === 'cancel_booking') {
         $stmt = $pdo->prepare("UPDATE partner_bookings SET status = 'Cancelled' WHERE id = ?");
         $stmt->execute([$booking_id]);
 
-        // 3. Update acceptance status if any (where not already cancelled)
-        $stmt = $pdo->prepare("UPDATE accepted_bookings SET status = 'Cancelled' WHERE booking_id = ? AND status != 'Cancelled'");
-        $stmt->execute([$booking_id]);
+        // 3. Find active acceptance to refund commission
+        $stmtAcc = $pdo->prepare("SELECT id, partner_id, commission, payment_status FROM accepted_bookings WHERE booking_id = ? AND status = 'Accepted'");
+        $stmtAcc->execute([$booking_id]);
+        $acceptance = $stmtAcc->fetch();
+
+        if ($acceptance) {
+            $acc_id = $acceptance['id'];
+            $accepter_id = $acceptance['partner_id'];
+            $commission = (float) $acceptance['commission'];
+
+            // Refund if paid
+            if ($acceptance['payment_status'] === 'Paid' && $commission > 0) {
+                if (!updateWallet($pdo, $accepter_id, $commission, 'Credit', 'Refund', $acc_id, "Refund for Booking ID-$booking_id cancelled by Poster")) {
+                    // Log error but maybe don't block? No, better block for integrity
+                    throw new Exception("Commission refund failed");
+                }
+            }
+
+            // Update acceptance status
+            $stmt = $pdo->prepare("UPDATE accepted_bookings SET status = 'Cancelled' WHERE id = ?");
+            $stmt->execute([$acc_id]);
+        }
+
+        // 4. Manage Quote Statuses: Mark all as expired when cancelled
+        $pdo->prepare("UPDATE booking_chats SET quote_status = 'expired' WHERE booking_id = ? AND type = 'quote_request'")
+            ->execute([$booking_id]);
 
         $pdo->commit();
 
