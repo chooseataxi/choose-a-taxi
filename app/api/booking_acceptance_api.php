@@ -85,7 +85,11 @@ try {
             $stmt->execute([$partner_id]);
             $drivers = $stmt->fetchAll();
 
-            $stmt = $pdo->prepare("SELECT id, rc_number, maker_model, front_image as image, front_image, back_image FROM partner_vehicles WHERE partner_id = ? AND status = 'Active'");
+            $stmt = $pdo->prepare("SELECT v.id, v.rc_number, v.maker_model, v.front_image as image, v.front_image, v.back_image,
+                                         ct.name as car_type_name, ct.image as car_type_image
+                                  FROM partner_vehicles v
+                                  LEFT JOIN car_types ct ON v.car_type = ct.id
+                                  WHERE v.partner_id = ? AND v.status = 'Active'");
             $stmt->execute([$partner_id]);
             $vehicles = $stmt->fetchAll();
 
