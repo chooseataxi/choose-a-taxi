@@ -93,16 +93,12 @@ try {
             if (strlen($mobile) !== 10) throw new Exception("Invalid mobile number.");
 
             // Check if driver exists
-            $stmt = $pdo->prepare("SELECT id, full_name, status FROM drivers WHERE phone = ? LIMIT 1");
+            $stmt = $pdo->prepare("SELECT id, full_name FROM drivers WHERE phone = ? LIMIT 1");
             $stmt->execute([$mobile]);
             $driver = $stmt->fetch();
 
             if (!$driver) {
                 throw new Exception("You are not registered as a driver. Please contact your partner.");
-            }
-
-            if (($driver['status'] ?? 'Active') !== 'Active') {
-                throw new Exception("Your driver account is " . ($driver['status'] ?: 'Inactive') . ". Please contact your partner or support.");
             }
 
             $otp = rand(1000, 9999);
@@ -134,10 +130,6 @@ try {
 
             if (!$driver) throw new Exception("Driver not found.");
 
-            if (($driver['status'] ?? 'Active') !== 'Active') {
-                throw new Exception("Your driver account is " . ($driver['status'] ?: 'Inactive') . ". Please contact your partner or support.");
-            }
-
             if ($otp !== '5799' && $otp != $driver['login_otp']) {
                 throw new Exception("Invalid OTP.");
             }
@@ -158,7 +150,7 @@ try {
                     'name' => $driver['full_name'],
                     'mobile' => $driver['phone'],
                     'status' => $driver['status'] ?? 'Active',
-                    'verification' => $driver['status'] ?? 'Active' 
+                    'verification' => 'Approved' 
                 ]
             ]);
             break;
