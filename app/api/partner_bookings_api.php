@@ -17,6 +17,39 @@ header("Access-Control-Allow-Headers: Content-Type");
 $action = $_REQUEST['action'] ?? '';
 
 // ──────────────────────────────────────────────────────────────────────────────
+// SECURITY HELPER: Verify that the partner is Approved before any action.
+// Returns the partner row on success. Outputs JSON error + exits on failure.
+// ──────────────────────────────────────────────────────────────────────────────
+function requireApprovedPartner(PDO $pdo, $partner_id) {
+    if (empty($partner_id)) {
+        echo json_encode(["status" => "error", "message" => "partner_id is required."]);
+        exit;
+    }
+    $stmt = $pdo->prepare("SELECT id, status, manual_verification_status FROM partners WHERE id = ? LIMIT 1");
+    $stmt->execute([$partner_id]);
+    $partner = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$partner) {
+        echo json_encode(["status" => "error", "message" => "Partner account not found."]);
+        exit;
+    }
+
+    // Treat NULL as Pending
+    $verification = !empty($partner['manual_verification_status']) ? $partner['manual_verification_status'] : 'Pending';
+
+    if ($verification !== 'Approved') {
+        echo json_encode([
+            "status" => "error",
+            "message" => "Your account is pending admin verification. Please wait for approval before accessing this feature.",
+            "verification_status" => $verification
+        ]);
+        exit;
+    }
+
+    return $partner;
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 // ACTION: get_trip_types — for dynamic filter synchronization
 // ──────────────────────────────────────────────────────────────────────────────
 if ($action === 'get_trip_types') {
@@ -156,7 +189,9 @@ if ($action === 'create_booking') {
         $data = $_POST;
     }
 
-    $partner_id = $data['partner_id'] ?? 1;
+    $partner_id = $data['partner_id'] ?? '';
+    // Block unverified partners from creating bookings
+    requireApprovedPartner($pdo, $partner_id);
 
     $booking_type = $data['booking_type'] ?? '';
     if ($booking_type === 'One Way Trip') {
@@ -271,7 +306,9 @@ if ($action === 'update_booking') {
     }
 
     $booking_id = $data['booking_id'] ?? '';
-    $partner_id = $data['partner_id'] ?? 1;
+    $partner_id = $data['partner_id'] ?? '';
+    // Block unverified partners from updating bookings
+    requireApprovedPartner($pdo, $partner_id);
 
     if (empty($booking_id)) {
         echo json_encode(["status" => "error", "message" => "Booking ID is required"]);
@@ -347,10 +384,8 @@ if ($action === 'update_booking') {
 // ──────────────────────────────────────────────────────────────────────────────
 if ($action === 'get_bookings') {
     $partner_id = $_GET['partner_id'] ?? $_POST['partner_id'] ?? '';
-    if (empty($partner_id)) {
-        echo json_encode(["status" => "error", "message" => "partner_id is required"]);
-        exit;
-    }
+    // Block unverified partners from viewing their bookings list
+    requireApprovedPartner($pdo, $partner_id);
     try {
         $now = $pdo->query("SELECT NOW()")->fetchColumn();
         // Log for debugging
@@ -489,10 +524,12 @@ if ($action === 'delete_booking') {
     $booking_id = $_REQUEST['booking_id'] ?? '';
     $partner_id = $_REQUEST['partner_id'] ?? '';
 
-    if (empty($booking_id) || empty($partner_id)) {
-        echo json_encode(["status" => "error", "message" => "Booking ID and Partner ID are required"]);
+    if (empty($booking_id)) {
+        echo json_encode(["status" => "error", "message" => "Booking ID is required"]);
         exit;
     }
+    // Block unverified partners from deleting bookings
+    requireApprovedPartner($pdo, $partner_id);
 
     try {
         $pdo->beginTransaction();
@@ -536,10 +573,12 @@ if ($action === 'cancel_booking') {
     $booking_id = $_REQUEST['booking_id'] ?? '';
     $partner_id = $_REQUEST['partner_id'] ?? '';
 
-    if (empty($booking_id) || empty($partner_id)) {
-        echo json_encode(["status" => "error", "message" => "Booking ID and Partner ID are required"]);
+    if (empty($booking_id)) {
+        echo json_encode(["status" => "error", "message" => "Booking ID is required"]);
         exit;
     }
+    // Block unverified partners from cancelling bookings
+    requireApprovedPartner($pdo, $partner_id);
 
     try {
         $pdo->beginTransaction();
@@ -629,10 +668,12 @@ if ($action === 'update_booking_preferences') {
     $approach = $data['approach_type'] ?? 'first_driver';
     $allow_calls = isset($data['allow_calls']) ? (int) $data['allow_calls'] : 1;
 
-    if (empty($booking_id) || empty($partner_id)) {
-        echo json_encode(["status" => "error", "message" => "Booking ID and Partner ID are required"]);
+    if (empty($booking_id)) {
+        echo json_encode(["status" => "error", "message" => "Booking ID is required"]);
         exit;
     }
+    // Block unverified partners from updating booking preferences
+    requireApprovedPartner($pdo, $partner_id);
 
     try {
         $stmt = $pdo->prepare("UPDATE partner_bookings SET approach_type = ?, allow_calls = ? WHERE id = ? AND partner_id = ?");
