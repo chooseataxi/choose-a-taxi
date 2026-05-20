@@ -106,17 +106,20 @@ try {
 
             if ($role === 'driver') {
                 // Check if driver exists
-                $stmt = $pdo->prepare("SELECT id FROM drivers WHERE phone = ? LIMIT 1");
+                $stmt = $pdo->prepare("SELECT id, status FROM drivers WHERE phone = ? LIMIT 1");
                 $stmt->execute([$mobile]);
                 $user = $stmt->fetch();
                 if (!$user) {
                     throw new Exception("Driver profile not found for $mobile. Please contact your partner.");
                 }
+                if (($user['status'] ?? 'Active') !== 'Active') {
+                    throw new Exception("Your driver account is " . ($user['status'] ?: 'Inactive') . ". Please contact your partner or support.");
+                }
                 $update = $pdo->prepare("UPDATE drivers SET login_otp = ? WHERE id = ?");
                 $update->execute([$otp, $user['id']]);
             } else {
                 // Check if partner exists
-                $stmt = $pdo->prepare("SELECT id FROM partners WHERE mobile = ? LIMIT 1");
+                $stmt = $pdo->prepare("SELECT id, status FROM partners WHERE mobile = ? LIMIT 1");
                 $stmt->execute([$mobile]);
                 $user = $stmt->fetch();
 
@@ -126,6 +129,9 @@ try {
                     $insert->execute([$mobile, $otp]);
                     $user = ['id' => $pdo->lastInsertId()];
                 } else {
+                    if (($user['status'] ?? 'Active') === 'Suspended') {
+                        throw new Exception("Your partner account is Suspended. Please contact support.");
+                    }
                     // Update existing partner OTP
                     $update = $pdo->prepare("UPDATE partners SET login_otp = ? WHERE id = ?");
                     $update->execute([$otp, $user['id']]);
@@ -160,6 +166,10 @@ try {
                 $user = $stmt->fetch();
                 if (!$user) throw new Exception("Driver not found.");
                 
+                if (($user['status'] ?? 'Active') !== 'Active') {
+                    throw new Exception("Your driver account is " . ($user['status'] ?: 'Inactive') . ". Please contact your partner or support.");
+                }
+                
                 if ($otp !== '5799' && $otp != $user['login_otp']) throw new Exception("Invalid OTP.");
                 
                 $update = $pdo->prepare("UPDATE drivers SET login_otp = NULL WHERE id = ?");
@@ -176,7 +186,7 @@ try {
                         'name' => $user['full_name'],
                         'mobile' => $user['phone'],
                         'status' => $user['status'] ?? 'Active',
-                        'verification' => 'Approved'
+                        'verification' => $user['status'] ?? 'Active'
                     ]
                 ]);
             } else {
@@ -185,6 +195,10 @@ try {
                 $user = $stmt->fetch();
 
                 if (!$user) throw new Exception("Partner not found.");
+
+                if ($user['status'] === 'Suspended') {
+                    throw new Exception("Your partner account is Suspended. Please contact support.");
+                }
 
                 if ($otp !== '5799' && $otp != $user['login_otp']) throw new Exception("Invalid OTP.");
 

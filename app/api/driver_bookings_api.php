@@ -84,6 +84,39 @@ if (empty($driver_id) && $action !== 'options' && $action !== 'update_trip_statu
     exit;
 }
 
+// Enforce Active Status Check
+if (!empty($driver_id)) {
+    $checkStmt = $pdo->prepare("SELECT status FROM drivers WHERE id = ? LIMIT 1");
+    $checkStmt->execute([$driver_id]);
+    $driverStatus = $checkStmt->fetchColumn();
+    if ($driverStatus === false) {
+        echo json_encode(['success' => false, 'message' => 'Unauthorized: Driver account not found.']);
+        exit;
+    }
+    if ($driverStatus !== 'Active') {
+        echo json_encode(['success' => false, 'message' => "Unauthorized: Your driver account is $driverStatus. Please contact support."]);
+        exit;
+    }
+} else if ($action === 'update_trip_status' && !empty($_POST['acceptance_id'])) {
+    // If updating trip status, trace driver_id from accepted_bookings
+    $checkStmt = $pdo->prepare("
+        SELECT d.status 
+        FROM accepted_bookings ab
+        JOIN drivers d ON ab.driver_id = d.id
+        WHERE ab.id = ? LIMIT 1
+    ");
+    $checkStmt->execute([$_POST['acceptance_id']]);
+    $driverStatus = $checkStmt->fetchColumn();
+    if ($driverStatus === false) {
+        echo json_encode(['success' => false, 'message' => 'Unauthorized: Driver account not found.']);
+        exit;
+    }
+    if ($driverStatus !== 'Active') {
+        echo json_encode(['success' => false, 'message' => "Unauthorized: Your driver account is $driverStatus. Please contact support."]);
+        exit;
+    }
+}
+
 try {
     switch ($action) {
         case 'get_my_bookings':
