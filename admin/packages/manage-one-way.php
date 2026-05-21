@@ -53,17 +53,22 @@ $title = $id ? "Edit One Way Package" : "Add New One Way Package";
                                 <input type="number" name="base_fare" class="form-control border-2" value="<?= $package['base_fare'] ?? '' ?>" placeholder="e.g. 2500" required>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label fw-bold">Included KMs</label>
+                                <label class="form-label fw-bold">Included KMs <span class="text-muted small">(used in price calc)</span></label>
                                 <input type="number" name="min_km" class="form-control border-2" value="<?= $package['min_km'] ?? '' ?>" placeholder="e.g. 250" required>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label fw-bold">Extra KM Price (₹)</label>
+                                <label class="form-label fw-bold">Extra KM Price (₹) <span class="text-muted small">(actual calc)</span></label>
                                 <input type="number" name="extra_km_price" class="form-control border-2" value="<?= $package['extra_km_price'] ?? '' ?>" placeholder="e.g. 12" required>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold">Display Extra KM Price <span class="text-muted small">(shown to customers — e.g. ₹12 - ₹18/km or "Low")</span></label>
+                                <input type="text" name="display_extra_km_price" class="form-control border-2" value="<?= htmlspecialchars($package['display_extra_km_price'] ?? '') ?>" placeholder="e.g. ₹12 - ₹18/km">
+                                <div class="form-text text-muted">Leave blank to auto-display the actual Extra KM Price above.</div>
                             </div>
 
                             <!-- Inclusions Section -->
                             <div class="col-12 mt-4">
-                                <h6 class="text-primary fw-bold border-bottom pb-2 mb-0">Inclusions & Exclusions</h6>
+                                <h6 class="text-primary fw-bold border-bottom pb-2 mb-0">Inclusions &amp; Exclusions</h6>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label small fw-bold">Toll Charges</label>
@@ -104,7 +109,16 @@ $title = $id ? "Edit One Way Package" : "Add New One Way Package";
                             <!-- Description -->
                             <div class="col-md-12 mt-2">
                                 <label class="form-label fw-bold">Description (Optional)</label>
-                                <textarea name="description" class="form-control border-2" rows="4"><?= $package['description'] ?? '' ?></textarea>
+                                <textarea name="description" class="form-control border-2" rows="3"><?= $package['description'] ?? '' ?></textarea>
+                            </div>
+
+                            <!-- Terms & Conditions -->
+                            <div class="col-12 mt-4">
+                                <h6 class="text-primary fw-bold border-bottom pb-2 mb-0">Terms &amp; Conditions</h6>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold">Terms &amp; Conditions <span class="text-muted small">(shown in popup on search results)</span></label>
+                                <textarea name="terms_conditions" id="terms_editor" class="form-control border-2" rows="10"><?= htmlspecialchars($package['terms_conditions'] ?? '') ?></textarea>
                             </div>
                         </div>
 
@@ -127,43 +141,45 @@ $title = $id ? "Edit One Way Package" : "Add New One Way Package";
     .form-label { color: #555; }
 </style>
 
+<!-- CKEditor -->
+<script src="https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script>
 <script>
-$(document).ready(function() {
-    $('#packageForm').on('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        
-        $.ajax({
-            url: 'api/one_way_actions.php',
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            beforeSend: function() {
-                Swal.fire({
-                    title: 'Saving...',
-                    allowOutsideClick: false,
-                    didOpen: () => { Swal.showLoading(); }
-                });
-            },
-            success: function(res) {
-                if (res.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: res.message,
-                        timer: 1500,
-                        showConfirmButton: false
-                    }).then(() => {
-                        window.location.href = 'one-way-package.php';
-                    });
-                } else {
-                    Swal.fire('Error', res.message, 'error');
+    CKEDITOR.replace('terms_editor', {
+        height: 300,
+        removeButtons: 'PasteFromWord',
+        // Pre-fill with existing content when editing
+        startupData: <?= json_encode($package['terms_conditions'] ?? '') ?>
+    });
+
+    $(document).ready(function() {
+        $('#packageForm').on('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            // Push CKEditor content into form data
+            formData.set('terms_conditions', CKEDITOR.instances.terms_editor.getData());
+
+            $.ajax({
+                url: 'api/one_way_actions.php',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                beforeSend: function() {
+                    Swal.fire({ title: 'Saving...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+                },
+                success: function(res) {
+                    if (res.success) {
+                        Swal.fire({
+                            icon: 'success', title: 'Success', text: res.message,
+                            timer: 1500, showConfirmButton: false
+                        }).then(() => { window.location.href = 'one-way-package.php'; });
+                    } else {
+                        Swal.fire('Error', res.message, 'error');
+                    }
                 }
-            }
+            });
         });
     });
-});
 </script>
 
 <?php require_once __DIR__ . '/../footer.php'; ?>
