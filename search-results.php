@@ -58,7 +58,7 @@ for ($i = 0; $i < count($points) - 1; $i++) {
 
 // Add a 15% real-world route margin. 
 // Google API city-to-city is often shorter than actual door-to-door driving distance.
-$total_distance_km = ceil($total_distance_km * 1);
+$total_distance_km = ceil($total_distance_km * 1.1);
 
 // Round trip: double the distance
 if ($trip_type === 'Round Trip') {
