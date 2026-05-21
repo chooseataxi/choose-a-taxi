@@ -56,6 +56,10 @@ for ($i = 0; $i < count($points) - 1; $i++) {
     $total_distance_km += getDistanceBetweenPoints($points[$i], $points[$i + 1], $api_key);
 }
 
+// Add a 15% real-world route margin. 
+// Google API city-to-city is often shorter than actual door-to-door driving distance.
+$total_distance_km = ceil($total_distance_km * 1.15);
+
 // Round trip: double the distance
 if ($trip_type === 'Round Trip') {
     $total_distance_km = $total_distance_km * 2;
@@ -261,9 +265,21 @@ $cars = $cars_stmt->fetchAll();
                 }
 
                 // Extra km display: admin-defined label or fallback to actual price
-                $display_extra = !empty($car['display_extra_km_price'])
-                    ? htmlspecialchars($car['display_extra_km_price'])
-                    : 'Rs. ' . $extra_km_price . '/km';
+                $display_extra_raw = trim($car['display_extra_km_price'] ?? '');
+                if (!empty($display_extra_raw)) {
+                    $display_extra = htmlspecialchars($display_extra_raw);
+                    // If it's purely numeric (e.g. "12"), format it nicely
+                    if (is_numeric($display_extra_raw)) {
+                        $display_extra = 'Rs. ' . $display_extra_raw . ' /km';
+                    } else {
+                        // If they didn't include '/km', let's append it so it doesn't look like a flat fee
+                        if (stripos($display_extra, 'km') === false) {
+                            $display_extra .= ' /km';
+                        }
+                    }
+                } else {
+                    $display_extra = 'Rs. ' . $extra_km_price . '/km';
+                }
 
                 // T&C content (safe for data attribute)
                 $tnc_html = !empty($car['terms_conditions'])
