@@ -6,12 +6,32 @@ require_once 'includes/db.php';
 require_once 'includes/header.php';
 
 // 1. Capture Inputs
-$trip_type = $_GET['trip_type'] ?? 'One Way';
-$pickup    = $_GET['pickup'] ?? '';
-$drop      = $_GET['drop'] ?? '';
-$stops     = $_GET['stops'] ?? [];
-$date      = $_GET['date'] ?? '';
-$time      = $_GET['time'] ?? '';
+$trip_type   = $_GET['trip_type'] ?? 'One Way';
+$pickup      = $_GET['pickup'] ?? '';
+$drop        = $_GET['drop'] ?? '';
+$stops       = $_GET['stops'] ?? [];
+$date        = $_GET['date'] ?? '';
+$time        = $_GET['time'] ?? '';
+$return_date = $_GET['return_date'] ?? '';
+$return_time = $_GET['return_time'] ?? '';
+
+// Calculate Trip Days (Minimum 1)
+$trip_days = 1;
+if ($trip_type === 'Round Trip' && !empty($date) && !empty($return_date)) {
+    $start_dt = strtotime("$date $time");
+    // If no return time provided, default to end of day to be safe, though UI makes it required
+    $rt_time = !empty($return_time) ? $return_time : '23:59:59';
+    $end_dt   = strtotime("$return_date $rt_time");
+    
+    if ($end_dt > $start_dt) {
+        // Calculate based on calendar days
+        // A trip from 1st Jan to 2nd Jan is 2 days.
+        $start_day = strtotime($date);
+        $end_day = strtotime($return_date);
+        $trip_days = round(($end_day - $start_day) / 86400) + 1;
+        if ($trip_days < 1) $trip_days = 1;
+    }
+}
 
 // 2. Calculate Distance using Google Directions API (more accurate than Distance Matrix)
 $api_key = $_ENV['GOOGLE_MAPS_KEY'] ?? 'AIzaSyCT5jMYUaHtsT2Z2IzkQgl-8TsIw_946VY';
@@ -58,7 +78,7 @@ for ($i = 0; $i < count($points) - 1; $i++) {
 
 // Add a 15% real-world route margin. 
 // Google API city-to-city is often shorter than actual door-to-door driving distance.
-$total_distance_km = ceil($total_distance_km * 1.03);
+$total_distance_km = ceil($total_distance_km * 1.15);
 
 // Round trip: double the distance
 if ($trip_type === 'Round Trip') {
@@ -219,6 +239,9 @@ $cars = $cars_stmt->fetchAll();
                 <div class="ts-side-info">
                     <div class="ts-badge-area">
                         <span class="ts-tag"><?= htmlspecialchars($trip_type) ?></span>
+                        <?php if ($trip_type === 'Round Trip'): ?>
+                            <span class="ts-tag" style="background: #e3342f; color: #fff;"><?= $trip_days ?> Day(s)</span>
+                        <?php endif; ?>
                     </div>
                     
                     <div class="ts-time-card">
@@ -230,6 +253,12 @@ $cars = $cars_stmt->fetchAll();
                             <label>Pickup Time</label>
                             <span><?= htmlspecialchars($time) ?></span>
                         </div>
+                        <?php if ($trip_type === 'Round Trip'): ?>
+                        <div class="ts-info-item" style="border-left: 1px solid rgba(255,255,255,0.1); padding-left: 20px;">
+                            <label>Return Date</label>
+                            <span><?= htmlspecialchars($return_date) ?></span>
+                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -243,11 +272,25 @@ $cars = $cars_stmt->fetchAll();
                 $base_fare       = (float)$car['base_fare'];
                 $extra_km_price  = (float)$car['extra_km_price'];
 
-                // Formula: Base + (Extra Distance * Extra Price)
-                $final_price = $base_fare;
-                if ($dist_float > $min_km) {
-                    $extra_km     = $dist_float - $min_km;
-                    $final_price += ($extra_km * $extra_km_price);
+                if ($trip_type === 'Round Trip') {
+                    // Round trip is calculated per day
+                    $total_min_km = $min_km * $trip_days;
+                    $final_base_fare = $base_fare * $trip_days;
+                    
+                    $final_price = $final_base_fare;
+                    if ($dist_float > $total_min_km) {
+                        $extra_km     = $dist_float - $total_min_km;
+                        $final_price += ($extra_km * $extra_km_price);
+                    }
+                    $display_distance_note = $dist_float <= $total_min_km ? "Minimum {$total_min_km} KM charged" : "";
+                } else {
+                    // One Way uses flat minimum
+                    $final_price = $base_fare;
+                    if ($dist_float > $min_km) {
+                        $extra_km     = $dist_float - $min_km;
+                        $final_price += ($extra_km * $extra_km_price);
+                    }
+                    $display_distance_note = "";
                 }
 
                 $final_price = round($final_price);
@@ -295,7 +338,12 @@ $cars = $cars_stmt->fetchAll();
                     <div class="details-grid">
                         <div class="detail-row">
                             <label>Total Trip Distance:</label>
-                            <span style="color: #007bff; font-weight: 800;"><?= round($total_distance_km) ?> KMs</span>
+                            <div>
+                                <span style="color: #007bff; font-weight: 800;"><?= round($total_distance_km) ?> KMs</span>
+                                <?php if (!empty($display_distance_note)): ?>
+                                    <br><span style="font-size: 11px; color: #666;"><?= htmlspecialchars($display_distance_note) ?></span>
+                                <?php endif; ?>
+                            </div>
                         </div>
                         <div class="detail-row">
                             <label>Extra price / KM:</label>

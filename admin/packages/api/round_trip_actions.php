@@ -6,6 +6,18 @@ header('Content-Type: application/json');
 
 $action = $_POST['action'] ?? '';
 
+// ── DB Bootstrap: safely add new columns if they don't exist ──────────────────
+try {
+    $pdo->query("SELECT display_extra_km_price FROM cars LIMIT 1");
+} catch (PDOException $e) {
+    $pdo->exec("ALTER TABLE cars ADD COLUMN display_extra_km_price VARCHAR(100) NULL AFTER extra_km_price");
+}
+try {
+    $pdo->query("SELECT terms_conditions FROM cars LIMIT 1");
+} catch (PDOException $e) {
+    $pdo->exec("ALTER TABLE cars ADD COLUMN terms_conditions LONGTEXT NULL");
+}
+
 function getRoundTripId($pdo) {
     $stmt = $pdo->prepare("SELECT id FROM trip_types WHERE name LIKE '%Round Trip%' LIMIT 1");
     $stmt->execute();
@@ -34,41 +46,46 @@ try {
             $base_fare = $min_km * $price_per_km;
             
             $extra_km_price = $_POST['extra_km_price'];
+            $display_extra_km_price = trim($_POST['display_extra_km_price'] ?? '');
+            
             $include_toll = $_POST['include_toll'];
             $include_tax = $_POST['include_tax'];
             $include_driver_allowance = $_POST['include_driver_allowance'];
             $include_night_charges = $_POST['include_night_charges'];
             $include_parking = $_POST['include_parking'];
             $description = $_POST['description'] ?? '';
+            $terms_conditions = $_POST['terms_conditions'] ?? '';
             $status = $_POST['status'] ?? 'Active';
 
             if ($id) {
                 $stmt = $pdo->prepare("UPDATE cars SET 
                     type_id = ?, brand_id = ?, name = ?, base_fare = ?, min_km = ?, 
-                    extra_km_price = ?, include_toll = ?, include_tax = ?, 
+                    extra_km_price = ?, display_extra_km_price = ?, 
+                    include_toll = ?, include_tax = ?, 
                     include_driver_allowance = ?, include_night_charges = ?, 
-                    include_parking = ?, description = ?, status = ?
+                    include_parking = ?, description = ?, terms_conditions = ?, status = ?
                     WHERE id = ? AND trip_type_id = ?");
                 $stmt->execute([
                     $type_id, $brand_id, $name, $base_fare, $min_km, 
-                    $extra_km_price, $include_toll, $include_tax, 
+                    $extra_km_price, $display_extra_km_price, 
+                    $include_toll, $include_tax, 
                     $include_driver_allowance, $include_night_charges, 
-                    $include_parking, $description, $status, 
+                    $include_parking, $description, $terms_conditions, $status, 
                     $id, $roundTripId
                 ]);
                 $message = "Round Trip package updated successfully!";
             } else {
                 $stmt = $pdo->prepare("INSERT INTO cars 
                     (type_id, brand_id, trip_type_id, name, base_fare, min_km, 
-                    extra_km_price, include_toll, include_tax, 
+                    extra_km_price, display_extra_km_price, include_toll, include_tax, 
                     include_driver_allowance, include_night_charges, 
-                    include_parking, description, status) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    include_parking, description, terms_conditions, status) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 $stmt->execute([
                     $type_id, $brand_id, $roundTripId, $name, $base_fare, $min_km, 
-                    $extra_km_price, $include_toll, $include_tax, 
+                    $extra_km_price, $display_extra_km_price, $include_toll, $include_tax, 
                     $include_driver_allowance, $include_night_charges, 
-                    $include_parking, $description, $status
+                    $include_parking, $description, $terms_conditions, $status
                 ]);
                 $message = "Round Trip package added successfully!";
             }
@@ -95,3 +112,4 @@ try {
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }
+?>

@@ -62,8 +62,13 @@ $price_per_km = ($min_km > 0) ? ($base_fare / $min_km) : 20;
                                 <label class="form-label fw-bold">Extra KM Price (after Min KM)</label>
                                 <input type="number" step="0.01" name="extra_km_price" class="form-control border-2" value="<?= $package['extra_km_price'] ?? 15 ?>" placeholder="e.g. 15" required>
                             </div>
+                            <div class="col-md-12 mt-3">
+                                <label class="form-label fw-bold">Display Extra KM Price <span class="text-muted small">(shown to customers — e.g. ₹12 - ₹18/km or "Low")</span></label>
+                                <input type="text" name="display_extra_km_price" class="form-control border-2" value="<?= htmlspecialchars($package['display_extra_km_price'] ?? '') ?>" placeholder="e.g. ₹12 - ₹18/km">
+                                <div class="form-text text-muted">Leave blank to auto-display the actual Extra KM Price above.</div>
+                            </div>
 
-                            <div class="col-md-12">
+                            <div class="col-md-12 mt-4">
                                 <div class="p-3 bg-light rounded border border-warning">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <span class="fw-bold text-dark">Calculated Minimum Base Fare:</span>
@@ -112,9 +117,18 @@ $price_per_km = ($min_km > 0) ? ($base_fare / $min_km) : 20;
                                 </select>
                             </div>
 
-                            <div class="col-md-12">
-                                <label class="form-label fw-bold">Description</label>
+                            <div class="col-md-12 mt-2">
+                                <label class="form-label fw-bold">Description (Optional)</label>
                                 <textarea name="description" class="form-control border-2" rows="3"><?= $package['description'] ?? '' ?></textarea>
+                            </div>
+
+                            <!-- Terms & Conditions -->
+                            <div class="col-12 mt-4">
+                                <h6 class="text-primary fw-bold border-bottom pb-2 mb-0">Terms &amp; Conditions</h6>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold">Terms &amp; Conditions <span class="text-muted small">(shown in popup on search results)</span></label>
+                                <textarea name="terms_conditions" id="terms_editor" class="form-control border-2" rows="10"><?= htmlspecialchars($package['terms_conditions'] ?? '') ?></textarea>
                             </div>
                         </div>
 
@@ -136,7 +150,15 @@ $price_per_km = ($min_km > 0) ? ($base_fare / $min_km) : 20;
     .form-control:focus, .form-select:focus { box-shadow: none; border-color: #ffc107 !important; }
 </style>
 
+<!-- CKEditor -->
+<script src="https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script>
 <script>
+    CKEDITOR.replace('terms_editor', {
+        height: 300,
+        removeButtons: 'PasteFromWord',
+        startupData: <?= json_encode($package['terms_conditions'] ?? '') ?>
+    });
+
 $(document).ready(function() {
     function updateBaseFare() {
         const minKm = parseFloat($('#min_km').val()) || 0;
@@ -150,6 +172,7 @@ $(document).ready(function() {
     $('#rtPackageForm').on('submit', function(e) {
         e.preventDefault();
         const formData = new FormData(this);
+        formData.set('terms_conditions', CKEDITOR.instances.terms_editor.getData());
         
         $.ajax({
             url: 'api/round_trip_actions.php',
@@ -157,6 +180,9 @@ $(document).ready(function() {
             data: formData,
             processData: false,
             contentType: false,
+            beforeSend: function() {
+                Swal.fire({ title: 'Saving...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+            },
             success: function(res) {
                 if (res.success) {
                     Swal.fire('Success', res.message, 'success').then(() => {

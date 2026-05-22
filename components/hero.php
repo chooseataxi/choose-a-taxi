@@ -87,6 +87,22 @@
                         </div>
                     </div>
 
+                    <!-- Return Date and Time Row (Round Trip Only) -->
+                    <div class="form-row" id="return-date-row" style="display: none;">
+                        <div class="form-group">
+                            <label>Return date</label>
+                            <div class="form-input-wrapper">
+                                <input type="date" name="return_date" id="return-date">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Return time</label>
+                            <div class="form-input-wrapper">
+                                <input type="time" name="return_time" id="return-time">
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Submit Button -->
                     <button type="submit" class="search-btn">SEARCH CAB</button>
                 </form>
@@ -121,7 +137,21 @@
             });
             this.classList.add('active');
             this.querySelector('i').className = 'fas fa-dot-circle';
-            document.getElementById('trip_type').value = this.dataset.type;
+            
+            const tripType = this.dataset.type;
+            document.getElementById('trip_type').value = tripType;
+            
+            // Toggle Return Date fields
+            const returnRow = document.getElementById('return-date-row');
+            if (tripType === 'Round Trip') {
+                returnRow.style.display = 'flex'; // Uses flex to match .form-row style
+                document.getElementById('return-date').required = true;
+                document.getElementById('return-time').required = true;
+            } else {
+                returnRow.style.display = 'none';
+                document.getElementById('return-date').required = false;
+                document.getElementById('return-time').required = false;
+            }
         });
     });
 
