@@ -110,10 +110,6 @@ $cars = $cars_stmt->fetchAll();
     .ts-summary-wrapper { display: flex; align-items: stretch; justify-content: space-between; flex-wrap: wrap; gap: 30px; }
     
     .ts-route-vertical { display: flex; flex-direction: column; gap: 15px; flex: 1; min-width: 300px; position: relative; padding-left: 30px; }
-    .ts-route-vertical::before {
-        content: ''; position: absolute; left: 8px; top: 14px; bottom: 35px; width: 0; 
-        border-left: 2px dashed rgba(255,193,7,0.4); z-index: 1;
-    }
     
     .ts-route-step { display: flex; flex-direction: column; position: relative; }
     .ts-route-step::before {
