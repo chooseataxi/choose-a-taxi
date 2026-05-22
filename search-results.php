@@ -239,11 +239,15 @@ $cars = $cars_stmt->fetchAll();
                         ?>
                             <div class="ts-route-step ts-step-stop">
                                 <span class="ts-step-label">Stop <?= $index + 1 ?></span>
-                                <input type="text" name="stops[]" id="edit_stop_<?= $index ?>" class="ts-edit-input edit-stop-input" value="<?= htmlspecialchars($stop) ?>">
+                                <input type="text" name="stops[]" class="ts-edit-input edit-stop-input" value="<?= htmlspecialchars($stop) ?>">
                             </div>
                         <?php endforeach; ?>
 
-                        <div class="ts-route-step ts-step-drop">
+                        <div style="padding-left: 0; margin-top: -5px;">
+                            <button type="button" id="ts-btn-add-stop" style="background:transparent; border:none; color:#ffc107; font-size:11px; cursor:pointer; font-weight:800; text-transform:uppercase;"><i class="fas fa-plus-circle"></i> Add Stop</button>
+                        </div>
+
+                        <div class="ts-route-step ts-step-drop" id="ts-step-drop-container">
                             <span class="ts-step-label">Drop Location</span>
                             <input type="text" name="drop" id="edit_drop" class="ts-edit-input" value="<?= htmlspecialchars($drop) ?>" required>
                         </div>
@@ -475,6 +479,43 @@ function initAutocomplete() {
 
     document.querySelectorAll('.edit-stop-input').forEach(input => {
         new google.maps.places.Autocomplete(input, autocompleteOptions);
+    });
+}
+
+// Add Stop Functionality in Search Header
+const tsAddStopBtn = document.getElementById('ts-btn-add-stop');
+let tsStopCount = document.querySelectorAll('.edit-stop-input').length;
+
+if (tsAddStopBtn) {
+    if (tsStopCount >= 4) {
+        tsAddStopBtn.style.display = 'none';
+    }
+    tsAddStopBtn.addEventListener('click', () => {
+        if (tsStopCount >= 4) {
+            alert('Maximum 4 stops allowed');
+            return;
+        }
+
+        const stopDiv = document.createElement('div');
+        stopDiv.className = 'ts-route-step ts-step-stop';
+        stopDiv.innerHTML = `
+            <span class="ts-step-label">Stop ${tsStopCount + 1}</span>
+            <input type="text" name="stops[]" class="ts-edit-input edit-stop-input" placeholder="Enter stop location" required>
+        `;
+        
+        const dropContainer = document.getElementById('ts-step-drop-container');
+        dropContainer.parentNode.insertBefore(stopDiv, tsAddStopBtn.parentNode);
+
+        // Attach autocomplete to new input
+        const newInput = stopDiv.querySelector('input');
+        if (typeof google !== 'undefined') {
+            new google.maps.places.Autocomplete(newInput, autocompleteOptions);
+        }
+
+        tsStopCount++;
+        if (tsStopCount >= 4) {
+            tsAddStopBtn.style.display = 'none';
+        }
     });
 }
 </script>
