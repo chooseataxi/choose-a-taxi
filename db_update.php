@@ -1,6 +1,5 @@
 <?php
-$pdo = new PDO("mysql:host=localhost;dbname=u885872058_chooseataxi", "root", "");
-$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+require_once __DIR__ . '/includes/db.php';
 
 try {
     // 1. Add city_id to cars if it doesn't exist
