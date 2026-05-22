@@ -109,16 +109,16 @@ $cars = $cars_stmt->fetchAll();
     }
     .ts-summary-wrapper { display: flex; align-items: stretch; justify-content: space-between; flex-wrap: wrap; gap: 30px; }
     
-    .ts-route-vertical { display: flex; flex-direction: column; gap: 12px; flex: 1; min-width: 300px; position: relative; padding-left: 25px; }
+    .ts-route-vertical { display: flex; flex-direction: column; gap: 15px; flex: 1; min-width: 300px; position: relative; padding-left: 30px; }
     .ts-route-vertical::before {
-        content: ''; position: absolute; left: 4px; top: 10px; bottom: 10px; width: 2px; 
-        background: rgba(255,255,255,0.1); border-left: 2px dashed rgba(255,193,7,0.4);
+        content: ''; position: absolute; left: 8px; top: 14px; bottom: 35px; width: 0; 
+        border-left: 2px dashed rgba(255,193,7,0.4); z-index: 1;
     }
     
     .ts-route-step { display: flex; flex-direction: column; position: relative; }
     .ts-route-step::before {
-        content: ''; position: absolute; left: -25px; top: 6px; width: 10px; height: 10px; 
-        border-radius: 50%; background: #ffc107; border: 2px solid #1a1a1a; z-index: 2;
+        content: ''; position: absolute; left: -27px; top: 8px; width: 12px; height: 12px; 
+        border-radius: 50%; background: #ffc107; border: 3px solid #1a1a1a; z-index: 2;
     }
     .ts-step-pickup::before { background: #ff4757; box-shadow: 0 0 10px rgba(255,71,87,0.5); }
     .ts-step-drop::before { background: #2ed573; box-shadow: 0 0 10px rgba(46,213,115,0.5); }
