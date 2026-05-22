@@ -189,6 +189,22 @@ $cars = $cars_stmt->fetchAll();
     }
     .terms-link:hover { color: #1a7c35; text-decoration: underline; }
     .terms-link i { font-size: 12px; }
+    .ts-edit-input {
+        background: transparent; border: none; border-bottom: 1px dashed rgba(255,255,255,0.3);
+        color: #fff; font-size: 14px; font-weight: 600; width: 100%; outline: none; padding: 2px 0;
+        transition: 0.3s;
+    }
+    .ts-edit-input:focus { border-bottom-color: #ffc107; }
+    .ts-edit-date { width: auto; font-size: 13px; color: #fff; background: transparent; border: none; border-bottom: 1px dashed rgba(255,255,255,0.3); outline: none; }
+    /* Fix date/time picker icon color on dark background */
+    .ts-edit-date::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+
+    .btn-update-search {
+        background: #ffc107; color: #000; border: none; padding: 8px 16px; border-radius: 8px;
+        font-weight: 800; text-transform: uppercase; font-size: 12px; cursor: pointer;
+        transition: 0.3s; margin-top: 15px; width: 100%;
+    }
+    .btn-update-search:hover { background: #e0ac08; transform: translateY(-2px); }
 </style>
 
 <!-- T&C Modal -->
@@ -209,59 +225,67 @@ $cars = $cars_stmt->fetchAll();
 
 <div class="results-page">
     <div class="container" style="width: 90%; max-width: 1200px; margin: 0 auto;">
-        <!-- Header Info -->
+        <!-- Header Info (Editable) -->
         <div class="ts-header-card">
-            <div class="ts-summary-wrapper">
-                <!-- Vertical Route Info -->
-                <div class="ts-route-vertical">
-                    <div class="ts-route-step ts-step-pickup">
-                        <span class="ts-step-label">Pickup Location</span>
-                        <span class="ts-step-value"><?= htmlspecialchars($pickup) ?></span>
+            <form action="search-results.php" method="GET" id="editTripForm">
+                <input type="hidden" name="trip_type" value="<?= htmlspecialchars($trip_type) ?>">
+                <div class="ts-summary-wrapper">
+                    <!-- Vertical Route Info -->
+                    <div class="ts-route-vertical">
+                        <div class="ts-route-step ts-step-pickup">
+                            <span class="ts-step-label">Pickup Location</span>
+                            <input type="text" name="pickup" id="edit_pickup" class="ts-edit-input" value="<?= htmlspecialchars($pickup) ?>" required>
+                        </div>
+
+                        <?php 
+                        $valid_stops = array_filter((array)$stops);
+                        foreach ($valid_stops as $index => $stop): 
+                        ?>
+                            <div class="ts-route-step ts-step-stop">
+                                <span class="ts-step-label">Stop <?= $index + 1 ?></span>
+                                <input type="text" name="stops[]" id="edit_stop_<?= $index ?>" class="ts-edit-input edit-stop-input" value="<?= htmlspecialchars($stop) ?>">
+                            </div>
+                        <?php endforeach; ?>
+
+                        <div class="ts-route-step ts-step-drop">
+                            <span class="ts-step-label">Drop Location</span>
+                            <input type="text" name="drop" id="edit_drop" class="ts-edit-input" value="<?= htmlspecialchars($drop) ?>" required>
+                        </div>
                     </div>
 
-                    <?php 
-                    $valid_stops = array_filter((array)$stops);
-                    foreach ($valid_stops as $stop): 
-                    ?>
-                        <div class="ts-route-step ts-step-stop">
-                            <span class="ts-step-label">Stop</span>
-                            <span class="ts-step-value"><?= htmlspecialchars($stop) ?></span>
+                    <!-- Side Info -->
+                    <div class="ts-side-info">
+                        <div class="ts-badge-area" style="width: 100%; justify-content: flex-end;">
+                            <span class="ts-tag"><?= htmlspecialchars($trip_type) ?></span>
+                            <?php if ($trip_type === 'Round Trip'): ?>
+                                <span class="ts-tag" style="background: #e3342f; color: #fff;"><?= $trip_days ?> Day(s)</span>
+                            <?php endif; ?>
                         </div>
-                    <?php endforeach; ?>
-
-                    <div class="ts-route-step ts-step-drop">
-                        <span class="ts-step-label">Drop Location</span>
-                        <span class="ts-step-value"><?= htmlspecialchars($drop) ?></span>
+                        
+                        <div class="ts-time-card">
+                            <div class="ts-info-item">
+                                <label>Departure</label>
+                                <div style="display:flex; gap:10px;">
+                                    <input type="date" name="date" class="ts-edit-date" value="<?= htmlspecialchars($date) ?>" required>
+                                    <input type="time" name="time" class="ts-edit-date" value="<?= htmlspecialchars($time) ?>" required>
+                                </div>
+                            </div>
+                            
+                            <?php if ($trip_type === 'Round Trip'): ?>
+                            <div class="ts-info-item" style="border-left: 1px solid rgba(255,255,255,0.1); padding-left: 20px;">
+                                <label>Return</label>
+                                <div style="display:flex; gap:10px;">
+                                    <input type="date" name="return_date" class="ts-edit-date" value="<?= htmlspecialchars($return_date) ?>" required>
+                                    <input type="time" name="return_time" class="ts-edit-date" value="<?= htmlspecialchars($return_time) ?>" required>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                        
+                        <button type="submit" class="btn-update-search"><i class="fas fa-sync-alt"></i> Update Search</button>
                     </div>
                 </div>
-
-                <!-- Side Info -->
-                <div class="ts-side-info">
-                    <div class="ts-badge-area">
-                        <span class="ts-tag"><?= htmlspecialchars($trip_type) ?></span>
-                        <?php if ($trip_type === 'Round Trip'): ?>
-                            <span class="ts-tag" style="background: #e3342f; color: #fff;"><?= $trip_days ?> Day(s)</span>
-                        <?php endif; ?>
-                    </div>
-                    
-                    <div class="ts-time-card">
-                        <div class="ts-info-item">
-                            <label>Departure Date</label>
-                            <span><?= htmlspecialchars($date) ?></span>
-                        </div>
-                        <div class="ts-info-item" style="border-left: 1px solid rgba(255,255,255,0.1); padding-left: 20px;">
-                            <label>Pickup Time</label>
-                            <span><?= htmlspecialchars($time) ?></span>
-                        </div>
-                        <?php if ($trip_type === 'Round Trip'): ?>
-                        <div class="ts-info-item" style="border-left: 1px solid rgba(255,255,255,0.1); padding-left: 20px;">
-                            <label>Return Date</label>
-                            <span><?= htmlspecialchars($return_date) ?></span>
-                        </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
+            </form>
         </div>
 
         <!-- Available Fleets (Dynamic Calculation) -->
@@ -437,6 +461,27 @@ function closeTncModalDirect() {
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeTncModalDirect();
 });
+
+// Autocomplete for editable search header
+let autocompleteOptions = {
+    componentRestrictions: { country: "in" },
+    fields: ["formatted_address", "geometry"],
+};
+
+function initAutocomplete() {
+    if (typeof google === 'undefined') return;
+
+    const pickupInput = document.getElementById("edit_pickup");
+    const dropInput = document.getElementById("edit_drop");
+
+    if (pickupInput) new google.maps.places.Autocomplete(pickupInput, autocompleteOptions);
+    if (dropInput) new google.maps.places.Autocomplete(dropInput, autocompleteOptions);
+
+    document.querySelectorAll('.edit-stop-input').forEach(input => {
+        new google.maps.places.Autocomplete(input, autocompleteOptions);
+    });
+}
 </script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCT5jMYUaHtsT2Z2IzkQgl-8TsIw_946VY&libraries=places&callback=initAutocomplete" async defer></script>
 
 <?php require_once 'includes/footer.php'; ?>
