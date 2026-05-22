@@ -1,7 +1,4 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 require_once __DIR__ . '/../auth_check.php';
 require_once __DIR__ . '/../header.php';
 
@@ -34,12 +31,12 @@ function getLocalId($pdo) {
 $localId = getLocalId($pdo);
 
 // Fetch Local Packages
-$query = "SELECT c.*, ct.name as car_type, ct.image as car_image, ci.city_name 
+$query = "SELECT c.*, ct.name as car_type, ct.image as car_image, ci.name as city_name 
           FROM cars c 
           LEFT JOIN car_types ct ON c.type_id = ct.id 
           LEFT JOIN cities ci ON c.city_id = ci.id
           WHERE c.trip_type_id = ?
-          ORDER BY ci.city_name ASC, c.id DESC";
+          ORDER BY ci.name ASC, c.id DESC";
 $stmt = $pdo->prepare($query);
 $stmt->execute([$localId]);
 $packages = $stmt->fetchAll();

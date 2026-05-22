@@ -15,7 +15,7 @@ if ($id) {
 $carTypes = $pdo->query("SELECT id, name FROM car_types WHERE status = 'Active' ORDER BY name")->fetchAll();
 
 // Fetch Cities
-$cities = $pdo->query("SELECT id, city_name FROM cities WHERE status = 'Active' ORDER BY city_name")->fetchAll();
+$cities = $pdo->query("SELECT id, name FROM cities WHERE status = 'Active' ORDER BY name")->fetchAll();
 
 $title = $id ? "Edit Local / Hourly Package" : "Add New Local Package";
 ?>
@@ -42,7 +42,7 @@ $title = $id ? "Edit Local / Hourly Package" : "Add New Local Package";
                                 <select name="city_id" class="form-select border-2" required>
                                     <option value="">Select City</option>
                                     <?php foreach ($cities as $city): ?>
-                                        <option value="<?= $city['id'] ?>" <?= ($package && $package['city_id'] == $city['id']) ? 'selected' : '' ?>><?= htmlspecialchars($city['city_name']) ?></option>
+                                        <option value="<?= $city['id'] ?>" <?= ($package && $package['city_id'] == $city['id']) ? 'selected' : '' ?>><?= htmlspecialchars($city['name']) ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
