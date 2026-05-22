@@ -272,6 +272,8 @@ $cars = $cars_stmt->fetchAll();
                 $base_fare       = (float)$car['base_fare'];
                 $extra_km_price  = (float)$car['extra_km_price'];
 
+                $display_distance_km = round($total_distance_km);
+
                 if ($trip_type === 'Round Trip') {
                     // Round trip is calculated per day
                     $total_min_km = $min_km * $trip_days;
@@ -281,8 +283,11 @@ $cars = $cars_stmt->fetchAll();
                     if ($dist_float > $total_min_km) {
                         $extra_km     = $dist_float - $total_min_km;
                         $final_price += ($extra_km * $extra_km_price);
+                    } else {
+                        // Override display distance if original is less than minimum
+                        $display_distance_km = $total_min_km;
                     }
-                    $display_distance_note = $dist_float <= $total_min_km ? "Minimum {$total_min_km} KM charged" : "";
+                    $display_distance_note = "";
                 } else {
                     // One Way uses flat minimum
                     $final_price = $base_fare;
@@ -339,7 +344,7 @@ $cars = $cars_stmt->fetchAll();
                         <div class="detail-row">
                             <label>Total Trip Distance:</label>
                             <div>
-                                <span style="color: #007bff; font-weight: 800;"><?= round($total_distance_km) ?> KMs</span>
+                                <span style="color: #007bff; font-weight: 800;"><?= $display_distance_km ?> KMs</span>
                                 <?php if (!empty($display_distance_note)): ?>
                                     <br><span style="font-size: 11px; color: #666;"><?= htmlspecialchars($display_distance_note) ?></span>
                                 <?php endif; ?>
