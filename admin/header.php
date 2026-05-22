@@ -40,6 +40,14 @@ $menuItems = [
         ],
     ],
     [
+        "menuTitle" => "Route Options",
+        "icon" => "fas fa-map-marked-alt",
+        "pages" => [
+            ["title" => "Manage States", "url" => "route-options/manage-states.php"],
+            ["title" => "Manage Cities", "url" => "route-options/manage-cities.php"]
+        ],
+    ],
+    [
         "menuTitle" => "Cars",
         "icon" => "fas fa-car",
         "pages" => [
