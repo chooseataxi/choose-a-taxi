@@ -10,17 +10,17 @@ $action = $_POST['action'] ?? '';
 try {
     $pdo->query("SELECT display_extra_km_price FROM cars LIMIT 1");
 } catch (PDOException $e) {
-    $pdo->exec("ALTER TABLE cars ADD COLUMN display_extra_km_price VARCHAR(100) NULL AFTER extra_km_price");
+    try { $pdo->exec("ALTER TABLE cars ADD COLUMN display_extra_km_price VARCHAR(100) NULL AFTER extra_km_price"); } catch(PDOException $ex) {}
 }
 try {
     $pdo->query("SELECT terms_conditions FROM cars LIMIT 1");
 } catch (PDOException $e) {
-    $pdo->exec("ALTER TABLE cars ADD COLUMN terms_conditions LONGTEXT NULL");
+    try { $pdo->exec("ALTER TABLE cars ADD COLUMN terms_conditions LONGTEXT NULL"); } catch(PDOException $ex) {}
 }
 try {
     $pdo->query("SELECT city_id FROM cars LIMIT 1");
 } catch (PDOException $e) {
-    $pdo->exec("ALTER TABLE cars ADD COLUMN city_id INT NULL AFTER type_id");
+    try { $pdo->exec("ALTER TABLE cars ADD COLUMN city_id INT NULL AFTER type_id"); } catch(PDOException $ex) {}
 }
 
 // Helper to get Local/Hourly Trip ID
@@ -32,8 +32,13 @@ function getLocalId($pdo) {
         return $res['id'];
     } else {
         // Create if not exists
-        $stmt = $pdo->prepare("INSERT INTO trip_types (name, status) VALUES ('Local / Rental', 'Active')");
-        $stmt->execute();
+        try {
+            $stmt = $pdo->prepare("INSERT INTO trip_types (name, status) VALUES ('Local / Rental', 'Active')");
+            $stmt->execute();
+        } catch (PDOException $e) {
+            $stmt = $pdo->prepare("INSERT INTO trip_types (name) VALUES ('Local / Rental')");
+            $stmt->execute();
+        }
         return $pdo->lastInsertId();
     }
 }

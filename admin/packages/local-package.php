@@ -1,4 +1,7 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 require_once __DIR__ . '/../auth_check.php';
 require_once __DIR__ . '/../header.php';
 
@@ -6,7 +9,9 @@ require_once __DIR__ . '/../header.php';
 try {
     $pdo->query("SELECT city_id FROM cars LIMIT 1");
 } catch (PDOException $e) {
-    $pdo->exec("ALTER TABLE cars ADD COLUMN city_id INT NULL AFTER type_id");
+    try {
+        $pdo->exec("ALTER TABLE cars ADD COLUMN city_id INT NULL AFTER type_id");
+    } catch (PDOException $ex) {}
 }
 
 function getLocalId($pdo) {
@@ -15,8 +20,14 @@ function getLocalId($pdo) {
     $res = $stmt->fetch();
     if ($res) return $res['id'];
     
-    $stmt = $pdo->prepare("INSERT INTO trip_types (name, status) VALUES ('Local / Rental', 'Active')");
-    $stmt->execute();
+    try {
+        $stmt = $pdo->prepare("INSERT INTO trip_types (name, status) VALUES ('Local / Rental', 'Active')");
+        $stmt->execute();
+    } catch (PDOException $e) {
+        // Fallback if status column doesn't exist
+        $stmt = $pdo->prepare("INSERT INTO trip_types (name) VALUES ('Local / Rental')");
+        $stmt->execute();
+    }
     return $pdo->lastInsertId();
 }
 
