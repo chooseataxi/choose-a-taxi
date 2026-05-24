@@ -88,14 +88,76 @@ if ($trip_type === 'Round Trip') {
 // Final sanity check
 if ($total_distance_km < 1) $total_distance_km = 1;
 
-// 3. Fetch Available Cars matching the trip type
-$cars_stmt = $pdo->prepare("SELECT c.*, ct.name as type_name, ct.image as type_image, ct.passengers as max_seats 
-                            FROM cars c 
-                            JOIN car_types ct ON c.type_id = ct.id 
-                            JOIN trip_types tt ON c.trip_type_id = tt.id 
-                            WHERE c.status = 'Active' AND tt.name LIKE ?");
-$cars_stmt->execute(['%' . $trip_type . '%']);
-$cars = $cars_stmt->fetchAll();
+// 2.5 Identify Cities from Google Places
+// Fetch all active cities to match against pickup/drop strings
+$all_cities = $pdo->query("SELECT id, name FROM cities WHERE status = 'Active'")->fetchAll();
+$detected_pickup_city_id = null;
+$detected_drop_city_id = null;
+
+foreach ($all_cities as $city) {
+    if (!$detected_pickup_city_id && stripos($pickup, $city['name']) !== false) {
+        $detected_pickup_city_id = $city['id'];
+    }
+    if (!$detected_drop_city_id && stripos($drop, $city['name']) !== false) {
+        $detected_drop_city_id = $city['id'];
+    }
+}
+
+// 3. Fetch Available Cars matching the trip type and specific route/city
+$trip_query_param = '%' . $trip_type . '%';
+
+// Base query
+$query = "SELECT c.*, ct.name as type_name, ct.image as type_image, ct.passengers as max_seats 
+          FROM cars c 
+          JOIN car_types ct ON c.type_id = ct.id 
+          JOIN trip_types tt ON c.trip_type_id = tt.id 
+          WHERE c.status = 'Active' AND tt.name LIKE :trip_type";
+
+// Apply location-based filters
+if ($trip_type === 'One Way') {
+    // If we detected both cities, fetch custom route packages OR generic one-way packages
+    if ($detected_pickup_city_id && $detected_drop_city_id) {
+        $query .= " AND ((c.city_id IS NULL AND (c.drop_city_id IS NULL OR c.drop_city_id = 0)) 
+                         OR (c.city_id = :p_city AND c.drop_city_id = :d_city))";
+    } else {
+        // Fallback to generic only
+        $query .= " AND c.city_id IS NULL AND (c.drop_city_id IS NULL OR c.drop_city_id = 0)";
+    }
+} elseif (stripos($trip_type, 'Local') !== false) {
+    if ($detected_pickup_city_id) {
+        $query .= " AND (c.city_id IS NULL OR c.city_id = :p_city) AND (c.drop_city_id IS NULL OR c.drop_city_id = 0)";
+    } else {
+        $query .= " AND c.city_id IS NULL AND (c.drop_city_id IS NULL OR c.drop_city_id = 0)";
+    }
+} else {
+    // Default for Round Trip or others (Generic only)
+    $query .= " AND c.city_id IS NULL AND (c.drop_city_id IS NULL OR c.drop_city_id = 0)";
+}
+
+// Order by city_id DESC so specific routes/city packages appear first, overriding generics when we deduplicate
+$query .= " ORDER BY c.city_id DESC, c.drop_city_id DESC, ct.name ASC";
+
+$cars_stmt = $pdo->prepare($query);
+$cars_stmt->bindValue(':trip_type', $trip_query_param);
+
+if ($trip_type === 'One Way' && $detected_pickup_city_id && $detected_drop_city_id) {
+    $cars_stmt->bindValue(':p_city', $detected_pickup_city_id);
+    $cars_stmt->bindValue(':d_city', $detected_drop_city_id);
+} elseif (stripos($trip_type, 'Local') !== false && $detected_pickup_city_id) {
+    $cars_stmt->bindValue(':p_city', $detected_pickup_city_id);
+}
+
+$cars_stmt->execute();
+$raw_cars = $cars_stmt->fetchAll();
+
+// Deduplicate: Keep only the most specific package per car type
+$unique_cars = [];
+foreach ($raw_cars as $car) {
+    if (!isset($unique_cars[$car['type_id']])) {
+        $unique_cars[$car['type_id']] = $car;
+    }
+}
+$cars = array_values($unique_cars);
 ?>
 
 <!-- Custom Results CSS -->

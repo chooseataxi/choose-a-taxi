@@ -30,7 +30,8 @@ $menuItems = [
         "pages" => [
             ["title" => "One Way Packages", "url" => "packages/one-way-package.php"],
             ["title" => "Round Trip Packages", "url" => "packages/round-trip-package.php"],
-            ["title" => "Local Hourly Packages", "url" => "packages/local-package.php"]
+            ["title" => "Local Hourly Packages", "url" => "packages/local-package.php"],
+            ["title" => "City-to-City Routes", "url" => "packages/route-package.php"]
         ],
     ],
     [
