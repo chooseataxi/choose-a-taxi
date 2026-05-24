@@ -47,10 +47,19 @@ if ($action === 'save') {
         exit;
     }
 
+    // Auto-fetch car type name for vehicle name
+    $typeStmt = $pdo->prepare("SELECT name FROM car_types WHERE id = ?");
+    $typeStmt->execute([$type_id]);
+    $typeRow = $typeStmt->fetch();
+    $name = $typeRow ? $typeRow['name'] : 'Route Package';
+
+    $brand_id = 1; // Default brand as required by schema
     $trip_type_id = getOneWayId($pdo);
 
     $params = [
         'type_id' => $type_id,
+        'brand_id' => $brand_id,
+        'name' => $name,
         'trip_type_id' => $trip_type_id,
         'city_id' => $city_id,
         'drop_city_id' => $drop_city_id,
@@ -70,6 +79,8 @@ if ($action === 'save') {
     if ($id) {
         $sql = "UPDATE cars SET 
             type_id = :type_id,
+            brand_id = :brand_id,
+            name = :name,
             city_id = :city_id,
             drop_city_id = :drop_city_id,
             base_fare = :base_fare,
@@ -87,8 +98,8 @@ if ($action === 'save') {
         $params['id'] = $id;
         $msg = "Route package updated successfully.";
     } else {
-        $sql = "INSERT INTO cars (type_id, trip_type_id, city_id, drop_city_id, base_fare, min_km, extra_km_price, display_extra_km_price, include_toll, include_tax, include_driver_allowance, include_night_charges, include_parking, description, terms_conditions, status)
-                VALUES (:type_id, :trip_type_id, :city_id, :drop_city_id, :base_fare, :min_km, :extra_km_price, :display_extra_km_price, :include_toll, :include_tax, :include_driver_allowance, :include_night_charges, :include_parking, :description, :terms_conditions, 'Active')";
+        $sql = "INSERT INTO cars (type_id, brand_id, name, trip_type_id, city_id, drop_city_id, base_fare, min_km, extra_km_price, display_extra_km_price, include_toll, include_tax, include_driver_allowance, include_night_charges, include_parking, description, terms_conditions, status)
+                VALUES (:type_id, :brand_id, :name, :trip_type_id, :city_id, :drop_city_id, :base_fare, :min_km, :extra_km_price, :display_extra_km_price, :include_toll, :include_tax, :include_driver_allowance, :include_night_charges, :include_parking, :description, :terms_conditions, 'Active')";
         $msg = "Route package created successfully.";
     }
 
