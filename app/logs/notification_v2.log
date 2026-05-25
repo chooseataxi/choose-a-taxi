@@ -1,0 +1,66 @@
+[2026-05-10 02:11:45] HTTP 400 | Response: {"errors":["Could not find android_channel_id"]}
+[2026-05-10 02:13:21] HTTP 400 | Response: {"errors":["Could not find android_channel_id"]}
+[2026-05-10 02:20:13] HTTP 200 | Response: {"id":"986ad188-9f36-4013-8850-4b33531a5863","external_id":null}
+[2026-05-10 02:20:38] HTTP 200 | Response: {"id":"1ae188a3-8bac-42dd-8de8-9aa183ba1d83","external_id":null}
+[2026-05-10 02:20:59] HTTP 200 | Response: {"id":"f70290e7-e6e8-43c8-afb0-bfed0d554c76","external_id":null}
+[2026-05-10 02:21:22] HTTP 200 | Response: {"id":"5a33005c-67d6-4c52-89ba-784e3ba4be09","external_id":null}
+[2026-05-10 02:21:33] HTTP 200 | Response: {"id":"4362ac7c-d405-471f-934c-f95210253972","external_id":null}
+[2026-05-10 02:22:00] HTTP 200 | Response: {"id":"073fde28-2c65-4d59-a091-7d9490a2dd0d","external_id":null}
+[2026-05-10 02:22:13] HTTP 200 | Response: {"id":"cf849a9c-6abb-4bb6-8352-b71ed4313c06","external_id":null}
+[2026-05-10 02:24:28] HTTP 200 | Response: {"id":"fccc90d4-00b3-41b1-a22f-a637fbbe476f","external_id":null}
+[2026-05-10 02:24:36] HTTP 200 | Response: {"id":"1bf632f2-af49-4905-a5ec-dce63a1927eb","external_id":null}
+[2026-05-10 02:24:49] HTTP 200 | Response: {"id":"4dce6130-c419-429d-9fa1-a5124df14d9a","external_id":null}
+[2026-05-10 02:24:54] HTTP 200 | Response: {"id":"f08ea6f6-8f51-4308-af1c-32037885f34d","external_id":null}
+[2026-05-10 02:37:14] HTTP 200 | Response: {"id":"d2535d8a-4905-4b8e-9ef9-88c72f670348","external_id":null}
+[2026-05-10 02:37:34] HTTP 200 | Response: {"id":"0de868ba-4eec-4fb1-a4e2-1c8bc12ef040","external_id":null}
+[2026-05-10 02:37:53] HTTP 200 | Response: {"id":"4e38bda1-43c3-4bf5-8eab-889509344093","external_id":null}
+[2026-05-10 02:38:00] HTTP 200 | Response: {"id":"ff34aed2-cbea-4412-9e8a-6da5bd2b7d24","external_id":null}
+[2026-05-10 02:38:09] HTTP 200 | Response: {"id":"37ca1778-5139-4edf-a441-e29d1ec2a67a","external_id":null}
+[2026-05-10 02:38:17] HTTP 200 | Response: {"id":"ae3bb806-8295-4b0a-87c9-0a10eb4c7087","external_id":null}
+[2026-05-10 02:38:20] HTTP 200 | Response: {"id":"895a9190-8d58-431c-8cd3-b9e2292fca39","external_id":null}
+[2026-05-10 02:50:39] HTTP 200 | Response: {"id":"f6122296-eeba-42e6-ab38-61d096511905","external_id":null}
+[2026-05-10 02:51:44] HTTP 200 | Response: {"id":"bc10b823-07eb-411b-851f-b56501762467","external_id":null}
+[2026-05-10 03:01:18] HTTP 200 | Response: {"id":"a038b0e2-a350-4c35-9883-d4efb51c586d","external_id":null}
+[2026-05-10 03:01:54] HTTP 200 | Response: {"id":"ee802737-34de-4922-97cf-db297738c7a6","external_id":null}
+[2026-05-10 03:06:29] HTTP 200 | Response: {"id":"9ee75675-a001-4840-95e9-a92bb72c99e5","external_id":null}
+[2026-05-10 03:14:41] HTTP 200 | Response: {"id":"0d2ebd01-d22b-46e3-9fd6-37d19aba1470","external_id":null}
+[2026-05-10 03:15:52] HTTP 200 | Response: {"id":"1708be1b-b388-4f8d-ab1b-5b57aaf6b2e2","external_id":null}
+[2026-05-10 03:16:04] HTTP 200 | Response: {"id":"","errors":["All included players are not subscribed"]}
+[2026-05-10 03:19:00] HTTP 200 | Response: {"id":"","errors":["All included players are not subscribed"]}
+[2026-05-10 03:19:05] HTTP 200 | Response: {"id":"","errors":["All included players are not subscribed"]}
+[2026-05-10 03:22:49] HTTP 200 | Response: {"id":"f1e12899-85d9-43a8-938e-28f2bc056743","external_id":null}
+[2026-05-10 03:22:56] HTTP 200 | Response: {"id":"dca1e46a-eb61-41fd-a28e-ea55fbd2d396","external_id":null}
+[2026-05-10 03:23:11] HTTP 200 | Response: {"id":"c212ca16-50fb-485c-915c-2fa7e09c8977","external_id":null}
+[2026-05-10 03:24:35] HTTP 200 | Response: {"id":"58890613-dfde-48be-9ec5-1c52978cf320","external_id":null}
+[2026-05-10 03:25:05] HTTP 200 | Response: {"id":"c40c6770-2f18-4281-ba7c-75a31f9eb8f5","external_id":null}
+[2026-05-10 03:58:25] HTTP 200 | Response: {"id":"8cf72fcb-efab-41f9-adda-b72a71419a2a","external_id":null}
+[2026-05-10 07:45:44] HTTP 200 | Response: {"id":"7851e118-7c2d-4f09-b902-361cbb53b9ae","external_id":null}
+[2026-05-10 07:45:52] HTTP 200 | Response: {"id":"242fe08f-fd7a-44dd-abd0-9e4b5d51b535","external_id":null}
+[2026-05-10 09:14:02] HTTP 200 | Response: {"id":"","errors":["All included players are not subscribed"]}
+[2026-05-10 09:49:59] HTTP 200 | Response: {"id":"","errors":["All included players are not subscribed"]}
+[2026-05-10 10:01:02] HTTP 200 | Response: {"id":"db2c1177-907f-4bf1-9629-22a44a50de4b","external_id":null}
+[2026-05-10 10:39:02] HTTP 200 | Response: {"id":"","errors":["All included players are not subscribed"]}
+[2026-05-10 12:22:16] HTTP 200 | Response: {"id":"","errors":["All included players are not subscribed"]}
+[2026-05-10 12:32:08] HTTP 200 | Response: {"id":"bd05db7b-661c-46aa-b611-f1e2775c9b61","external_id":null}
+[2026-05-10 12:33:13] HTTP 200 | Response: {"id":"","errors":["All included players are not subscribed"]}
+[2026-05-10 12:33:55] HTTP 200 | Response: {"id":"a9aba224-a4e6-495c-a5f7-96cf22822b32","external_id":null}
+[2026-05-10 12:37:01] HTTP 200 | Response: {"id":"","errors":["All included players are not subscribed"]}
+[2026-05-10 12:49:44] HTTP 200 | Response: {"id":"","errors":["All included players are not subscribed"]}
+[2026-05-10 15:35:07] HTTP 200 | Response: {"id":"5f92b0c5-8c88-41bf-9b05-4f5c9bc3de0a","external_id":null}
+[2026-05-10 15:36:23] HTTP 200 | Response: {"id":"9ecc0727-8b55-4022-81d3-42fdba8d923c","external_id":null}
+[2026-05-10 15:52:44] HTTP 200 | Response: {"id":"","errors":["All included players are not subscribed"]}
+[2026-05-10 15:53:19] HTTP 200 | Response: {"id":"","errors":["All included players are not subscribed"]}
+[2026-05-10 15:56:51] HTTP 200 | Response: {"id":"e0fe312c-fd83-4b3d-8f11-271af84b531b","external_id":null}
+[2026-05-10 16:07:54] HTTP 200 | Response: {"id":"19a9062c-26c7-48e2-91bb-f393936edfa0","external_id":null}
+[2026-05-10 16:08:01] HTTP 200 | Response: {"id":"0d6a867e-b23c-4695-bccc-29c4818c35fb","external_id":null}
+[2026-05-10 16:13:15] HTTP 200 | Response: {"id":"","errors":["All included players are not subscribed"]}
+[2026-05-10 17:42:51] HTTP 200 | Response: {"id":"9d8d6e2a-9fc0-4621-9480-2dfaa19589fa","external_id":null}
+[2026-05-10 17:43:07] HTTP 200 | Response: {"id":"","errors":["All included players are not subscribed"],"warnings":{"invalid_external_user_ids":"The following external_ids have unsubscribed subscriptions attached: [\"4\"]"}}
+[2026-05-10 17:43:22] HTTP 200 | Response: {"id":"","errors":["All included players are not subscribed"],"warnings":{"invalid_external_user_ids":"The following external_ids have unsubscribed subscriptions attached: [\"4\"]"}}
+[2026-05-10 17:43:41] HTTP 200 | Response: {"id":"56e3864f-703b-4e5d-8840-b1e04e983c8e","external_id":null}
+[2026-05-10 17:44:15] HTTP 200 | Response: {"id":"6d2ee93f-a78c-4e16-8a20-77ea34aa6a27","external_id":null}
+[2026-05-10 17:44:32] HTTP 200 | Response: {"id":"","errors":["All included players are not subscribed"],"warnings":{"invalid_external_user_ids":"The following external_ids have unsubscribed subscriptions attached: [\"4\"]"}}
+[2026-05-10 17:44:39] HTTP 200 | Response: {"id":"2e74392b-35b8-45a7-8f42-e018b9a88df5","external_id":null}
+[2026-05-10 17:45:22] HTTP 200 | Response: {"id":"","errors":["All included players are not subscribed"],"warnings":{"invalid_external_user_ids":"The following external_ids have unsubscribed subscriptions attached: [\"4\"]"}}
+[2026-05-10 17:46:34] HTTP 200 | Response: {"id":"b9db8f63-1811-4338-90a3-38f7be212142","external_id":null}
+[2026-05-10 18:57:16] HTTP 200 | Response: {"id":"417a83d1-e38f-474a-bc73-5bb7d973ed18","external_id":null}

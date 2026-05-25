@@ -1,0 +1,1494 @@
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 2
+    [brand_id] => 1
+    [type_id] => 2
+    [name] => WAGONR
+    [model] => 2024
+    [trip_type_id] => 1
+    [base_fare] => 1250.00
+    [min_km] => 20
+    [extra_km_price] => 15.00
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => wagnor.webp
+            [full_path] => wagnor.webp
+            [type] => image/webp
+            [tmp_name] => /tmp/phpPUOker
+            [error] => 0
+            [size] => 6104
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 2
+    [brand_id] => 1
+    [type_id] => 2
+    [name] => WAGONR
+    [model] => 2024
+    [trip_type_id] => 1
+    [base_fare] => 1250.00
+    [min_km] => 20
+    [extra_km_price] => 15.00
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+
+POST: Array
+(
+    [action] => add
+    [brand_id] => 1
+    [type_id] => 7
+    [name] => WAGONR, CELERIO, RITZ & SIMILAR【AC】4+1
+    [model] => 2024
+    [trip_type_id] => 1
+    [base_fare] => 1268
+    [min_km] => 17
+    [extra_km_price] => 14
+    [youtube_url] => 
+    [description] => <p>demo</p>
+
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 1001200696.png
+            [full_path] => 1001200696.png
+            [type] => image/png
+            [tmp_name] => /tmp/phpuxs3si
+            [error] => 0
+            [size] => 90536
+        )
+
+)
+
+POST: Array
+(
+    [action] => add
+    [brand_id] => 1
+    [type_id] => 7
+    [name] => WAGONR, CELERIO, RITZ & SIMILAR【AC】4+1
+    [model] => 
+    [trip_type_id] => 2
+    [base_fare] => 1250
+    [min_km] => 100
+    [extra_km_price] => 15
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => wagnor.webp
+            [full_path] => wagnor.webp
+            [type] => image/webp
+            [tmp_name] => /tmp/phplBaJQI
+            [error] => 0
+            [size] => 6104
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 4
+    [brand_id] => 1
+    [type_id] => 7
+    [name] => WAGONR, CELERIO, RITZ & SIMILAR【AC】4+1
+    [model] => 
+    [trip_type_id] => 2
+    [base_fare] => 1250.00
+    [min_km] => 100
+    [extra_km_price] => 15.00
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+
+POST: Array
+(
+    [action] => add
+    [brand_id] => 1
+    [type_id] => 8
+    [name] => DZIRE, AURA, XCENT SIMILAR【AC】4+1
+    [model] => 
+    [trip_type_id] => 1
+    [base_fare] => 1396
+    [min_km] => 20
+    [extra_km_price] => 15
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 1002368028.png
+            [full_path] => 1002368028.png
+            [type] => image/png
+            [tmp_name] => /tmp/phpEzb3wi
+            [error] => 0
+            [size] => 203822
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 4
+    [brand_id] => 1
+    [type_id] => 7
+    [name] => WAGONR, CELERIO, RITZ & SIMILAR【AC】4+1
+    [model] => 
+    [trip_type_id] => 2
+    [base_fare] => 2863
+    [min_km] => 250
+    [extra_km_price] => 13.00
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+
+POST: Array
+(
+    [action] => add
+    [brand_id] => 1
+    [type_id] => 7
+    [name] => WAGONR, CELERIO, RITZ & SIMILAR【AC】4+1
+    [model] => 
+    [trip_type_id] => 4
+    [base_fare] => 625
+    [min_km] => 15
+    [extra_km_price] => 16
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 1001200696.png
+            [full_path] => 1001200696.png
+            [type] => image/png
+            [tmp_name] => /tmp/php5kEN4w
+            [error] => 0
+            [size] => 90536
+        )
+
+)
+
+POST: Array
+(
+    [action] => add
+    [brand_id] => 1
+    [type_id] => 8
+    [name] => DZIRE, AURA, XCENT SIMILAR【AC】4+1
+    [model] => 
+    [trip_type_id] => 2
+    [base_fare] => 2927
+    [min_km] => 250
+    [extra_km_price] => 12
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 1002368028.png
+            [full_path] => 1002368028.png
+            [type] => image/png
+            [tmp_name] => /tmp/phpvqeBb6
+            [error] => 0
+            [size] => 203822
+        )
+
+)
+
+POST: Array
+(
+    [action] => add
+    [brand_id] => 1
+    [type_id] => 8
+    [name] => DZIRE, AURA, XCENT SIMILAR【AC】4+1
+    [model] => 
+    [trip_type_id] => 4
+    [base_fare] => 672
+    [min_km] => 15
+    [extra_km_price] => 18
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 1002368028.png
+            [full_path] => 1002368028.png
+            [type] => image/png
+            [tmp_name] => /tmp/phppvANyS
+            [error] => 0
+            [size] => 203822
+        )
+
+)
+
+POST: Array
+(
+    [action] => add
+    [brand_id] => 1
+    [type_id] => 9
+    [name] => ERTIGA,KIA CARENCE, SUV SIMILAR【AC】6+1
+    [model] => 
+    [trip_type_id] => 1
+    [base_fare] => 1896
+    [min_km] => 25
+    [extra_km_price] => 18
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 20180504054649_2018-Suzuki-Ertiga-fronw.jpg
+            [full_path] => 20180504054649_2018-Suzuki-Ertiga-fronw.jpg
+            [type] => image/jpeg
+            [tmp_name] => /tmp/phpNmM0av
+            [error] => 0
+            [size] => 165758
+        )
+
+)
+
+POST: Array
+(
+    [action] => add
+    [brand_id] => 1
+    [type_id] => 9
+    [name] => ERTIGA,KIA CARENCE, SUV SIMILAR【AC】6+1
+    [model] => 
+    [trip_type_id] => 2
+    [base_fare] => 3746
+    [min_km] => 250
+    [extra_km_price] => 16
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 20180504054649_2018-Suzuki-Ertiga-fronw.jpg
+            [full_path] => 20180504054649_2018-Suzuki-Ertiga-fronw.jpg
+            [type] => image/jpeg
+            [tmp_name] => /tmp/phpvdFaeG
+            [error] => 0
+            [size] => 165758
+        )
+
+)
+
+POST: Array
+(
+    [action] => add
+    [brand_id] => 1
+    [type_id] => 9
+    [name] => ERTIGA,KIA CARENCE, SUV SIMILAR【AC】6+1
+    [model] => 
+    [trip_type_id] => 4
+    [base_fare] => 890
+    [min_km] => 14
+    [extra_km_price] => 21
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 20180504054649_2018-Suzuki-Ertiga-fronw.jpg
+            [full_path] => 20180504054649_2018-Suzuki-Ertiga-fronw.jpg
+            [type] => image/jpeg
+            [tmp_name] => /tmp/phpebWFHb
+            [error] => 0
+            [size] => 165758
+        )
+
+)
+
+POST: Array
+(
+    [action] => add
+    [brand_id] => 1
+    [type_id] => 11
+    [name] => Innova Crysta【AC】6+1
+    [model] => 
+    [trip_type_id] => 1
+    [base_fare] => 2956
+    [min_km] => 25
+    [extra_km_price] => 29
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 2021-Toyota-Innova-Crysta-facelift-white-studio.jpg
+            [full_path] => 2021-Toyota-Innova-Crysta-facelift-white-studio.jpg
+            [type] => image/jpeg
+            [tmp_name] => /tmp/phpvYcoOk
+            [error] => 0
+            [size] => 43713
+        )
+
+)
+
+POST: Array
+(
+    [action] => add
+    [brand_id] => 1
+    [type_id] => 13
+    [name] => Innova Crysta【AC】6+1
+    [model] => 
+    [trip_type_id] => 2
+    [base_fare] => 5372
+    [min_km] => 250
+    [extra_km_price] => 23
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 2021-Toyota-Innova-Crysta-facelift-white-studio.jpg
+            [full_path] => 2021-Toyota-Innova-Crysta-facelift-white-studio.jpg
+            [type] => image/jpeg
+            [tmp_name] => /tmp/phpXu1tHD
+            [error] => 0
+            [size] => 43713
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 11
+    [brand_id] => 1
+    [type_id] => 9
+    [name] => Ertiga,Kia Carence, Suv Similar【AC】6+1
+    [model] => 
+    [trip_type_id] => 4
+    [base_fare] => 890.00
+    [min_km] => 14
+    [extra_km_price] => 21.00
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 10
+    [brand_id] => 1
+    [type_id] => 9
+    [name] => Ertiga,Kia Carence, Suv Similar【AC】6+1
+    [model] => 
+    [trip_type_id] => 2
+    [base_fare] => 3746.00
+    [min_km] => 250
+    [extra_km_price] => 16.00
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 9
+    [brand_id] => 1
+    [type_id] => 9
+    [name] => Ertiga,Kia Carence, Suv Similar【AC】6+1
+    [model] => 
+    [trip_type_id] => 1
+    [base_fare] => 1896.00
+    [min_km] => 25
+    [extra_km_price] => 18.00
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 8
+    [brand_id] => 1
+    [type_id] => 8
+    [name] => Dzire, Aura, Xcent Similar【AC】4+1
+    [model] => 
+    [trip_type_id] => 4
+    [base_fare] => 672.00
+    [min_km] => 15
+    [extra_km_price] => 18.00
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 7
+    [brand_id] => 1
+    [type_id] => 8
+    [name] => Dzire, Aura, Xcent Similar【AC】4+1
+    [model] => 
+    [trip_type_id] => 2
+    [base_fare] => 2927.00
+    [min_km] => 250
+    [extra_km_price] => 12.00
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 5
+    [brand_id] => 1
+    [type_id] => 8
+    [name] => Dzire, Aura, Xcent Similar【AC】4+1
+    [model] => 
+    [trip_type_id] => 1
+    [base_fare] => 1396.00
+    [min_km] => 20
+    [extra_km_price] => 15.00
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 6
+    [brand_id] => 1
+    [type_id] => 7
+    [name] => Wagon R, Celerio, Ritz  Similar【AC】4+1
+    [model] => 
+    [trip_type_id] => 4
+    [base_fare] => 625.00
+    [min_km] => 15
+    [extra_km_price] => 16.00
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 4
+    [brand_id] => 1
+    [type_id] => 7
+    [name] => Wagon R, Celerio, Ritz  Similar【AC】4+1
+    [model] => 
+    [trip_type_id] => 2
+    [base_fare] => 2863.00
+    [min_km] => 250
+    [extra_km_price] => 13.00
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 3
+    [brand_id] => 1
+    [type_id] => 7
+    [name] => Wagon R, Celerio, Ritz  Similar【AC】4+1
+    [model] => 2024
+    [trip_type_id] => 1
+    [base_fare] => 1268.00
+    [min_km] => 17
+    [extra_km_price] => 14.00
+    [youtube_url] => 
+    [description] => <p>demo</p>
+
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+
+POST: Array
+(
+    [action] => add
+    [brand_id] => 1
+    [type_id] => 11
+    [name] => Innova Crysta【AC】6+1
+    [model] => 
+    [trip_type_id] => 4
+    [base_fare] => 1960
+    [min_km] => 14
+    [extra_km_price] => 28
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 2021-Toyota-Innova-Crysta-facelift-white-studio.jpg
+            [full_path] => 2021-Toyota-Innova-Crysta-facelift-white-studio.jpg
+            [type] => image/jpeg
+            [tmp_name] => /tmp/phpiLGqcI
+            [error] => 0
+            [size] => 43713
+        )
+
+)
+
+POST: Array
+(
+    [action] => add
+    [brand_id] => 1
+    [type_id] => 12
+    [name] => Tempoo Traveller [ AC ] 12+1
+    [model] => 
+    [trip_type_id] => 2
+    [base_fare] => 9687
+    [min_km] => 250
+    [extra_km_price] => 38
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => WhatsApp Image 2026-02-06 at 14.13.29.jpeg
+            [full_path] => WhatsApp Image 2026-02-06 at 14.13.29.jpeg
+            [type] => image/jpeg
+            [tmp_name] => /tmp/phpxWpRQn
+            [error] => 0
+            [size] => 15717
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 15
+    [brand_id] => 1
+    [type_id] => 12
+    [name] => Tempoo Traveller [ AC ] 12+1
+    [model] => 
+    [include_toll] => Included
+    [include_tax] => Included
+    [include_driver_allowance] => Included
+    [include_night_charges] => Included
+    [include_parking] => Included
+    [trip_type_id] => 2
+    [base_fare] => 9687.00
+    [min_km] => 250
+    [extra_km_price] => 38.00
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 15
+    [brand_id] => 1
+    [type_id] => 12
+    [name] => Tempoo Traveller [ AC ] 12+1
+    [model] => 
+    [include_toll] => Included
+    [include_tax] => Included
+    [include_driver_allowance] => Included
+    [include_night_charges] => Included
+    [include_parking] => Included
+    [trip_type_id] => 2
+    [base_fare] => 9687.00
+    [min_km] => 250
+    [extra_km_price] => 38.00
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 12
+    [brand_id] => 1
+    [type_id] => 11
+    [name] => Innova Crysta【AC】6+1
+    [model] => 
+    [include_toll] => Included
+    [include_tax] => Included
+    [include_driver_allowance] => Included
+    [include_night_charges] => Included
+    [include_parking] => Included
+    [trip_type_id] => 1
+    [base_fare] => 2956.00
+    [min_km] => 56
+    [extra_km_price] => 29.00
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 13
+    [brand_id] => 1
+    [type_id] => 11
+    [name] => Innova Crysta【AC】6+1
+    [model] => 
+    [include_toll] => Included
+    [include_tax] => Included
+    [include_driver_allowance] => Included
+    [include_night_charges] => Included
+    [include_parking] => Included
+    [trip_type_id] => 2
+    [base_fare] => 5372.00
+    [min_km] => 250
+    [extra_km_price] => 23.00
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 3
+    [brand_id] => 1
+    [type_id] => 7
+    [name] => Wagon R, Celerio, Ritz  Similar【AC】4+1
+    [model] => 2024
+    [include_toll] => Included
+    [include_tax] => Included
+    [include_driver_allowance] => Included
+    [include_night_charges] => Included
+    [include_parking] => Excluded
+    [trip_type_id] => 1
+    [base_fare] => 1268.00
+    [min_km] => 17
+    [extra_km_price] => 14.00
+    [youtube_url] => 
+    [description] => <p>demo</p>
+
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 6
+    [brand_id] => 1
+    [type_id] => 7
+    [name] => Wagon R, Celerio, Ritz  Similar【AC】4+1
+    [model] => 
+    [include_toll] => Included
+    [include_tax] => Included
+    [include_driver_allowance] => Included
+    [include_night_charges] => Included
+    [include_parking] => Excluded
+    [trip_type_id] => 4
+    [base_fare] => 625.00
+    [min_km] => 15
+    [extra_km_price] => 16.00
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 4
+    [brand_id] => 1
+    [type_id] => 7
+    [name] => Wagon R, Celerio, Ritz  Similar【AC】4+1
+    [model] => 
+    [include_toll] => Excluded
+    [include_tax] => Excluded
+    [include_driver_allowance] => Included
+    [include_night_charges] => Included
+    [include_parking] => Excluded
+    [trip_type_id] => 2
+    [base_fare] => 2863.00
+    [min_km] => 250
+    [extra_km_price] => 13.00
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 15
+    [brand_id] => 1
+    [type_id] => 12
+    [name] => Tempoo Traveller [ AC ] 12+1
+    [model] => 
+    [include_toll] => Excluded
+    [include_tax] => Excluded
+    [include_driver_allowance] => Included
+    [include_night_charges] => Included
+    [include_parking] => Excluded
+    [trip_type_id] => 2
+    [base_fare] => 9687.00
+    [min_km] => 250
+    [extra_km_price] => 38.00
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 5
+    [brand_id] => 1
+    [type_id] => 8
+    [name] => Dzire, Aura, Xcent Similar【AC】4+1
+    [model] => 
+    [include_toll] => Included
+    [include_tax] => Included
+    [include_driver_allowance] => Included
+    [include_night_charges] => Included
+    [include_parking] => Excluded
+    [trip_type_id] => 1
+    [base_fare] => 1396.00
+    [min_km] => 20
+    [extra_km_price] => 15.00
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 7
+    [brand_id] => 1
+    [type_id] => 8
+    [name] => Dzire, Aura, Xcent Similar【AC】4+1
+    [model] => 
+    [include_toll] => Excluded
+    [include_tax] => Excluded
+    [include_driver_allowance] => Included
+    [include_night_charges] => Included
+    [include_parking] => Excluded
+    [trip_type_id] => 2
+    [base_fare] => 2927.00
+    [min_km] => 250
+    [extra_km_price] => 12.00
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 8
+    [brand_id] => 1
+    [type_id] => 8
+    [name] => Dzire, Aura, Xcent Similar【AC】4+1
+    [model] => 
+    [include_toll] => Included
+    [include_tax] => Included
+    [include_driver_allowance] => Included
+    [include_night_charges] => Included
+    [include_parking] => Excluded
+    [trip_type_id] => 4
+    [base_fare] => 672.00
+    [min_km] => 15
+    [extra_km_price] => 18.00
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 9
+    [brand_id] => 1
+    [type_id] => 9
+    [name] => Ertiga,Kia Carence, Suv Similar【AC】6+1
+    [model] => 
+    [include_toll] => Excluded
+    [include_tax] => Excluded
+    [include_driver_allowance] => Included
+    [include_night_charges] => Included
+    [include_parking] => Excluded
+    [trip_type_id] => 1
+    [base_fare] => 1896.00
+    [min_km] => 25
+    [extra_km_price] => 18.00
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 10
+    [brand_id] => 1
+    [type_id] => 9
+    [name] => Ertiga,Kia Carence, Suv Similar【AC】6+1
+    [model] => 
+    [include_toll] => Excluded
+    [include_tax] => Excluded
+    [include_driver_allowance] => Included
+    [include_night_charges] => Included
+    [include_parking] => Excluded
+    [trip_type_id] => 2
+    [base_fare] => 3746.00
+    [min_km] => 250
+    [extra_km_price] => 16.00
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 11
+    [brand_id] => 1
+    [type_id] => 9
+    [name] => Ertiga,Kia Carence, Suv Similar【AC】6+1
+    [model] => 
+    [include_toll] => Included
+    [include_tax] => Included
+    [include_driver_allowance] => Included
+    [include_night_charges] => Included
+    [include_parking] => Excluded
+    [trip_type_id] => 4
+    [base_fare] => 890.00
+    [min_km] => 14
+    [extra_km_price] => 21.00
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 12
+    [brand_id] => 1
+    [type_id] => 11
+    [name] => Innova Crysta【AC】6+1
+    [model] => 
+    [include_toll] => Excluded
+    [include_tax] => Excluded
+    [include_driver_allowance] => Included
+    [include_night_charges] => Included
+    [include_parking] => Excluded
+    [trip_type_id] => 1
+    [base_fare] => 2956.00
+    [min_km] => 56
+    [extra_km_price] => 29.00
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 13
+    [brand_id] => 1
+    [type_id] => 11
+    [name] => Innova Crysta【AC】6+1
+    [model] => 
+    [include_toll] => Excluded
+    [include_tax] => Excluded
+    [include_driver_allowance] => Included
+    [include_night_charges] => Included
+    [include_parking] => Excluded
+    [trip_type_id] => 2
+    [base_fare] => 5372.00
+    [min_km] => 250
+    [extra_km_price] => 23.00
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+
+UPDATE POST: Array
+(
+    [action] => update
+    [id] => 14
+    [brand_id] => 1
+    [type_id] => 11
+    [name] => Innova Crysta【AC】6+1
+    [model] => 
+    [include_toll] => Excluded
+    [include_tax] => Excluded
+    [include_driver_allowance] => Included
+    [include_night_charges] => Included
+    [include_parking] => Excluded
+    [trip_type_id] => 4
+    [base_fare] => 1960.00
+    [min_km] => 14
+    [extra_km_price] => 28.00
+    [youtube_url] => 
+    [description] => 
+    [seo_title] => 
+    [meta_keywords] => 
+    [seo_description] => 
+)
+
+FILES: Array
+(
+    [car_image] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+)
+

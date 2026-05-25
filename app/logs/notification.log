@@ -1,0 +1,24 @@
+[2026-05-10 01:53:15] Using API Key from DB
+[2026-05-10 01:53:15] Using AppID from DB: 8af20809-09e9-4ce1-9377-989b6b4e4600
+[2026-05-10 01:53:15] Using API Key from DB
+[2026-05-10 01:53:15] Sending to OneSignal with AppId: 8af20809-09e9-4ce1-9377-989b6b4e4600 and Key Prefix: os_v2_app_
+[2026-05-10 01:53:15] Payload: {"app_id":"8af20809-09e9-4ce1-9377-989b6b4e4600","included_segments":["All"],"data":{"type":"test","title":"Channel Test","body":"This is a test notification for the selected channel."},"contents":{"en":"This is a test notification for the selected channel."},"headings":{"en":"Channel Test"},"priority":10,"small_icon":"launcher_icon","content_available":true,"mutable_content":true,"android_channel_id":"31ea4096-bd7e-48d1-8754-777b4183c133","android_sound":"other","ios_sound":"other.mp3","collapse_id":"booking_general","android_group":"bookings","android_group_message":{"en":"You have $[notif_count] new bookings"}}
+[2026-05-10 01:53:16] OneSignal Response: {"id":"2429c796-32cc-42b0-af8a-1578e5a3f56b","external_id":null}
+[2026-05-10 01:53:46] Using API Key from DB
+[2026-05-10 01:53:46] Using AppID from DB: 8af20809-09e9-4ce1-9377-989b6b4e4600
+[2026-05-10 01:53:46] Using API Key from DB
+[2026-05-10 01:53:46] Sending to OneSignal with AppId: 8af20809-09e9-4ce1-9377-989b6b4e4600 and Key Prefix: os_v2_app_
+[2026-05-10 01:53:46] Payload: {"app_id":"8af20809-09e9-4ce1-9377-989b6b4e4600","included_segments":["All"],"data":{"type":"test","title":"Channel Test","body":"This is a test notification for the selected channel."},"contents":{"en":"This is a test notification for the selected channel."},"headings":{"en":"Channel Test"},"priority":10,"small_icon":"launcher_icon","content_available":true,"mutable_content":true,"android_channel_id":"31ea4096-bd7e-48d1-8754-777b4183c133","android_sound":"other","ios_sound":"other.mp3","collapse_id":"booking_general","android_group":"bookings","android_group_message":{"en":"You have $[notif_count] new bookings"}}
+[2026-05-10 01:53:46] OneSignal Response: {"id":"ceb8637a-9eb8-441a-a57b-5c885e08a772","external_id":null}
+[2026-05-10 01:54:03] Using API Key from DB
+[2026-05-10 01:54:03] Using AppID from DB: 8af20809-09e9-4ce1-9377-989b6b4e4600
+[2026-05-10 01:54:03] Using API Key from DB
+[2026-05-10 01:54:03] Sending to OneSignal with AppId: 8af20809-09e9-4ce1-9377-989b6b4e4600 and Key Prefix: os_v2_app_
+[2026-05-10 01:54:03] Payload: {"app_id":"8af20809-09e9-4ce1-9377-989b6b4e4600","included_segments":["All"],"data":{"type":"test","title":"Channel Test","body":"This is a test notification for the selected channel."},"contents":{"en":"This is a test notification for the selected channel."},"headings":{"en":"Channel Test"},"priority":10,"small_icon":"launcher_icon","content_available":true,"mutable_content":true,"android_channel_id":"31ea4096-bd7e-48d1-8754-777b4183c133","android_sound":"other","ios_sound":"other.mp3","collapse_id":"booking_general","android_group":"bookings","android_group_message":{"en":"You have $[notif_count] new bookings"}}
+[2026-05-10 01:54:03] OneSignal Response: {"id":"9a52cf11-69c6-4268-9d4d-4c92ceb139dd","external_id":null}
+[2026-05-10 01:54:17] Using API Key from DB
+[2026-05-10 01:54:17] Using AppID from DB: 8af20809-09e9-4ce1-9377-989b6b4e4600
+[2026-05-10 01:54:17] Using API Key from DB
+[2026-05-10 01:54:17] Sending to OneSignal with AppId: 8af20809-09e9-4ce1-9377-989b6b4e4600 and Key Prefix: os_v2_app_
+[2026-05-10 01:54:17] Payload: {"app_id":"8af20809-09e9-4ce1-9377-989b6b4e4600","included_segments":["All"],"data":{"type":"test","title":"Channel Test","body":"This is a test notification for the selected channel."},"contents":{"en":"This is a test notification for the selected channel."},"headings":{"en":"Channel Test"},"priority":10,"small_icon":"launcher_icon","content_available":true,"mutable_content":true,"android_channel_id":"31ea4096-bd7e-48d1-8754-777b4183c133","android_sound":"other","ios_sound":"other.mp3","collapse_id":"booking_general","android_group":"bookings","android_group_message":{"en":"You have $[notif_count] new bookings"}}
+[2026-05-10 01:54:18] OneSignal Response: {"id":"dd270fdb-0ef1-4c18-ac55-155bd6e25ecc","external_id":null}

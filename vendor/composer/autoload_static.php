@@ -19,11 +19,11 @@ class ComposerStaticInit34c36c05260b7e8e8b2fbced22e7ef39
     );
 
     public static $prefixLengthsPsr4 = array (
-        'W' => 
+        'W' =>
         array (
             'WpOrg\\Requests\\' => 15,
         ),
-        'S' => 
+        'S' =>
         array (
             'Symfony\\Polyfill\\Php80\\' => 23,
             'Symfony\\Polyfill\\Mbstring\\' => 26,
@@ -31,12 +31,12 @@ class ComposerStaticInit34c36c05260b7e8e8b2fbced22e7ef39
             'Symfony\\Component\\Process\\' => 26,
             'Spatie\\ImageOptimizer\\' => 22,
         ),
-        'R' => 
+        'R' =>
         array (
             'Razorpay\\Tests\\' => 15,
             'Razorpay\\Api\\' => 13,
         ),
-        'P' => 
+        'P' =>
         array (
             'Pusher\\' => 7,
             'Psr\\Log\\' => 8,
@@ -46,7 +46,7 @@ class ComposerStaticInit34c36c05260b7e8e8b2fbced22e7ef39
             'PhpOption\\' => 10,
             'ParagonIE\\Sodium\\' => 17,
         ),
-        'G' => 
+        'G' =>
         array (
             'GuzzleHttp\\Psr7\\' => 16,
             'GuzzleHttp\\Promise\\' => 19,
@@ -54,112 +54,112 @@ class ComposerStaticInit34c36c05260b7e8e8b2fbced22e7ef39
             'GrahamCampbell\\ResultType\\' => 26,
             'Google\\Auth\\' => 12,
         ),
-        'F' => 
+        'F' =>
         array (
             'Firebase\\JWT\\' => 13,
         ),
-        'D' => 
+        'D' =>
         array (
             'Dotenv\\' => 7,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'WpOrg\\Requests\\' => 
+        'WpOrg\\Requests\\' =>
         array (
             0 => __DIR__ . '/..' . '/rmccue/requests/src',
         ),
-        'Symfony\\Polyfill\\Php80\\' => 
+        'Symfony\\Polyfill\\Php80\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-php80',
         ),
-        'Symfony\\Polyfill\\Mbstring\\' => 
+        'Symfony\\Polyfill\\Mbstring\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-mbstring',
         ),
-        'Symfony\\Polyfill\\Ctype\\' => 
+        'Symfony\\Polyfill\\Ctype\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-ctype',
         ),
-        'Symfony\\Component\\Process\\' => 
+        'Symfony\\Component\\Process\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/process',
         ),
-        'Spatie\\ImageOptimizer\\' => 
+        'Spatie\\ImageOptimizer\\' =>
         array (
             0 => __DIR__ . '/..' . '/spatie/image-optimizer/src',
         ),
-        'Razorpay\\Tests\\' => 
+        'Razorpay\\Tests\\' =>
         array (
             0 => __DIR__ . '/..' . '/razorpay/razorpay/tests',
         ),
-        'Razorpay\\Api\\' => 
+        'Razorpay\\Api\\' =>
         array (
             0 => __DIR__ . '/..' . '/razorpay/razorpay/src',
         ),
-        'Pusher\\' => 
+        'Pusher\\' =>
         array (
             0 => __DIR__ . '/..' . '/pusher/pusher-php-server/src',
         ),
-        'Psr\\Log\\' => 
+        'Psr\\Log\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/log/src',
         ),
-        'Psr\\Http\\Message\\' => 
+        'Psr\\Http\\Message\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/http-factory/src',
             1 => __DIR__ . '/..' . '/psr/http-message/src',
         ),
-        'Psr\\Http\\Client\\' => 
+        'Psr\\Http\\Client\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/http-client/src',
         ),
-        'Psr\\Cache\\' => 
+        'Psr\\Cache\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/cache/src',
         ),
-        'PhpOption\\' => 
+        'PhpOption\\' =>
         array (
             0 => __DIR__ . '/..' . '/phpoption/phpoption/src/PhpOption',
         ),
-        'ParagonIE\\Sodium\\' => 
+        'ParagonIE\\Sodium\\' =>
         array (
             0 => __DIR__ . '/..' . '/paragonie/sodium_compat/namespaced',
         ),
-        'GuzzleHttp\\Psr7\\' => 
+        'GuzzleHttp\\Psr7\\' =>
         array (
             0 => __DIR__ . '/..' . '/guzzlehttp/psr7/src',
         ),
-        'GuzzleHttp\\Promise\\' => 
+        'GuzzleHttp\\Promise\\' =>
         array (
             0 => __DIR__ . '/..' . '/guzzlehttp/promises/src',
         ),
-        'GuzzleHttp\\' => 
+        'GuzzleHttp\\' =>
         array (
             0 => __DIR__ . '/..' . '/guzzlehttp/guzzle/src',
         ),
-        'GrahamCampbell\\ResultType\\' => 
+        'GrahamCampbell\\ResultType\\' =>
         array (
             0 => __DIR__ . '/..' . '/graham-campbell/result-type/src',
         ),
-        'Google\\Auth\\' => 
+        'Google\\Auth\\' =>
         array (
             0 => __DIR__ . '/..' . '/google/auth/src',
         ),
-        'Firebase\\JWT\\' => 
+        'Firebase\\JWT\\' =>
         array (
             0 => __DIR__ . '/..' . '/firebase/php-jwt/src',
         ),
-        'Dotenv\\' => 
+        'Dotenv\\' =>
         array (
             0 => __DIR__ . '/..' . '/vlucas/phpdotenv/src',
         ),
     );
 
     public static $prefixesPsr0 = array (
-        'B' => 
+        'B' =>
         array (
-            'Bramus' => 
+            'Bramus' =>
             array (
                 0 => __DIR__ . '/..' . '/bramus/router/src',
             ),
