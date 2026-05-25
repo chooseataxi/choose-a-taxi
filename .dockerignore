@@ -1,0 +1,8 @@
+.git
+.vscode
+vendor
+*.sql
+*.md
+Dockerfile
+.dockerignore
+tmp/*
