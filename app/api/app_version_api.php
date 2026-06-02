@@ -8,11 +8,11 @@ header("Content-Type: application/json; charset=UTF-8");
  * Used to manage force updates and inform users about new releases.
  */
 
-$latest_version_code = 25;
-$latest_version_name = "1.7.1";
+$latest_version_code = 999;
+$latest_version_name = "9.9.9";
 
 // Any version code below this will be forced to update
-$min_required_version = 25; 
+$min_required_version = 999; 
 
 $response = [
     "status" => "success",
