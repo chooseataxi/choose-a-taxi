@@ -8,11 +8,11 @@ header("Content-Type: application/json; charset=UTF-8");
  * Used to manage force updates and inform users about new releases.
  */
 
-$latest_version_code = 999;
-$latest_version_name = "9.9.9";
+$latest_version_code = 26;
+$latest_version_name = "1.6.2";
 
 // Any version code below this will be forced to update
-$min_required_version = 999; 
+$min_required_version = 24; 
 
 $response = [
     "status" => "success",
@@ -20,12 +20,8 @@ $response = [
     "latest_version_name" => $latest_version_name,
     "min_required_version" => $min_required_version,
     "update_url" => "https://play.google.com/store/apps/details?id=in.chooseataxi.partner",
-    "update_title" => "Google Play Policy Warning",
-    "update_message" => "Google Play Warning: Remove awesome notification plugin within 48 Hours otherwise app will be removed from playstore.",
-    "logo_url" => "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Google_Play_2022_icon.svg/512px-Google_Play_2022_icon.svg.png",
-    "image_url" => "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Google_Play_2022_icon.svg/512px-Google_Play_2022_icon.svg.png",
-    "is_warning" => true,
-    "warning_type" => "google_play_violation"
+    "update_title" => "Update Required",
+    "update_message" => "We've released a new version of Choose A Taxi with important bug fixes and new features. Please update to continue."
 ];
 
 echo json_encode($response);
