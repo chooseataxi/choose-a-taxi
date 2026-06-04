@@ -509,7 +509,7 @@ if ($action === 'get_market_bookings') {
             if (isset($b['commission']))
                 $b['commission'] = (float) $b['commission'];
         }
-
+$now = date('Y-m-d H:i:s');
         echo json_encode(["status" => "success", "bookings" => $bookings, "server_time" => $now]);
     } catch (PDOException $e) {
         echo json_encode(["status" => "error", "message" => "DB Error: " . $e->getMessage()]);
