@@ -15,9 +15,9 @@ if (class_exists('Dotenv\Dotenv')) {
 
 // Database connection parameters (fallback to defaults if .env fails)
 $host = $_ENV['DB_HOST'] ?? 'localhost';
-$db   = $_ENV['DB_NAME'] ?? 'u885872058_chooseataxi';
-$user = $_ENV['DB_USER'] ?? 'u885872058_chooseataxi';
-$pass = $_ENV['DB_PASS'] ?? 'Nknehra@7432';
+$db   = $_ENV['DB_NAME'] ?? 'chooseataxi';
+$user = $_ENV['DB_USER'] ?? 'chooseataxi';
+$pass = $_ENV['DB_PASS'] ?? 'Rd14072003@./';
 $port = $_ENV['DB_PORT'] ?? 3306;
 $charset = 'utf8mb4';
 
