@@ -1,26 +1,62 @@
-/* Horizontal Fleet Card Design - Professional & Precise */
+/* Our Fleet Carousel Section - Redesigned to match Services */
 .fleet-section {
-    padding: 85px 0;
-    background-color: #f8fafc;
+    padding: 90px 0;
+    background-color: #f7f8f9;
+    position: relative;
+    overflow: hidden;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    /* Diagonal diamond grid pattern overlay */
+    background-image: 
+        repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.015) 0px, rgba(0, 0, 0, 0.015) 1px, transparent 1px, transparent 36px),
+        repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.015) 0px, rgba(0, 0, 0, 0.015) 1px, transparent 1px, transparent 36px);
+}
+
+/* Checkered taxi border on left edge */
+.fleet-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 16px;
+    height: 100%;
+    z-index: 10;
+    background: conic-gradient(#111 25%, #ffcc00 0 50%, #111 0 75%, #ffcc00 0) 0 0 / 16px 16px;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+}
+
+/* Checkered taxi border on right edge */
+.fleet-section::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 16px;
+    height: 100%;
+    z-index: 10;
+    background: conic-gradient(#111 25%, #ffcc00 0 50%, #111 0 75%, #ffcc00 0) 0 0 / 16px 16px;
+    box-shadow: -2px 0 10px rgba(0,0,0,0.05);
 }
 
 .fleet-container {
     width: 90%;
     max-width: 1200px;
     margin: 0 auto;
+    position: relative;
+    z-index: 5;
 }
 
 .fleet-header {
-    text-align: center;
-    margin-bottom: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 55px;
 }
 
 .fleet-header h2 {
     font-size: 38px;
     font-weight: 850;
     color: #111;
-    letter-spacing: -0.8px;
+    letter-spacing: -1px;
     margin: 0;
 }
 
@@ -28,304 +64,236 @@
     color: #ff9e15; /* Custom brand orange highlight */
 }
 
-.fleet-list {
+/* Slider navigation buttons layout */
+.fleet-slider-nav {
     display: flex;
-    flex-direction: column;
-    gap: 30px;
+    gap: 12px;
 }
 
-/* Horizontal Card - Dynamic Two Tone Layout */
-.fleet-horizontal-card {
+.fleet-nav-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid #cbd5e1;
     background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 16px;
-    display: flex;
-    align-items: stretch; /* Stretch to align left/right heights */
-    padding: 0;
-    overflow: hidden;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.02);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.fleet-horizontal-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
-}
-
-/* Left: Vehicle Image with Drive Forward effect */
-.fleet-card-left {
-    flex: 0 0 240px;
+    color: #475569;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
-    background-color: #ffffff;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+.fleet-nav-btn:hover {
+    background: #ffcc00;
+    border-color: #ffcc00;
+    color: #111;
+    transform: scale(1.05);
+}
+
+.fleet-nav-btn:active {
+    transform: scale(0.95);
+}
+
+/* Slider Track Layout - Native Hardware Acceleration */
+.fleet-slider-container {
+    width: 100%;
+    overflow: visible;
     position: relative;
 }
 
-.fleet-card-left img {
-    width: 100%;
-    height: auto;
-    object-fit: contain;
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+.fleet-slider-track {
+    display: flex;
+    gap: 25px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+    padding-bottom: 10px;
 }
 
-/* Hover: Car slides forward slightly to imply motion */
-.fleet-horizontal-card:hover .fleet-card-left img {
-    transform: translateX(12px) scale(1.02);
+.fleet-slider-track::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
 }
 
-/* Middle: Specs pills and Inclusions tags */
-.fleet-card-middle {
-    flex: 1;
-    padding: 30px 20px 30px 10px;
+/* Individual Slider Card */
+.fleet-slider-card {
+    flex: 0 0 calc(25% - 19px); /* exactly 4 cards in viewport */
+    scroll-snap-align: start;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: transparent;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
 }
 
-.fleet-class-badge {
+.fleet-class-name {
     font-size: 11px;
     font-weight: 800;
     color: #ff9e15;
     text-transform: uppercase;
-    letter-spacing: 1.2px;
+    letter-spacing: 1px;
     margin-bottom: 6px;
-    display: inline-block;
+    display: block;
 }
 
-.fleet-card-middle h3 {
-    font-size: 23px;
-    font-weight: 850;
-    color: #111;
-    margin: 0 0 15px 0;
-    letter-spacing: -0.5px;
+/* Image wrapper with slanted crop mask */
+.fleet-img-wrapper {
+    width: 100%;
+    height: 135px;
+    overflow: hidden;
+    position: relative;
+    clip-path: polygon(0 15%, 100% 0, 100% 85%, 0 100%);
+    background-color: transparent;
 }
 
-/* Structured specifications pills */
-.fleet-specs-pills {
+.fleet-img-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Slanted separator stripe */
+.fleet-yellow-bar {
+    width: 100%;
+    height: 6px;
+    background-color: #ffcc00;
+    clip-path: polygon(0 15%, 100% 0, 100% 85%, 0 100%);
+    margin-top: 8px;
+    margin-bottom: 15px;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.fleet-card-info {
     display: flex;
-    gap: 12px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: center;
 }
 
-.spec-pill {
+.fleet-card-seats {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 14px;
-    background-color: #f1f5f9;
-    border-radius: 30px;
-    font-size: 13.5px;
-    font-weight: 600;
-    color: #475569;
-    border: 1px solid #e2e8f0;
-}
-
-.spec-pill i {
+    gap: 6px;
+    font-size: 12.5px;
     color: #64748b;
+    font-weight: 600;
+    margin-bottom: 6px;
 }
 
-/* Inclusion list tag badges */
-.fleet-inclusions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-}
-
-.inclusion-tag {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    font-weight: 750;
-    color: #0f766e;
-    background-color: rgba(13, 148, 136, 0.08);
-    padding: 4px 10px;
-    border-radius: 4px;
-}
-
-.inclusion-tag i {
-    font-size: 13px;
-    color: #0d9488;
-}
-
-.cancellation-note {
-    font-size: 13px;
-    color: #0d9488;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 5px;
-}
-
-.cancellation-note i {
-    color: #0d9488;
-    animation: pulse 1.5s infinite alternate;
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); opacity: 0.8; }
-    100% { transform: scale(1.15); opacity: 1; }
-}
-
-/* Right: Pricing & Call to Action (Soft gradient backdrop) */
-.fleet-card-right {
-    flex: 0 0 280px;
-    background-color: #f8fafc;
-    border-left: 1px solid #e2e8f0;
-    padding: 30px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: stretch;
-    text-align: right;
-}
-
-.price-area {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 4px;
-    margin-bottom: 20px;
-}
-
-.discount-badge {
-    background-color: #ff9e15;
-    color: #ffffff;
-    font-size: 11px;
-    font-weight: 800;
-    padding: 3px 10px;
-    border-radius: 30px;
-    display: inline-block;
-    width: fit-content;
-    box-shadow: 0 2px 10px rgba(255, 158, 21, 0.2);
-}
-
-.old-price {
-    font-size: 14px;
+.fleet-card-seats i {
     color: #94a3b8;
-    text-decoration: line-through;
-    font-weight: 500;
 }
 
-.current-price {
-    font-size: 32px;
-    font-weight: 900;
-    color: #0f766e;
-    line-height: 1;
+.fleet-slider-card h3 {
+    font-size: 18px;
+    font-weight: 800;
+    color: #111;
+    margin: 0 0 10px 0;
+    letter-spacing: -0.3px;
+    transition: color 0.3s ease;
 }
 
-/* Book Now CTA Button */
-.btn-book-now {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    color: #ffffff;
-    text-align: center;
-    padding: 14px 20px;
-    font-weight: 750;
-    font-size: 15px;
-    text-decoration: none;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
-    transition: all 0.3s ease;
-}
-
-.btn-book-now:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(220, 38, 38, 0.35);
-    background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
-}
-
-.btn-book-now:active {
-    transform: translateY(1px);
-}
-
-.terms-link {
-    font-size: 12px;
+.fleet-card-price {
+    font-size: 13.5px;
     color: #64748b;
-    text-decoration: none;
     font-weight: 600;
-    margin-top: 12px;
-    text-align: center;
-    transition: color 0.2s ease;
+    margin-bottom: 15px;
 }
 
-.terms-link:hover {
-    color: #0f766e;
-    text-decoration: underline;
+.price-val {
+    color: #ff9e15;
+    font-weight: 800;
+    font-size: 16px;
 }
 
-/* Mobile & Tablet Breakpoints */
+/* Book button styling */
+.fleet-book-btn {
+    display: inline-block;
+    background-color: #111111;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    border-radius: 6px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Hover effects & Micro-animations */
+.fleet-slider-card:hover {
+    transform: translateY(-4px);
+}
+
+.fleet-slider-card:hover .fleet-img-wrapper img {
+    transform: scale(1.08);
+}
+
+.fleet-slider-card:hover .fleet-yellow-bar {
+    background-color: #ff9e15;
+    transform: scaleX(1.04);
+}
+
+.fleet-slider-card:hover h3 {
+    color: #ff9e15;
+}
+
+.fleet-slider-card:hover .fleet-book-btn {
+    background-color: #ff9e15;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 158, 21, 0.25);
+}
+
+/* Responsive breakpoint styling */
+@media (max-width: 1200px) {
+    .fleet-slider-card {
+        flex: 0 0 calc(33.333% - 17px); /* exactly 3 cards in viewport */
+    }
+    .fleet-img-wrapper {
+        height: 145px;
+    }
+}
+
 @media (max-width: 991px) {
-    .fleet-horizontal-card {
-        flex-direction: column;
-        align-items: stretch;
-        padding: 0;
+    .fleet-slider-card {
+        flex: 0 0 calc(50% - 13px); /* exactly 2 cards in viewport */
     }
-    
-    .fleet-card-left {
-        flex: 0 0 auto;
-        width: 100%;
-        height: 170px;
-        padding: 25px 20px 10px;
-        border-bottom: 1px solid #f1f5f9;
+    .fleet-header {
+        margin-bottom: 45px;
     }
-    
-    .fleet-card-middle {
-        padding: 25px 25px 15px 25px;
-    }
-    
-    .fleet-card-right {
-        flex: 0 0 auto;
-        width: 100%;
-        border-left: none;
-        border-top: 1px solid #e2e8f0;
-        padding: 25px;
-        align-items: center;
-        text-align: center;
-    }
+}
 
-    .price-area {
-        align-items: center;
-        flex-direction: row;
-        justify-content: center;
-        gap: 15px;
+@media (max-width: 768px) {
+    .fleet-section {
+        padding: 70px 0;
     }
-    
-    .btn-book-now {
-        width: 100%;
-        max-width: 320px;
+    .fleet-section::before,
+    .fleet-section::after {
+        width: 10px;
+        background: conic-gradient(#111 25%, #ffcc00 0 50%, #111 0 75%, #ffcc00 0) 0 0 / 10px 10px;
     }
 }
 
 @media (max-width: 576px) {
-    .fleet-section {
-        padding: 60px 0;
+    .fleet-header {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        text-align: center;
+        margin-bottom: 35px;
     }
-    .fleet-card-left {
-        height: 140px;
+    .fleet-slider-card {
+        flex: 0 0 100%; /* exactly 1 card in viewport */
     }
-    .fleet-class-badge {
-        font-size: 10px;
-    }
-    .fleet-card-middle h3 {
-        font-size: 19px;
-    }
-    .spec-pill {
-        padding: 5px 10px;
-        font-size: 12px;
-    }
-    .inclusion-tag {
-        font-size: 11px;
-    }
-    .current-price {
-        font-size: 26px;
+    .fleet-img-wrapper {
+        height: 160px;
     }
 }
