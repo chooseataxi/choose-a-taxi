@@ -107,7 +107,7 @@ body {
    ========================================================================== */
 .middle-bar {
     background-color: var(--white);
-    padding: 20px 0 50px 0;
+    padding: 20px 0 40px 0;
     border-bottom: 1px solid var(--border-color);
 }
 
@@ -202,7 +202,7 @@ a.info-card-value:hover {
 .nav-bar {
     background-color: transparent;
     position: absolute;
-    bottom: -30px;
+    bottom: -20px;
     left: 0;
     right: 0;
     z-index: 99;
@@ -323,7 +323,7 @@ a.info-card-value:hover {
 .nav-actions {
     display: flex;
     align-items: stretch;
-    margin-left: 15px;
+    margin-left: 0;
 }
 
 .book-btn {
@@ -694,10 +694,10 @@ a.info-card-value:hover {
     }
     
     .middle-bar {
-        padding: 15px 0 41px 0;
+        padding: 15px 0 31px 0;
     }
     .nav-bar {
-        bottom: -26px;
+        bottom: -16px;
     }
     
     .logo-link img {
@@ -734,7 +734,7 @@ a.info-card-value:hover {
     .book-btn {
         padding: 0 20px;
         font-size: 13px;
-        border-radius: 4px;
+        border-radius: 0 4px 4px 0;
     }
     
     .book-btn .btn-text {
