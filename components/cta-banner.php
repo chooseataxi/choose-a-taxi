@@ -1,7 +1,11 @@
-<!-- Redesigned CTA Banner Section -->
+<!-- Redesigned Full-Width CTA Banner Section -->
 <section class="cta-banner-section">
-    <div class="cta-banner-container">
-        <div class="cta-banner-content">
+    <!-- Top decorative orange strip with diagonal patterns -->
+    <div class="cta-top-orange-strip"></div>
+    
+    <!-- Main dark charcoal body with slanted clip-path -->
+    <div class="cta-banner-body">
+        <div class="cta-banner-container">
             <!-- Left Column: Content and call button -->
             <div class="cta-info-left">
                 <h2>Call us now <span class="highlight-orange">book your taxi</span> for your next ride!</h2>
@@ -21,9 +25,8 @@
                 </div>
             </div>
 
-            <!-- Right Column: overlapping man image with slanted shapes -->
+            <!-- Right Column: Overlapping man graphic -->
             <div class="cta-image-right">
-                <div class="yellow-slant-bg"></div>
                 <img src="assets/frontend-images/cta-men.png" alt="Book Taxi Call Now" class="cta-man-img">
             </div>
         </div>

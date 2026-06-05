@@ -1,10 +1,76 @@
 /* Redesigned CTA Banner Component CSS */
 .cta-banner-section {
-    padding: 60px 0;
-    background-color: #ffffff;
-    overflow: visible; /* Crucial to let the man overlap out of the container border */
     position: relative;
+    background-color: #ffffff;
+    overflow: visible;
+    width: 100%;
+    padding: 0;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Subtle map pattern in the top-left white section */
+.cta-banner-section::after {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 5%;
+    width: 250px;
+    height: 55px;
+    background-image: url('../map.svg');
+    background-repeat: no-repeat;
+    background-position: left center;
+    background-size: contain;
+    opacity: 0.07;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Top decorative orange strip with thin diagonal patterns */
+.cta-top-orange-strip {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 45%;
+    height: 80px;
+    background: repeating-linear-gradient(
+        -45deg,
+        #ff9e15,
+        #ff9e15 10px,
+        #ffa524 10px,
+        #ffa524 20px
+    );
+    z-index: 1;
+}
+
+/* Main body - dark charcoal panel with bottom-right diagonal cut */
+.cta-banner-body {
+    margin-top: 80px;
+    background-color: #141516; /* Deep charcoal background */
+    position: relative;
+    z-index: 2;
+    padding: 70px 0 85px 0;
+    width: 100%;
+    /* Slanted bottom right corner */
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 80px), calc(100% - 250px) 100%, 0 100%);
+    overflow: visible;
+}
+
+/* Subtle map pattern overlay inside the dark body */
+.cta-banner-body::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('../map.svg');
+    background-repeat: no-repeat;
+    background-position: left 8% center;
+    background-size: contain;
+    filter: brightness(0) invert(1); /* Turn silhouette to white */
+    opacity: 0.025; /* Very subtle glow */
+    pointer-events: none;
+    z-index: 1;
 }
 
 .cta-banner-container {
@@ -12,48 +78,43 @@
     max-width: 1200px;
     margin: 0 auto;
     position: relative;
-}
-
-.cta-banner-content {
-    position: relative;
     display: grid;
-    grid-template-columns: 1.3fr 1fr;
+    grid-template-columns: 1.25fr 1fr;
     align-items: center;
-    min-height: 380px;
-    padding: 60px 60px;
     overflow: visible;
-}
-
-/* Background panel with slanted corner */
-.cta-banner-content::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #151617; /* Dark slate background */
-    border-radius: 16px;
-    z-index: -1;
-    /* Slanted bottom right corner */
-    clip-path: polygon(0 0, 100% 0, 100% 78%, 83% 100%, 0 100%);
 }
 
 /* Left Content Info block */
 .cta-info-left {
     display: flex;
     flex-direction: column;
-    z-index: 2;
+    z-index: 5;
+    position: relative;
 }
 
 .cta-info-left h2 {
     color: #ffffff;
     font-size: 42px;
     font-weight: 850;
-    line-height: 1.2;
+    line-height: 1.25;
     margin-bottom: 20px;
     max-width: 600px;
     letter-spacing: -0.5px;
+    position: relative;
+}
+
+/* Glowing golden/orange circle behind the text */
+.cta-info-left h2::after {
+    content: '';
+    position: absolute;
+    top: 45%;
+    left: 45%;
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(circle, rgba(255, 158, 21, 0.22) 0%, rgba(255, 158, 21, 0) 70%);
+    pointer-events: none;
+    z-index: -1;
+    transform: translate(-50%, -50%);
 }
 
 .cta-info-left .highlight-orange {
@@ -71,6 +132,8 @@
 /* Hotline Call Button */
 .cta-phone-block {
     display: inline-block;
+    position: relative;
+    z-index: 6;
 }
 
 .cta-phone-link {
@@ -84,7 +147,7 @@
 .phone-icon-box {
     width: 54px;
     height: 54px;
-    background-color: rgba(255, 158, 21, 0.1);
+    background-color: rgba(255, 158, 21, 0.08);
     border: 2px solid #ff9e15;
     border-radius: 8px;
     display: flex;
@@ -128,65 +191,69 @@
     color: #ffffff;
 }
 
-/* Right Image Block with slant decorators */
+/* Right Column with absolute alignment to overflow top and bottom */
 .cta-image-right {
     position: absolute;
-    right: 40px;
-    bottom: 0;
+    right: 20px;
+    bottom: -85px; /* Alignment with bottom slant */
     width: 42%;
-    height: 112%; /* Extends above the container height */
+    height: calc(100% + 165px); /* Height calculated to cover top strip and bottom overflow */
     display: flex;
     align-items: flex-end;
     justify-content: center;
     overflow: visible;
-}
-
-.yellow-slant-bg {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 260px;
-    height: 60px;
-    background-color: #ff9e15;
-    transform: skewX(-20deg);
-    z-index: 1;
-    border-bottom-left-radius: 4px;
+    z-index: 10;
 }
 
 .cta-man-img {
     height: 100%;
     width: auto;
     object-fit: contain;
-    z-index: 5;
+    z-index: 12;
     display: block;
-    transform: translateY(15px); /* Position bottom overflow */
+    transform: translateY(20px); /* Bottom overflow offset */
 }
 
-/* Responsive Styles */
+/* Responsive Design Styles */
+@media (max-width: 1200px) {
+    .cta-image-right {
+        right: 0;
+        width: 44%;
+    }
+}
+
 @media (max-width: 1024px) {
     .cta-info-left h2 {
         font-size: 34px;
     }
-    .cta-image-right {
-        width: 45%;
-        right: 20px;
+    .cta-top-orange-strip {
+        width: 50%;
     }
 }
 
 @media (max-width: 991px) {
     .cta-banner-section {
-        padding: 50px 0;
-        overflow: hidden; /* Prevent horizontal scroll on smaller screens */
+        overflow: hidden;
     }
-    .cta-banner-content {
+    .cta-banner-section::after {
+        display: none;
+    }
+    .cta-top-orange-strip {
+        display: none; /* Hide top decorative stripe on mobile grid stack */
+    }
+    .cta-banner-body {
+        margin-top: 0;
+        padding: 50px 0;
+        clip-path: none; /* Remove clip-path for cleaner mobile flow */
+    }
+    .cta-banner-body::after {
+        background-position: center;
+        opacity: 0.015;
+    }
+    .cta-banner-container {
         grid-template-columns: 1fr;
-        padding: 50px 30px;
         text-align: center;
         gap: 40px;
-        min-height: auto;
-    }
-    .cta-banner-content::before {
-        clip-path: none; /* remove clipping mask for layout stack */
     }
     .cta-info-left {
         align-items: center;
@@ -194,6 +261,9 @@
     .cta-info-left h2 {
         font-size: 30px;
         max-width: 100%;
+    }
+    .cta-info-left h2::after {
+        display: none; /* Hide heading glow inside stacked viewport */
     }
     .cta-text {
         max-width: 90%;
@@ -210,14 +280,12 @@
         height: auto;
         max-width: 340px;
         margin: 0 auto;
+        z-index: 5;
     }
     .cta-man-img {
         width: 100%;
         height: auto;
         transform: none;
-    }
-    .yellow-slant-bg {
-        display: none; /* Hide top decorative strip on mobile */
     }
 }
 
@@ -228,7 +296,7 @@
     .phone-number {
         font-size: 22px;
     }
-    .cta-banner-content {
-        padding: 40px 20px;
+    .cta-banner-body {
+        padding: 40px 0;
     }
 }
