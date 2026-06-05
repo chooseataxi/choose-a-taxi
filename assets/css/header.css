@@ -105,7 +105,7 @@ body {
    ========================================================================== */
 .middle-bar {
     background-color: var(--white);
-    padding: 20px 0;
+    padding: 20px 0 50px 0;
     border-bottom: 1px solid var(--border-color);
 }
 
@@ -198,9 +198,12 @@ a.info-card-value:hover {
    3. Bottom Navigation Bar Styling
    ========================================================================== */
 .nav-bar {
-    background-color: var(--white);
-    position: relative;
-    z-index: 10;
+    background-color: transparent;
+    position: absolute;
+    bottom: -30px;
+    left: 0;
+    right: 0;
+    z-index: 99;
 }
 
 .nav-bar-inner {
@@ -689,7 +692,10 @@ a.info-card-value:hover {
     }
     
     .middle-bar {
-        padding: 15px 0;
+        padding: 15px 0 41px 0;
+    }
+    .nav-bar {
+        bottom: -26px;
     }
     
     .logo-link img {
