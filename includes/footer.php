@@ -100,6 +100,61 @@
 
         <!-- Sticky elements or background illustration overlays here -->
         <div class="footer-skyline-bg"></div>
+
+        <!-- Road & Moving Taxi Animation -->
+        <div class="footer-road">
+            <div class="road-surface">
+                <div class="road-lines"></div>
+                
+                <!-- Taxi 1 (Foreground/Fast Lane) -->
+                <div class="taxi-container taxi-1">
+                    <svg class="moving-taxi" viewBox="0 0 120 50" xmlns="http://www.w3.org/2000/svg">
+                        <ellipse cx="60" cy="42" rx="46" ry="4" fill="rgba(0,0,0,0.35)" />
+                        <!-- Car body -->
+                        <path d="M15 32 L15 24 Q15 17 25 17 L38 17 Q43 9 53 9 L80 9 Q87 9 92 17 L102 17 Q108 20 108 27 L108 34 Q108 37 103 37 L96 37 Q96 32 86 32 Q76 32 76 37 L40 37 Q40 32 30 32 Q20 32 20 37 L10 37 Q5 37 5 34 Z" fill="#ffb703" />
+                        <!-- Glass -->
+                        <path d="M36 18 L48 18 L48 24 L21 24 Q23 19 36 18 Z" fill="#111" />
+                        <path d="M52 11 L76 11 L76 24 L52 24 Z" fill="#111" />
+                        <path d="M80 18 L88 18 Q91 20 93 24 L80 24 Z" fill="#111" />
+                        <!-- Wheels -->
+                        <circle cx="30" cy="37" r="9" fill="#1e1e24" stroke="#ffb703" stroke-width="1.5" />
+                        <circle cx="30" cy="37" r="3" fill="#ffffff" />
+                        <circle cx="86" cy="37" r="9" fill="#1e1e24" stroke="#ffb703" stroke-width="1.5" />
+                        <circle cx="86" cy="37" r="3" fill="#ffffff" />
+                        <!-- Taxi sign -->
+                        <path d="M55 9 L57 4 L71 4 L73 9 Z" fill="#111" />
+                        <rect x="59" y="5.5" width="10" height="3" fill="#ffb703" rx="0.5" />
+                        <text x="64" y="8" font-size="3" font-family="'Arial Black', sans-serif" font-weight="900" fill="#111" text-anchor="middle">TAXI</text>
+                        <!-- Checker pattern -->
+                        <path d="M17 28 L93 28" stroke="#111" stroke-width="2.5" stroke-dasharray="2.5,2.5" />
+                    </svg>
+                </div>
+
+                <!-- Taxi 2 (Background/Slow Lane) -->
+                <div class="taxi-container taxi-2">
+                    <svg class="moving-taxi" viewBox="0 0 120 50" xmlns="http://www.w3.org/2000/svg">
+                        <ellipse cx="60" cy="42" rx="46" ry="4" fill="rgba(0,0,0,0.35)" />
+                        <!-- Car body -->
+                        <path d="M15 32 L15 24 Q15 17 25 17 L38 17 Q43 9 53 9 L80 9 Q87 9 92 17 L102 17 Q108 20 108 27 L108 34 Q108 37 103 37 L96 37 Q96 32 86 32 Q76 32 76 37 L40 37 Q40 32 30 32 Q20 32 20 37 L10 37 Q5 37 5 34 Z" fill="#ffc300" />
+                        <!-- Glass -->
+                        <path d="M36 18 L48 18 L48 24 L21 24 Q23 19 36 18 Z" fill="#111" />
+                        <path d="M52 11 L76 11 L76 24 L52 24 Z" fill="#111" />
+                        <path d="M80 18 L88 18 Q91 20 93 24 L80 24 Z" fill="#111" />
+                        <!-- Wheels -->
+                        <circle cx="30" cy="37" r="9" fill="#1e1e24" stroke="#ffc300" stroke-width="1.5" />
+                        <circle cx="30" cy="37" r="3" fill="#ffffff" />
+                        <circle cx="86" cy="37" r="9" fill="#1e1e24" stroke="#ffc300" stroke-width="1.5" />
+                        <circle cx="86" cy="37" r="3" fill="#ffffff" />
+                        <!-- Taxi sign -->
+                        <path d="M55 9 L57 4 L71 4 L73 9 Z" fill="#111" />
+                        <rect x="59" y="5.5" width="10" height="3" fill="#ffc300" rx="0.5" />
+                        <text x="64" y="8" font-size="3" font-family="'Arial Black', sans-serif" font-weight="900" fill="#111" text-anchor="middle">TAXI</text>
+                        <!-- Checker pattern -->
+                        <path d="M17 28 L93 28" stroke="#111" stroke-width="2.5" stroke-dasharray="2.5,2.5" />
+                    </svg>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- 3. Copyright Strip -->

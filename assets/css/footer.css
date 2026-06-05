@@ -338,6 +338,103 @@ a.info-value.email-link:hover {
     pointer-events: none;
 }
 
+/* Road & Moving Taxi Animation */
+.footer-road {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 52px;
+    background-color: #171819; /* Dark asphalt */
+    border-top: 3px solid #ff9e15; /* Yellow road shoulder line */
+    z-index: 2;
+    overflow: hidden;
+}
+
+.road-surface {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+/* Road dash lines in middle */
+.road-lines {
+    position: absolute;
+    left: 0;
+    width: 200%;
+    height: 2px;
+    background: repeating-linear-gradient(90deg, 
+        transparent, 
+        transparent 25px, 
+        rgba(255, 255, 255, 0.25) 25px, 
+        rgba(255, 255, 255, 0.25) 50px
+    );
+    top: 50%;
+    transform: translateY(-50%);
+    animation: moveRoad 3s linear infinite;
+}
+
+/* Taxis moving left to right */
+.taxi-container {
+    position: absolute;
+    width: 72px;
+    height: 30px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+}
+
+.moving-taxi {
+    width: 100%;
+    height: 100%;
+}
+
+/* Taxi 1 (Foreground/Fast Lane) */
+.taxi-1 {
+    bottom: 2px;
+    animation: driveTaxi1 16s linear infinite;
+}
+
+/* Taxi 2 (Background/Slow Lane) - smaller to create depth */
+.taxi-2 {
+    top: 2px;
+    width: 56px;
+    height: 24px;
+    opacity: 0.85;
+    animation: driveTaxi2 24s linear infinite;
+}
+
+/* Keyframes */
+@keyframes driveTaxi1 {
+    0% {
+        left: -80px;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+@keyframes driveTaxi2 {
+    0% {
+        left: -120px;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+@keyframes moveRoad {
+    0% {
+        transform: translate3d(0, -50%, 0);
+    }
+    100% {
+        transform: translate3d(-50px, -50%, 0); /* shift left by one repeating unit size */
+    }
+}
+
 /* ==========================================================================
    3. Footer Copyright Strip Styling
    ========================================================================== */
