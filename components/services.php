@@ -16,7 +16,7 @@
             <!-- 1. One Way Trip -->
             <div class="service-card">
                 <div class="service-img-wrapper">
-                    <img src="https://chooseataxi.in/storage/311/conversions/1704467643-x400.webp" alt="One Way Trip">
+                    <img src="assets/car_types/car_type_1776258519.png" alt="One Way Trip">
                 </div>
                 <div class="service-yellow-bar"></div>
                 <h3>One Way Trip</h3>
@@ -25,7 +25,7 @@
             <!-- 2. Round Trip -->
             <div class="service-card">
                 <div class="service-img-wrapper">
-                    <img src="https://chooseataxi.in/storage/311/conversions/1704467643-x400.webp" alt="Round Trip">
+                    <img src="assets/car_types/car_type_1776258519.png" alt="Round Trip">
                 </div>
                 <div class="service-yellow-bar"></div>
                 <h3>Round Trip</h3>
@@ -34,7 +34,7 @@
             <!-- 3. Hourly Rental -->
             <div class="service-card">
                 <div class="service-img-wrapper">
-                    <img src="https://chooseataxi.in/storage/311/conversions/1704467643-x400.webp" alt="Hourly Rental">
+                    <img src="assets/car_types/car_type_1776258519.png" alt="Hourly Rental">
                 </div>
                 <div class="service-yellow-bar"></div>
                 <h3>Hourly Rental</h3>
@@ -43,7 +43,7 @@
             <!-- 4. Local Trip -->
             <div class="service-card">
                 <div class="service-img-wrapper">
-                    <img src="https://chooseataxi.in/storage/311/conversions/1704467643-x400.webp" alt="Local Trip">
+                    <img src="assets/car_types/car_type_1776258519.png" alt="Local Trip">
                 </div>
                 <div class="service-yellow-bar"></div>
                 <h3>Local Trip</h3>
@@ -52,7 +52,7 @@
             <!-- 5. Airport Transfer -->
             <div class="service-card">
                 <div class="service-img-wrapper">
-                    <img src="https://chooseataxi.in/storage/311/conversions/1704467643-x400.webp" alt="Airport Transfer">
+                    <img src="assets/car_types/car_type_1776258519.png" alt="Airport Transfer">
                 </div>
                 <div class="service-yellow-bar"></div>
                 <h3>Airport Transfer</h3>
@@ -61,7 +61,7 @@
             <!-- 6. Outstation Cab (slider-car) -->
             <div class="service-card">
                 <div class="service-img-wrapper">
-                    <img src="assets/frontend-images/slider-car.png" alt="Outstation Cab">
+                    <img src="assets/car_types/car_type_1776258519.png" alt="Outstation Cab">
                 </div>
                 <div class="service-yellow-bar"></div>
                 <h3>Outstation Cab</h3>
