@@ -4,7 +4,7 @@
  * Displays cab pricing in a professional table format.
  */
 ?>
-<section class="price-list-section">
+<section class="price-list-section" id="price-list">
     <div class="price-list-container">
         <h2>Price List (Per Kilometer):</h2>
 

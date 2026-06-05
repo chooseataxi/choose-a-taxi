@@ -4,7 +4,7 @@
  * Displays the different types of trip services available.
  */
 ?>
-<section class="services-section">
+<section class="services-section" id="services">
     <div class="services-container">
         <div class="services-header">
             <h2>Our <span>Services</span></h2>

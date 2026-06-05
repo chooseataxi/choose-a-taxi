@@ -3,7 +3,7 @@
  * Professional Horizontal Fleet Component
  */
 ?>
-<section class="fleet-section">
+<section class="fleet-section" id="fleet">
     <div class="fleet-container">
         <div class="fleet-header">
             <h2>Our <span>Premium Fleet</span></h2>
