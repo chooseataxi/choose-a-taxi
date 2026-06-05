@@ -322,21 +322,7 @@ a.info-value.email-link:hover {
     line-height: 1.4;
 }
 
-/* City Skyline Background Illustration overlay */
-.footer-skyline-bg {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 150px;
-    background-image: url('../frontend-images/footer-skyline.png');
-    background-position: bottom center;
-    background-repeat: repeat-x;
-    background-size: cover;
-    z-index: 1;
-    opacity: 0.22;
-    pointer-events: none;
-}
+
 
 /* Road & Moving Taxi Animation */
 .footer-road {

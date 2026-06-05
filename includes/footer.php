@@ -98,8 +98,7 @@
             </div>
         </div>
 
-        <!-- Sticky elements or background illustration overlays here -->
-        <div class="footer-skyline-bg"></div>
+
 
         <!-- Road & Moving Taxi Animation -->
         <div class="footer-road">
