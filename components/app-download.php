@@ -1,56 +1,60 @@
-<!-- App Download / Trusted Partners Section - COMPACT & CLEAN -->
+<!-- App Download Component - Redesigned to Match Premium Mockup -->
 <section class="app-download-section">
     <div class="app-download-container">
-        <!-- Left Column: Text and Actions -->
+        <!-- Left Column: Content, Features, and Buttons -->
         <div class="app-content-left">
-            <span class="trust-badge">TRUSTED BY 20,000+ PARTNERS</span>
-            <h2>Get Started With <span>Choose A Taxi</span></h2>
+            <span class="trust-badge"><span class="slash-decor">///</span> ONLINE BOOKING</span>
+            <h2>Get the Choose A Taxi Mobile app and start your journey!</h2>
             <p class="app-description">
-                The partner app lets you view bookings, track earnings, and get trip updates in real-time. 
-                Join the fastest growing taxi network in India today.
+                We successfully deliver reliable intercity and local cab booking services across India, providing a professional, safe, and comfortable travel experience with guaranteed best rates.
             </p>
 
-            <div class="download-actions">
-                <div class="store-buttons">
-                    <a href="#" class="store-btn">
-                        <i class="fab fa-google-play"></i>
-                        <div class="btn-text">
-                            <span>GET IT ON</span>
-                            <strong>Google Play</strong>
-                        </div>
-                    </a>
-                    <a href="#" class="store-btn" style="margin-top: 5px;">
-                        <i class="fab fa-apple"></i>
-                        <div class="btn-text">
-                            <span>Download on the</span>
-                            <strong>App Store</strong>
-                        </div>
-                    </a>
-                </div>
-                
-                <div class="qr-wrapper">
-                    <div class="qr-code">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://chooseataxi.com" alt="QR Code">
+            <!-- Features Grid -->
+            <div class="app-features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-map-marked-alt"></i>
                     </div>
-                    <div class="qr-text">
-                        Scan to <br>Download App
-                    </div>
+                    <span class="feature-title">Easy to search<br>Choose A Taxi!</span>
                 </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="far fa-clock"></i>
+                    </div>
+                    <span class="feature-title">Quick Pickups<br>To Save Time!</span>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="far fa-file-alt"></i>
+                    </div>
+                    <span class="feature-title">Inclusive Rates<br>To Enjoy Ride!</span>
+                </div>
+            </div>
+
+            <!-- Download Buttons (Side-by-side) -->
+            <div class="download-stores-wrapper">
+                <a href="#" class="store-btn-redesigned google-play">
+                    <i class="fab fa-google-play"></i>
+                    <div class="btn-text">
+                        <span>GET IT ON</span>
+                        <strong>Google Play</strong>
+                    </div>
+                </a>
+                <a href="#" class="store-btn-redesigned app-store">
+                    <i class="fab fa-apple"></i>
+                    <div class="btn-text">
+                        <span>Download on the</span>
+                        <strong>App Store</strong>
+                    </div>
+                </a>
             </div>
         </div>
 
-        <!-- Right Column: India Map (Moved Higher & Smaller) -->
+        <!-- Right Column: Interactive Lottie Animation -->
         <div class="app-content-right">
-            <div class="india-map-wrapper">
-                <img src="assets/map.svg" alt="India Map" class="india-map-svg">
-                
-                <!-- Compact Pins -->
-                <div class="map-pin" style="top: 22%; left: 38%;"><img src="assets/taxi_light.png" class="pin-marker" alt="P"></div>
-                <div class="map-pin" style="top: 35%; left: 28%;"><img src="assets/taxi_light.png" class="pin-marker" alt="P"></div>
-                <div class="map-pin" style="top: 58%; left: 18%;"><img src="assets/taxi_light.png" class="pin-marker" alt="P"></div>
-                <div class="map-pin" style="top: 78%; left: 35%;"><img src="assets/taxi_light.png" class="pin-marker" alt="P"></div>
-                <div class="map-pin" style="top: 52%; left: 75%;"><img src="assets/taxi_light.png" class="pin-marker" alt="P"></div>
-                <div class="map-pin" style="top: 82%; left: 45%;"><img src="assets/taxi_light.png" class="pin-marker" alt="P"></div>
+            <div class="lottie-animation-wrapper">
+                <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+                <lottie-player src="assets/lottie/taxi app.json" background="transparent" speed="1" style="width: 100%; height: auto; max-height: 480px;" loop autoplay></lottie-player>
             </div>
         </div>
     </div>
