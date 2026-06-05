@@ -1,0 +1,234 @@
+/* Redesigned CTA Banner Component CSS */
+.cta-banner-section {
+    padding: 60px 0;
+    background-color: #ffffff;
+    overflow: visible; /* Crucial to let the man overlap out of the container border */
+    position: relative;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.cta-banner-container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.cta-banner-content {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    align-items: center;
+    min-height: 380px;
+    padding: 60px 60px;
+    overflow: visible;
+}
+
+/* Background panel with slanted corner */
+.cta-banner-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #151617; /* Dark slate background */
+    border-radius: 16px;
+    z-index: -1;
+    /* Slanted bottom right corner */
+    clip-path: polygon(0 0, 100% 0, 100% 78%, 83% 100%, 0 100%);
+}
+
+/* Left Content Info block */
+.cta-info-left {
+    display: flex;
+    flex-direction: column;
+    z-index: 2;
+}
+
+.cta-info-left h2 {
+    color: #ffffff;
+    font-size: 42px;
+    font-weight: 850;
+    line-height: 1.2;
+    margin-bottom: 20px;
+    max-width: 600px;
+    letter-spacing: -0.5px;
+}
+
+.cta-info-left .highlight-orange {
+    color: #ff9e15; /* Brand orange */
+}
+
+.cta-text {
+    color: #9ca3af;
+    font-size: 15.5px;
+    line-height: 1.65;
+    margin-bottom: 35px;
+    max-width: 520px;
+}
+
+/* Hotline Call Button */
+.cta-phone-block {
+    display: inline-block;
+}
+
+.cta-phone-link {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    text-decoration: none;
+    width: fit-content;
+}
+
+.phone-icon-box {
+    width: 54px;
+    height: 54px;
+    background-color: rgba(255, 158, 21, 0.1);
+    border: 2px solid #ff9e15;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ff9e15;
+    font-size: 20px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.phone-text-box {
+    display: flex;
+    flex-direction: column;
+}
+
+.phone-label {
+    font-size: 11px;
+    color: #9ca3af;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+}
+
+.phone-number {
+    font-size: 26px;
+    font-weight: 800;
+    color: #ff9e15;
+    transition: color 0.3s ease;
+    line-height: 1.1;
+}
+
+/* Hover States */
+.cta-phone-link:hover .phone-icon-box {
+    background-color: #ff9e15;
+    color: #ffffff;
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(255, 158, 21, 0.3);
+}
+
+.cta-phone-link:hover .phone-number {
+    color: #ffffff;
+}
+
+/* Right Image Block with slant decorators */
+.cta-image-right {
+    position: absolute;
+    right: 40px;
+    bottom: 0;
+    width: 42%;
+    height: 112%; /* Extends above the container height */
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    overflow: visible;
+}
+
+.yellow-slant-bg {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 260px;
+    height: 60px;
+    background-color: #ff9e15;
+    transform: skewX(-20deg);
+    z-index: 1;
+    border-bottom-left-radius: 4px;
+}
+
+.cta-man-img {
+    height: 100%;
+    width: auto;
+    object-fit: contain;
+    z-index: 5;
+    display: block;
+    transform: translateY(15px); /* Position bottom overflow */
+}
+
+/* Responsive Styles */
+@media (max-width: 1024px) {
+    .cta-info-left h2 {
+        font-size: 34px;
+    }
+    .cta-image-right {
+        width: 45%;
+        right: 20px;
+    }
+}
+
+@media (max-width: 991px) {
+    .cta-banner-section {
+        padding: 50px 0;
+        overflow: hidden; /* Prevent horizontal scroll on smaller screens */
+    }
+    .cta-banner-content {
+        grid-template-columns: 1fr;
+        padding: 50px 30px;
+        text-align: center;
+        gap: 40px;
+        min-height: auto;
+    }
+    .cta-banner-content::before {
+        clip-path: none; /* remove clipping mask for layout stack */
+    }
+    .cta-info-left {
+        align-items: center;
+    }
+    .cta-info-left h2 {
+        font-size: 30px;
+        max-width: 100%;
+    }
+    .cta-text {
+        max-width: 90%;
+        margin-bottom: 30px;
+    }
+    .cta-phone-link {
+        margin: 0 auto;
+    }
+    .cta-image-right {
+        position: relative;
+        right: auto;
+        bottom: auto;
+        width: 100%;
+        height: auto;
+        max-width: 340px;
+        margin: 0 auto;
+    }
+    .cta-man-img {
+        width: 100%;
+        height: auto;
+        transform: none;
+    }
+    .yellow-slant-bg {
+        display: none; /* Hide top decorative strip on mobile */
+    }
+}
+
+@media (max-width: 576px) {
+    .cta-info-left h2 {
+        font-size: 26px;
+    }
+    .phone-number {
+        font-size: 22px;
+    }
+    .cta-banner-content {
+        padding: 40px 20px;
+    }
+}

@@ -12,6 +12,8 @@
 <link rel="stylesheet" href="assets/css/why-choose-us.css">
 <!-- Custom App Download CSS -->
 <link rel="stylesheet" href="assets/css/app-download.css">
+<!-- Custom CTA Banner CSS -->
+<link rel="stylesheet" href="assets/css/cta-banner.css">
 <!-- Custom Services CSS -->
 <link rel="stylesheet" href="assets/css/services.css">
 <!-- Custom Fleet CSS -->
@@ -26,6 +28,7 @@
 <?php include 'components/stats.php'; ?>
 <?php include 'components/testimonials.php'; ?>
 <?php include 'components/why-choose-us.php'; ?>
+<?php include 'components/cta-banner.php'; ?>
 <?php include 'components/app-download.php'; ?>
 
 <?php include 'includes/footer.php'; ?>
