@@ -388,8 +388,8 @@ if ($action === 'get_bookings') {
     requireApprovedPartner($pdo, $partner_id);
     try {
         $now = $pdo->query("SELECT NOW()")->fetchColumn();
-        // Log for debugging
-        error_log("Booking Expiry Check - Partner ID: $partner_id, DB Now: $now");
+        // Log for debugging removed to avoid flooding VPS logs
+        // error_log("Booking Expiry Check - Partner ID: $partner_id, DB Now: $now");
 
         // 1. Auto-expire open bookings that are past their start time (with 15-minute grace period to avoid clock drift issues)
         $pdo->exec("UPDATE partner_bookings 
@@ -509,7 +509,7 @@ if ($action === 'get_market_bookings') {
             if (isset($b['commission']))
                 $b['commission'] = (float) $b['commission'];
         }
-$now = date('Y-m-d H:i:s');
+        $now = date('Y-m-d H:i:s');
         echo json_encode(["status" => "success", "bookings" => $bookings, "server_time" => $now]);
     } catch (PDOException $e) {
         echo json_encode(["status" => "error", "message" => "DB Error: " . $e->getMessage()]);

@@ -208,9 +208,14 @@ class NotificationHelper
 
         $logFile = realpath(__DIR__ . '/../../') . '/tmp/notif_v2.log';
         $logDir = dirname($logFile);
-        if (!is_dir($logDir))
+        if (!is_dir($logDir)) {
             @mkdir($logDir, 0777, true);
-        file_put_contents($logFile, "[" . date('Y-m-d H:i:s') . "] HTTP $httpCode: $response\n", FILE_APPEND);
+        }
+        if (is_writable($logDir) && (!file_exists($logFile) || is_writable($logFile))) {
+            @file_put_contents($logFile, "[" . date('Y-m-d H:i:s') . "] HTTP $httpCode: $response\n", FILE_APPEND);
+        } else {
+            error_log("Notification log file not writable: $logFile. HTTP $httpCode: $response");
+        }
 
         return $response;
     }

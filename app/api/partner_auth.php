@@ -78,8 +78,14 @@ function sendSms($mobile, $message, $templateId = '') {
     // Logging
     $log_file = realpath(__DIR__ . '/../../') . '/tmp/sms_log.txt';
     $log_dir = dirname($log_file);
-    if (!is_dir($log_dir)) mkdir($log_dir, 0777, true);
-    file_put_contents($log_file, "[" . date('Y-m-d H:i:s') . "] API URL: $apiUrl\nHTTP: $http_code\nResp: $response\nErr: $err\n-----\n", FILE_APPEND);
+    if (!is_dir($log_dir)) {
+        @mkdir($log_dir, 0777, true);
+    }
+    if (is_writable($log_dir) && (!file_exists($log_file) || is_writable($log_file))) {
+        @file_put_contents($log_file, "[" . date('Y-m-d H:i:s') . "] API URL: $apiUrl\nHTTP: $http_code\nResp: $response\nErr: $err\n-----\n", FILE_APPEND);
+    } else {
+        error_log("SMS log file not writable: $log_file. SMS details: mobiles=$mobile, http=$http_code");
+    }
 
     if ($err || $http_code !== 200) {
         return ['success' => false, 'error' => "SMS Gateway Error: " . ($err ?: "HTTP $http_code")];
@@ -273,6 +279,18 @@ try {
             throw new Exception("Invalid API action.");
     }
 } catch (Exception $e) {
-    error_log("Auth API Error: " . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    $msg = $e->getMessage();
+    // Only log actual system/db errors. Do not spam common client validations.
+    $skipLog = (
+        strpos($msg, 'not found') !== false ||
+        strpos($msg, 'Invalid OTP') !== false ||
+        strpos($msg, 'required') !== false ||
+        strpos($msg, 'Invalid mobile number') !== false ||
+        strpos($msg, 'Invalid API action') !== false ||
+        strpos($msg, 'upload failed') !== false
+    );
+    if (!$skipLog || $e instanceof PDOException) {
+        error_log("Auth API Error: " . $msg);
+    }
+    echo json_encode(['success' => false, 'message' => $msg]);
 }
