@@ -7,7 +7,7 @@
                 <p class="subtitle">booking services</p>
             </div>
             <div class="hero-image-wrapper">
-                <img src="assets/frontend-images/hero-new-bg.jpeg" alt="Hero Car" class="hero-car-img">
+                <img src="assets/frontend-images/slider-car.png" alt="Hero Car" class="hero-car-img">
             </div>
         </div>
 

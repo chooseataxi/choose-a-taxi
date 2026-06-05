@@ -68,10 +68,10 @@
 .card-header {
     background: #000;
     color: #fff;
-    padding: 10px;
+    padding: 7px;
     text-align: center;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .booking-tabs {
@@ -82,7 +82,7 @@
 
 .tab-btn {
     flex: 1;
-    padding: 15px;
+    padding: 10px;
     border: 1px solid #eee;
     background: none;
     font-weight: 600;
@@ -98,13 +98,13 @@
 }
 
 .form-body {
-    padding: 20px;
+    padding: 14px;
 }
 
 .trip-type {
     display: flex;
     gap: 15px;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
 }
 
 .trip-option {
@@ -113,13 +113,13 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
-    padding: 12px;
+    padding: 8px;
     border: 1px solid #d97706;
     /* Amber border */
     border-radius: 30px;
     cursor: pointer;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 13px;
     transition: all 0.3s;
 }
 
@@ -133,15 +133,15 @@
 }
 
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
 .form-group label {
     display: block;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
     color: var(--text-muted);
-    margin-bottom: 5px;
+    margin-bottom: 3px;
     text-transform: uppercase;
 }
 
@@ -149,7 +149,7 @@
     position: relative;
     border: 1px solid #e5e7eb;
     border-radius: 5px;
-    padding: 10px;
+    padding: 7px 10px;
     display: flex;
     align-items: center;
 }
@@ -164,15 +164,15 @@
 
 .add-stop-btn {
     color: #1a365d;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     border: 1.5px solid #1a365d;
-    padding: 5px 12px;
+    padding: 4px 10px;
     border-radius: 5px;
     background: none;
     float: right;
-    margin-top: 8px;
-    margin-bottom: 10px;
+    margin-top: 4px;
+    margin-bottom: 6px;
     cursor: pointer;
 }
 
@@ -189,10 +189,10 @@
     width: 100%;
     background: var(--primary-green);
     color: #fff;
-    padding: 15px;
+    padding: 11px;
     border: none;
     border-radius: 5px;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
     text-transform: uppercase;
     cursor: pointer;
