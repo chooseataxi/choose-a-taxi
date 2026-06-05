@@ -3,6 +3,8 @@
 :root {
     --primary-orange: #ff9e15;
     --primary-orange-hover: #e08408;
+    --primary-green: #00a63f;
+    --primary-green-hover: #008f36;
     --dark-slate: #1e2022;
     --dark-slate-hover: #111213;
     --light-gray: #f5f7fa;
@@ -47,11 +49,11 @@ body {
    1. Top Bar Styling
    ========================================================================== */
 .top-bar {
-    background-color: var(--light-gray);
-    border-bottom: 1px solid var(--border-color);
+    background-color: var(--dark-slate);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     font-size: 13px;
     font-weight: 500;
-    color: var(--text-muted);
+    color: rgba(255, 255, 255, 0.8);
 }
 
 .top-bar-inner {
@@ -78,7 +80,7 @@ body {
 }
 
 .top-link {
-    color: var(--text-muted);
+    color: rgba(255, 255, 255, 0.8);
     text-decoration: none;
     padding: 0 15px;
     position: relative;
@@ -97,7 +99,7 @@ body {
     transform: translateY(-50%);
     width: 1px;
     height: 12px;
-    background-color: var(--border-color);
+    background-color: rgba(255, 255, 255, 0.15);
 }
 
 /* ==========================================================================

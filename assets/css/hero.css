@@ -92,9 +92,9 @@
 }
 
 .tab-btn.active {
-    background: var(--primary-green);
+    background: var(--primary-orange);
     color: #fff;
-    border-color: var(--primary-green);
+    border-color: var(--primary-orange);
 }
 
 .form-body {
@@ -187,7 +187,7 @@
 
 .search-btn {
     width: 100%;
-    background: var(--primary-green);
+    background: var(--primary-orange);
     color: #fff;
     padding: 11px;
     border: none;
@@ -200,7 +200,7 @@
 }
 
 .search-btn:hover {
-    background: #008f36;
+    background: var(--primary-orange-hover);
 }
 
 /* Mobile Responsiveness */
