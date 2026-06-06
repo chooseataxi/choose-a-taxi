@@ -45,16 +45,14 @@
     z-index: 1;
 }
 
-/* Main body - dark charcoal panel with bottom-right diagonal cut */
+/* Main body - dark charcoal panel */
 .cta-banner-body {
     margin-top: 80px;
     background-color: #141516; /* Deep charcoal background */
     position: relative;
     z-index: 2;
-    padding: 70px 0 85px 0;
+    padding: 70px 0;
     width: 100%;
-    /* Slanted bottom right corner */
-    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 80px), calc(100% - 250px) 100%, 0 100%);
     overflow: visible;
 }
 
@@ -200,9 +198,9 @@
 .cta-image-right {
     position: absolute;
     right: 20px;
-    bottom: -85px; /* Alignment with bottom slant */
+    bottom: 0;
     width: 42%;
-    height: calc(100% + 165px); /* Height calculated to cover top strip and bottom overflow */
+    height: calc(100% + 80px); /* Height calculated to cover top strip */
     display: flex;
     align-items: flex-end;
     justify-content: center;
@@ -216,7 +214,7 @@
     object-fit: contain;
     z-index: 12;
     display: block;
-    transform: translateY(20px); /* Bottom overflow offset */
+    transform: none;
 }
 
 /* Responsive Design Styles */
