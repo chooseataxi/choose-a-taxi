@@ -707,65 +707,83 @@ $cars = array_values($unique_cars);
                     <img src="<?= $display_image ?>" alt="<?= $display_name ?>">
                 </div>
                 <div class="fleet-card-middle">
-                    <h3 style="font-weight: 800; color: #333; margin-bottom: 15px;"><?= $display_name ?></h3>
+                    <h3>
+                        <?= $display_name ?>
+                        <span class="badge-car-type"><i class="fas fa-taxi me-1"></i> Cab</span>
+                    </h3>
                     <div class="details-grid">
                         <div class="detail-row">
-                            <label>Total Trip Distance:</label>
+                            <label>Trip Distance</label>
                             <div>
-                                <span style="color: #007bff; font-weight: 800;"><?= $display_distance_km ?> KMs</span>
+                                <span style="color: #ff9e15; font-weight: 800; font-size: 15px;"><i class="fas fa-road me-1"></i> <?= $display_distance_km ?> KMs</span>
                                 <?php if (!empty($display_distance_note)): ?>
-                                    <br><span style="font-size: 11px; color: #666;"><?= htmlspecialchars($display_distance_note) ?></span>
+                                    <br><span style="font-size: 11px; color: #64748b;"><?= htmlspecialchars($display_distance_note) ?></span>
                                 <?php endif; ?>
                             </div>
                         </div>
                         <div class="detail-row">
-                            <label>Extra price / KM:</label>
-                            <span style="color: #d33; font-weight: 800;"><?= $display_extra ?></span>
+                            <label>Extra KM Fare</label>
+                            <span style="color: #ef4444; font-weight: 800; font-size: 15px;"><i class="fas fa-tags me-1"></i> <?= $display_extra ?></span>
                         </div>
                         <div class="detail-row">
-                            <label>Toll:</label>
-                            <span style="color: #28a745; font-weight: 800;"><?= $car['include_toll'] ?></span>
+                            <label>Capacity</label>
+                            <span style="color: #0f172a; font-weight: 800; font-size: 15px;"><i class="fas fa-user-friends me-1"></i> <?= $car['max_seats'] ?> Seats</span>
                         </div>
                         <div class="detail-row">
-                            <label>Tax:</label>
-                            <span style="color: #28a745; font-weight: 800;"><?= $car['include_tax'] ?></span>
+                            <label>Toll Charges</label>
+                            <?= (stripos($car['include_toll'], 'include') !== false) 
+                                ? '<span class="inclusion-badge inclusion-badge-included"><i class="fas fa-check-circle"></i> Included</span>' 
+                                : '<span class="inclusion-badge inclusion-badge-excluded"><i class="fas fa-times-circle"></i> Excluded</span>' ?>
                         </div>
                         <div class="detail-row">
-                            <label>Driver allowance:</label>
-                            <span style="color: #28a745; font-weight: 800;"><?= $car['include_driver_allowance'] ?></span>
+                            <label>State Tax</label>
+                            <?= (stripos($car['include_tax'], 'include') !== false) 
+                                ? '<span class="inclusion-badge inclusion-badge-included"><i class="fas fa-check-circle"></i> Included</span>' 
+                                : '<span class="inclusion-badge inclusion-badge-excluded"><i class="fas fa-times-circle"></i> Excluded</span>' ?>
                         </div>
                         <div class="detail-row">
-                            <label>Night charges:</label>
-                            <span style="color: #28a745; font-weight: 800;"><?= $car['include_night_charges'] ?></span>
+                            <label>Driver Allowance</label>
+                            <?= (stripos($car['include_driver_allowance'], 'include') !== false) 
+                                ? '<span class="inclusion-badge inclusion-badge-included"><i class="fas fa-check-circle"></i> Included</span>' 
+                                : '<span class="inclusion-badge inclusion-badge-excluded"><i class="fas fa-times-circle"></i> Excluded</span>' ?>
                         </div>
                         <div class="detail-row">
-                            <label>Parking:</label>
-                            <span style="color: #d9534f; font-weight: 800;"><?= $car['include_parking'] ?></span>
+                            <label>Night Charges</label>
+                            <?= (stripos($car['include_night_charges'], 'include') !== false) 
+                                ? '<span class="inclusion-badge inclusion-badge-included"><i class="fas fa-check-circle"></i> Included</span>' 
+                                : '<span class="inclusion-badge inclusion-badge-excluded"><i class="fas fa-times-circle"></i> Excluded</span>' ?>
                         </div>
                         <div class="detail-row">
-                            <label>Seats:</label>
-                            <span style="color: #28a745; font-weight: 800;"><?= $car['max_seats'] ?></span>
+                            <label>Parking Fees</label>
+                            <?= (stripos($car['include_parking'], 'include') !== false) 
+                                ? '<span class="inclusion-badge inclusion-badge-included"><i class="fas fa-check-circle"></i> Included</span>' 
+                                : '<span class="inclusion-badge inclusion-badge-excluded"><i class="fas fa-times-circle"></i> Excluded</span>' ?>
                         </div>
                     </div>
-                    <div class="cancellation-note" style="color: #28a745; font-weight: 600; font-size: 14px; margin-top: 10px;">
-                        <i class="fas fa-bolt"></i> Free cancellation until 6 hour before pickup
+                    <div class="cancellation-note">
+                        <i class="fas fa-shield-alt"></i> Free cancellation until 6 hours before pickup
                     </div>
                 </div>
                 <div class="fleet-card-right">
-                    <div class="price-area" style="text-align: right; margin-bottom: 20px;">
-                        <div class="old-price" style="text-decoration: line-through; color: #28a745; font-size: 18px; display: inline-block; margin-right: 10px;">Rs. <?= $old_price ?></div>
-                        <div class="current-price" style="color: #28a745; font-size: 32px; font-weight: 900; display: inline-block; vertical-align: middle;">Rs. <?= $final_price ?></div>
-                        <div class="discount-badge" style="background: #006b52; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 14px; font-weight: 700; display: inline-block; margin-left: 10px;"><?= $random_off ?>% Off</div>
+                    <div class="price-area">
+                        <div class="price-area-top">
+                            <span class="old-price">Rs. <?= $old_price ?></span>
+                            <span class="discount-badge"><?= $random_off ?>% Off</span>
+                        </div>
+                        <div class="current-price">Rs. <?= $final_price ?></div>
+                        <div class="price-subtext">Estimated total fare</div>
                     </div>
-                    <a href="login.php?booking_request=1&car_id=<?= $car['id'] ?>&dist=<?= $total_distance_km ?>" class="btn-book-now" style="background: #e3342f; color: #fff; padding: 12px; border-radius: 4px; text-decoration: none; display: block; text-align: center; font-weight: 700; font-size: 18px; margin-bottom: 15px;">Book Now @ Rs. <?= $final_price ?></a>
-                    <div style="text-align: center;">
+                    <a href="login.php?booking_request=1&car_id=<?= $car['id'] ?>&dist=<?= $total_distance_km ?>" class="btn-book-now">
+                        Book Cab <i class="fas fa-chevron-right" style="font-size: 12px;"></i>
+                    </a>
+                    <div style="text-align: center; margin-top: 15px;">
                         <?php if (!empty($car['terms_conditions'])): ?>
                             <a href="#" class="terms-link" onclick="openTncModal(this); return false;" data-tnc="<?= $tnc_html ?>">
-                                <i class="fas fa-file-contract"></i> Terms &amp; Conditions
+                                <i class="fas fa-file-contract"></i> T&amp;C Apply
                             </a>
                         <?php else: ?>
-                            <span class="terms-link" style="color: #aaa; cursor: default;">
-                                <i class="fas fa-file-contract"></i> Terms &amp; Conditions
+                            <span class="terms-link" style="color: #cbd5e1; cursor: default;">
+                                <i class="fas fa-file-contract"></i> T&amp;C Apply
                             </span>
                         <?php endif; ?>
                     </div>
