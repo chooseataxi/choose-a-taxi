@@ -6,14 +6,70 @@ require_once 'includes/db.php';
 require_once 'includes/header.php';
 
 // 1. Capture Inputs
-$trip_type   = $_GET['trip_type'] ?? 'One Way';
-$pickup      = $_GET['pickup'] ?? '';
-$drop        = $_GET['drop'] ?? '';
-$stops       = $_GET['stops'] ?? [];
-$date        = $_GET['date'] ?? '';
-$time        = $_GET['time'] ?? '';
-$return_date = $_GET['return_date'] ?? '';
-$return_time = $_GET['return_time'] ?? '';
+$main_tab = $_GET['main_tab'] ?? '';
+
+// Check if we are searching for a local trip type
+$is_local_trip = ($main_tab === 'Local / Airport') || isset($_GET['local_trip_type']) || (isset($_GET['trip_type']) && stripos($_GET['trip_type'], 'Local') !== false);
+
+if ($is_local_trip) {
+    $trip_type = $_GET['local_trip_type'] ?? $_GET['trip_type'] ?? 'Local / Rental';
+    $pickup    = $_GET['local_pickup'] ?? $_GET['pickup'] ?? '';
+    $drop      = $_GET['airport_drop'] ?? $_GET['drop'] ?? '';
+    $stops     = [];
+    $date      = $_GET['local_date'] ?? $_GET['date'] ?? '';
+    $time      = $_GET['local_time'] ?? $_GET['time'] ?? '';
+    $return_date = '';
+    $return_time = '';
+    
+    // City selected from dropdown
+    $selected_city_id = !empty($_GET['city']) ? (int)$_GET['city'] : null;
+    $selected_package_name = $_GET['package'] ?? '';
+} else {
+    $trip_type   = $_GET['trip_type'] ?? 'One Way';
+    $pickup      = $_GET['pickup'] ?? '';
+    $drop        = $_GET['drop'] ?? '';
+    $stops       = $_GET['stops'] ?? [];
+    $date        = $_GET['date'] ?? '';
+    $time        = $_GET['time'] ?? '';
+    $return_date = $_GET['return_date'] ?? '';
+    $return_time = $_GET['return_time'] ?? '';
+    $selected_city_id = null;
+    $selected_package_name = '';
+}
+
+// Fetch active cities and local packages for search edit
+$stmtLocal = $pdo->prepare("SELECT id FROM trip_types WHERE name = 'Local / Rental' LIMIT 1");
+$stmtLocal->execute();
+$localId = $stmtLocal->fetchColumn();
+
+$local_cities = [];
+$local_packages = []; // keyed by city_id
+
+if ($localId) {
+    // Fetch active cities that have at least one local package configured
+    $citiesStmt = $pdo->prepare("
+        SELECT DISTINCT c.city_id, ci.name 
+        FROM cars c 
+        JOIN cities ci ON c.city_id = ci.id 
+        WHERE c.trip_type_id = ? AND c.status = 'Active' AND ci.status = 'Active'
+        ORDER BY ci.name ASC
+    ");
+    $citiesStmt->execute([$localId]);
+    $local_cities = $citiesStmt->fetchAll();
+
+    // Fetch packages grouped by city_id
+    $pkgsStmt = $pdo->prepare("
+        SELECT DISTINCT city_id, name 
+        FROM cars 
+        WHERE trip_type_id = ? AND status = 'Active' AND city_id IS NOT NULL
+        ORDER BY name ASC
+    ");
+    $pkgsStmt->execute([$localId]);
+    $pkgs = $pkgsStmt->fetchAll();
+    foreach ($pkgs as $pkg) {
+        $local_packages[$pkg['city_id']][] = $pkg['name'];
+    }
+}
 
 // Calculate Trip Days (Minimum 1)
 $trip_days = 1;
@@ -70,23 +126,27 @@ function getDistanceBetweenPoints($origin, $destination, $key) {
     return $metres > 0 ? $metres / 1000 : 0;
 }
 
-// Sequence: Pickup -> Stop 1 -> Stop 2 -> Drop
-$points = array_merge([$pickup], (array)$stops, [$drop]);
-for ($i = 0; $i < count($points) - 1; $i++) {
-    $total_distance_km += getDistanceBetweenPoints($points[$i], $points[$i + 1], $api_key);
+if (!$is_local_trip) {
+    // Sequence: Pickup -> Stop 1 -> Stop 2 -> Drop
+    $points = array_merge([$pickup], (array)$stops, [$drop]);
+    for ($i = 0; $i < count($points) - 1; $i++) {
+        $total_distance_km += getDistanceBetweenPoints($points[$i], $points[$i + 1], $api_key);
+    }
+
+    // Add a 15% real-world route margin. 
+    // Google API city-to-city is often shorter than actual door-to-door driving distance.
+    $total_distance_km = ceil($total_distance_km * 1.15);
+
+    // Round trip: double the distance
+    if ($trip_type === 'Round Trip') {
+        $total_distance_km = $total_distance_km * 2;
+    }
+
+    // Final sanity check
+    if ($total_distance_km < 1) $total_distance_km = 1;
+} else {
+    $total_distance_km = 0;
 }
-
-// Add a 15% real-world route margin. 
-// Google API city-to-city is often shorter than actual door-to-door driving distance.
-$total_distance_km = ceil($total_distance_km * 1.15);
-
-// Round trip: double the distance
-if ($trip_type === 'Round Trip') {
-    $total_distance_km = $total_distance_km * 2;
-}
-
-// Final sanity check
-if ($total_distance_km < 1) $total_distance_km = 1;
 
 // 2.5 Identify Cities from Google Places
 // Fetch all active cities to match against pickup/drop strings
@@ -94,12 +154,16 @@ $all_cities = $pdo->query("SELECT id, name FROM cities WHERE status = 'Active'")
 $detected_pickup_city_id = null;
 $detected_drop_city_id = null;
 
-foreach ($all_cities as $city) {
-    if (!$detected_pickup_city_id && stripos($pickup, $city['name']) !== false) {
-        $detected_pickup_city_id = $city['id'];
-    }
-    if (!$detected_drop_city_id && stripos($drop, $city['name']) !== false) {
-        $detected_drop_city_id = $city['id'];
+if ($is_local_trip && !empty($selected_city_id)) {
+    $detected_pickup_city_id = (int)$selected_city_id;
+} else {
+    foreach ($all_cities as $city) {
+        if (!$detected_pickup_city_id && stripos($pickup, $city['name']) !== false) {
+            $detected_pickup_city_id = $city['id'];
+        }
+        if (!$detected_drop_city_id && stripos($drop, $city['name']) !== false) {
+            $detected_drop_city_id = $city['id'];
+        }
     }
 }
 
@@ -125,7 +189,10 @@ if ($trip_type === 'One Way') {
     }
 } elseif (stripos($trip_type, 'Local') !== false) {
     if ($detected_pickup_city_id) {
-        $query .= " AND (c.city_id IS NULL OR c.city_id = :p_city) AND (c.drop_city_id IS NULL OR c.drop_city_id = 0)";
+        $query .= " AND c.city_id = :p_city AND (c.drop_city_id IS NULL OR c.drop_city_id = 0)";
+        if (!empty($selected_package_name)) {
+            $query .= " AND c.name = :package_name";
+        }
     } else {
         $query .= " AND c.city_id IS NULL AND (c.drop_city_id IS NULL OR c.drop_city_id = 0)";
     }
@@ -145,6 +212,9 @@ if ($trip_type === 'One Way' && $detected_pickup_city_id && $detected_drop_city_
     $cars_stmt->bindValue(':d_city', $detected_drop_city_id);
 } elseif (stripos($trip_type, 'Local') !== false && $detected_pickup_city_id) {
     $cars_stmt->bindValue(':p_city', $detected_pickup_city_id);
+    if (!empty($selected_package_name)) {
+        $cars_stmt->bindValue(':package_name', $selected_package_name);
+    }
 }
 
 $cars_stmt->execute();
@@ -569,32 +639,83 @@ $cars = array_values($unique_cars);
         <div class="ts-header-card">
             <form action="search-results.php" method="GET" id="editTripForm">
                 <input type="hidden" name="trip_type" value="<?= htmlspecialchars($trip_type) ?>">
+                <?php if ($is_local_trip): ?>
+                    <input type="hidden" name="main_tab" value="Local / Airport">
+                    <input type="hidden" name="local_trip_type" value="<?= htmlspecialchars($trip_type) ?>">
+                <?php endif; ?>
                 <div class="ts-summary-wrapper">
                     <!-- Vertical Route Info -->
                     <div class="ts-route-vertical">
-                        <div class="ts-route-step ts-step-pickup">
-                            <span class="ts-step-label">Pickup Location</span>
-                            <input type="text" name="pickup" id="edit_pickup" class="ts-edit-input" value="<?= htmlspecialchars($pickup) ?>" required>
-                        </div>
-
-                        <?php 
-                        $valid_stops = array_filter((array)$stops);
-                        foreach ($valid_stops as $index => $stop): 
-                        ?>
-                            <div class="ts-route-step ts-step-stop">
-                                <span class="ts-step-label">Stop <?= $index + 1 ?></span>
-                                <input type="text" name="stops[]" class="ts-edit-input edit-stop-input" value="<?= htmlspecialchars($stop) ?>">
+                        <?php if ($trip_type === 'Local / Rental'): ?>
+                            <div class="ts-route-step ts-step-pickup">
+                                <span class="ts-step-label">Pickup Location</span>
+                                <input type="text" name="local_pickup" id="edit_pickup" class="ts-edit-input" value="<?= htmlspecialchars($pickup) ?>" required>
                             </div>
-                        <?php endforeach; ?>
+                            
+                            <div class="ts-route-step">
+                                <span class="ts-step-label">City</span>
+                                <div style="margin-top: 5px;">
+                                    <select name="city" id="edit_local_city" style="background: #222; color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 6px 12px; font-size: 13px; font-family: inherit; width: 100%; outline: none; cursor: pointer;" required>
+                                        <option value="">--- Select City ---</option>
+                                        <?php foreach ($local_cities as $city): ?>
+                                            <option value="<?= $city['city_id'] ?>" <?= ($selected_city_id == $city['city_id']) ? 'selected' : '' ?>><?= htmlspecialchars($city['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                            </div>
 
-                        <div style="padding-left: 0; margin-top: -5px;">
-                            <button type="button" id="ts-btn-add-stop" style="background:transparent; border:none; color:#ffc107; font-size:11px; cursor:pointer; font-weight:800; text-transform:uppercase;"><i class="fas fa-plus-circle"></i> Add Stop</button>
-                        </div>
+                            <div class="ts-route-step">
+                                <span class="ts-step-label">Package</span>
+                                <div style="margin-top: 5px;">
+                                    <select name="package" id="edit_local_package" style="background: #222; color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 6px 12px; font-size: 13px; font-family: inherit; width: 100%; outline: none; cursor: pointer;" required>
+                                        <option value="">--- Select Package ---</option>
+                                        <?php 
+                                        if (!empty($selected_city_id) && isset($local_packages[$selected_city_id])) {
+                                            foreach ($local_packages[$selected_city_id] as $pkg) {
+                                                $sel = ($selected_package_name === $pkg) ? 'selected' : '';
+                                                echo "<option value=\"" . htmlspecialchars($pkg) . "\" $sel>" . htmlspecialchars($pkg) . "</option>";
+                                            }
+                                        }
+                                        ?>
+                                    </select>
+                                </div>
+                            </div>
+                        <?php elseif ($trip_type === 'Airport Transfer'): ?>
+                            <div class="ts-route-step ts-step-pickup">
+                                <span class="ts-step-label">Pickup Location</span>
+                                <input type="text" name="local_pickup" id="edit_pickup" class="ts-edit-input" value="<?= htmlspecialchars($pickup) ?>" required>
+                            </div>
+                            
+                            <div class="ts-route-step ts-step-drop" id="ts-step-drop-container">
+                                <span class="ts-step-label">Drop Location</span>
+                                <input type="text" name="airport_drop" id="edit_drop" class="ts-edit-input" value="<?= htmlspecialchars($drop) ?>" required>
+                            </div>
+                        <?php else: ?>
+                            <!-- Outstation / One Way / Round Trip -->
+                            <div class="ts-route-step ts-step-pickup">
+                                <span class="ts-step-label">Pickup Location</span>
+                                <input type="text" name="pickup" id="edit_pickup" class="ts-edit-input" value="<?= htmlspecialchars($pickup) ?>" required>
+                            </div>
 
-                        <div class="ts-route-step ts-step-drop" id="ts-step-drop-container">
-                            <span class="ts-step-label">Drop Location</span>
-                            <input type="text" name="drop" id="edit_drop" class="ts-edit-input" value="<?= htmlspecialchars($drop) ?>" required>
-                        </div>
+                            <?php 
+                            $valid_stops = array_filter((array)$stops);
+                            foreach ($valid_stops as $index => $stop): 
+                            ?>
+                                <div class="ts-route-step ts-step-stop">
+                                    <span class="ts-step-label">Stop <?= $index + 1 ?></span>
+                                    <input type="text" name="stops[]" class="ts-edit-input edit-stop-input" value="<?= htmlspecialchars($stop) ?>">
+                                </div>
+                            <?php endforeach; ?>
+
+                            <div style="padding-left: 0; margin-top: -5px;">
+                                <button type="button" id="ts-btn-add-stop" style="background:transparent; border:none; color:#ffc107; font-size:11px; cursor:pointer; font-weight:800; text-transform:uppercase;"><i class="fas fa-plus-circle"></i> Add Stop</button>
+                            </div>
+
+                            <div class="ts-route-step ts-step-drop" id="ts-step-drop-container">
+                                <span class="ts-step-label">Drop Location</span>
+                                <input type="text" name="drop" id="edit_drop" class="ts-edit-input" value="<?= htmlspecialchars($drop) ?>" required>
+                            </div>
+                        <?php endif; ?>
                     </div>
 
                     <!-- Side Info -->
@@ -610,8 +731,8 @@ $cars = array_values($unique_cars);
                             <div class="ts-info-item">
                                 <label>Departure</label>
                                 <div style="display:flex; gap:10px;">
-                                    <input type="date" name="date" class="ts-edit-date" value="<?= htmlspecialchars($date) ?>" required>
-                                    <input type="time" name="time" class="ts-edit-date" value="<?= htmlspecialchars($time) ?>" required>
+                                    <input type="date" name="<?= $is_local_trip ? 'local_date' : 'date' ?>" class="ts-edit-date" value="<?= htmlspecialchars($date) ?>" required>
+                                    <input type="time" name="<?= $is_local_trip ? 'local_time' : 'time' ?>" class="ts-edit-date" value="<?= htmlspecialchars($time) ?>" required>
                                 </div>
                             </div>
                             
@@ -642,7 +763,10 @@ $cars = array_values($unique_cars);
 
                 $display_distance_km = round($total_distance_km);
 
-                if ($trip_type === 'Round Trip') {
+                if ($trip_type === 'Local / Rental') {
+                    $final_price = $base_fare;
+                    $display_distance_note = "";
+                } elseif ($trip_type === 'Round Trip') {
                     // Round trip is calculated per day
                     $total_min_km = $min_km * $trip_days;
                     $final_base_fare = $base_fare * $trip_days;
@@ -713,13 +837,20 @@ $cars = array_values($unique_cars);
                     </h3>
                     <div class="details-grid">
                         <div class="detail-row">
-                            <label>Trip Distance</label>
-                            <div>
-                                <span style="color: #ff9e15; font-weight: 800; font-size: 15px;"><i class="fas fa-road me-1"></i> <?= $display_distance_km ?> KMs</span>
-                                <?php if (!empty($display_distance_note)): ?>
-                                    <br><span style="font-size: 11px; color: #64748b;"><?= htmlspecialchars($display_distance_note) ?></span>
-                                <?php endif; ?>
-                            </div>
+                            <?php if ($trip_type === 'Local / Rental'): ?>
+                                <label>Selected Package</label>
+                                <div>
+                                    <span style="color: #ff9e15; font-weight: 800; font-size: 15px;"><i class="fas fa-clock me-1"></i> <?= htmlspecialchars($car['name']) ?></span>
+                                </div>
+                            <?php else: ?>
+                                <label>Trip Distance</label>
+                                <div>
+                                    <span style="color: #ff9e15; font-weight: 800; font-size: 15px;"><i class="fas fa-road me-1"></i> <?= $display_distance_km ?> KMs</span>
+                                    <?php if (!empty($display_distance_note)): ?>
+                                        <br><span style="font-size: 11px; color: #64748b;"><?= htmlspecialchars($display_distance_note) ?></span>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endif; ?>
                         </div>
                         <div class="detail-row">
                             <label>Extra KM Fare</label>
@@ -877,6 +1008,27 @@ if (tsAddStopBtn) {
         tsStopCount++;
         if (tsStopCount >= 4) {
             tsAddStopBtn.style.display = 'none';
+        }
+    });
+}
+
+// Dynamic Packages Loader for editable search header
+const localPackagesData = <?= json_encode($local_packages) ?>;
+const localCitySelect = document.getElementById('edit_local_city');
+if (localCitySelect) {
+    localCitySelect.addEventListener('change', function() {
+        const cityId = this.value;
+        const packageSelect = document.getElementById('edit_local_package');
+        if (packageSelect) {
+            packageSelect.innerHTML = '<option value="">--- Select Package ---</option>';
+            if (cityId && localPackagesData[cityId]) {
+                localPackagesData[cityId].forEach(pkgName => {
+                    const opt = document.createElement('option');
+                    opt.value = pkgName;
+                    opt.textContent = pkgName;
+                    packageSelect.appendChild(opt);
+                });
+            }
         }
     });
 }

@@ -1,3 +1,40 @@
+<?php
+require_once __DIR__ . '/../includes/db.php';
+
+// Fetch Local trip type id
+$stmtLocal = $pdo->prepare("SELECT id FROM trip_types WHERE name = 'Local / Rental' LIMIT 1");
+$stmtLocal->execute();
+$localId = $stmtLocal->fetchColumn();
+
+$local_cities = [];
+$local_packages = []; // keyed by city_id
+
+if ($localId) {
+    // Fetch active cities that have at least one local package configured
+    $citiesStmt = $pdo->prepare("
+        SELECT DISTINCT c.city_id, ci.name 
+        FROM cars c 
+        JOIN cities ci ON c.city_id = ci.id 
+        WHERE c.trip_type_id = ? AND c.status = 'Active' AND ci.status = 'Active'
+        ORDER BY ci.name ASC
+    ");
+    $citiesStmt->execute([$localId]);
+    $local_cities = $citiesStmt->fetchAll();
+
+    // Fetch packages grouped by city_id
+    $pkgsStmt = $pdo->prepare("
+        SELECT DISTINCT city_id, name 
+        FROM cars 
+        WHERE trip_type_id = ? AND status = 'Active' AND city_id IS NOT NULL
+        ORDER BY name ASC
+    ");
+    $pkgsStmt->execute([$localId]);
+    $pkgs = $pkgsStmt->fetchAll();
+    foreach ($pkgs as $pkg) {
+        $local_packages[$pkg['city_id']][] = $pkg['name'];
+    }
+}
+?>
 <section class="hero-section">
     <div class="hero-container">
         <!-- Hero Left Content -->
@@ -135,11 +172,9 @@
                                 <div class="form-input-wrapper" style="padding: 0; border: none; background: #f1f3f5;">
                                     <select name="city" id="local_city" style="width: 100%; border: 1px solid #e5e7eb; border-radius: 5px; padding: 12px; font-size: 14px; background: transparent; color: #555; outline: none; cursor: pointer;">
                                         <option value="">--- Select City ---</option>
-                                        <option value="Delhi">Delhi</option>
-                                        <option value="Mumbai">Mumbai</option>
-                                        <option value="Bangalore">Bangalore</option>
-                                        <option value="Chennai">Chennai</option>
-                                        <option value="Kolkata">Kolkata</option>
+                                        <?php foreach ($local_cities as $city): ?>
+                                            <option value="<?= $city['city_id'] ?>"><?= htmlspecialchars($city['name']) ?></option>
+                                        <?php endforeach; ?>
                                     </select>
                                 </div>
                             </div>
@@ -148,8 +183,6 @@
                                 <div class="form-input-wrapper" style="padding: 0; border: none; background: #f1f3f5;">
                                     <select name="package" id="local_package" style="width: 100%; border: 1px solid #e5e7eb; border-radius: 5px; padding: 12px; font-size: 14px; background: transparent; color: #555; outline: none; cursor: pointer;">
                                         <option value="">--- Select Package ---</option>
-                                        <option value="8 Hours / 80 Kms">8 Hours / 80 Kms</option>
-                                        <option value="12 Hours / 120 Kms">12 Hours / 120 Kms</option>
                                     </select>
                                 </div>
                             </div>
@@ -348,6 +381,28 @@
     function removeStop(id) {
         document.getElementById(`wrapper_${id}`).remove();
         stopCount--;
+    }
+
+    // Dynamic Packages Loader
+    const localPackagesData = <?= json_encode($local_packages) ?>;
+    const localCitySelect = document.getElementById('local_city');
+    if (localCitySelect) {
+        localCitySelect.addEventListener('change', function() {
+            const cityId = this.value;
+            const packageSelect = document.getElementById('local_package');
+            if (packageSelect) {
+                // Clear current options
+                packageSelect.innerHTML = '<option value="">--- Select Package ---</option>';
+                if (cityId && localPackagesData[cityId]) {
+                    localPackagesData[cityId].forEach(pkgName => {
+                        const opt = document.createElement('option');
+                        opt.value = pkgName;
+                        opt.textContent = pkgName;
+                        packageSelect.appendChild(opt);
+                    });
+                }
+            }
+        });
     }
 
     // Set Default Date/Time
