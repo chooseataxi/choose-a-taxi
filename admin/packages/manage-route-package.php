@@ -4,11 +4,36 @@ require_once __DIR__ . '/../header.php';
 
 $id = $_GET['id'] ?? null;
 $package = null;
+$city_id = null;
+$drop_city_id = null;
+$existingPrices = [];
+
+// Helper to get trip type ID (usually One Way)
+function getOneWayId($pdo) {
+    $stmt = $pdo->prepare("SELECT id FROM trip_types WHERE name LIKE '%One Way%' LIMIT 1");
+    $stmt->execute();
+    $res = $stmt->fetch();
+    if ($res) return $res['id'];
+    return null;
+}
+$tripTypeId = getOneWayId($pdo);
 
 if ($id) {
     $stmt = $pdo->prepare("SELECT * FROM cars WHERE id = ?");
     $stmt->execute([$id]);
     $package = $stmt->fetch();
+    if ($package) {
+        $city_id = $package['city_id'];
+        $drop_city_id = $package['drop_city_id'];
+        
+        // Fetch all packages for this route
+        $routePackagesStmt = $pdo->prepare("SELECT * FROM cars WHERE city_id = ? AND drop_city_id = ? AND trip_type_id = ?");
+        $routePackagesStmt->execute([$city_id, $drop_city_id, $package['trip_type_id']]);
+        $routePackages = $routePackagesStmt->fetchAll();
+        foreach ($routePackages as $rp) {
+            $existingPrices[$rp['type_id']] = $rp;
+        }
+    }
 }
 
 // Fetch Car Types
@@ -34,66 +59,103 @@ $title = $id ? "Edit City-to-City Route Package" : "Add New Route Package";
                     <form id="packageForm">
                         <input type="hidden" name="action" value="save">
                         <input type="hidden" name="id" value="<?= $id ?>">
+                        <?php if ($id): ?>
+                            <input type="hidden" name="city_id" value="<?= $city_id ?>">
+                            <input type="hidden" name="drop_city_id" value="<?= $drop_city_id ?>">
+                        <?php endif; ?>
                         
                         <div class="row g-4">
                             <!-- Route Config -->
                             <div class="col-12 mt-2">
-                                <h6 class="text-primary fw-bold border-bottom pb-2 mb-0">Route & Car Details</h6>
+                                <h6 class="text-primary fw-bold border-bottom pb-2 mb-0">Route Details</h6>
                             </div>
                             
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <label class="form-label fw-bold">Pickup City (From)</label>
-                                <select name="city_id" class="form-select border-2" required>
-                                    <option value="">Select From City</option>
-                                    <?php foreach ($cities as $city): ?>
-                                        <option value="<?= $city['id'] ?>" <?= ($package && $package['city_id'] == $city['id']) ? 'selected' : '' ?>><?= htmlspecialchars($city['name']) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
+                                <?php if ($id): ?>
+                                    <select class="form-select border-2" disabled>
+                                        <?php foreach ($cities as $city): ?>
+                                            <option value="<?= $city['id'] ?>" <?= ($city_id == $city['id']) ? 'selected' : '' ?>><?= htmlspecialchars($city['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                <?php else: ?>
+                                    <select name="city_id" class="form-select border-2" required>
+                                        <option value="">Select From City</option>
+                                        <?php foreach ($cities as $city): ?>
+                                            <option value="<?= $city['id'] ?>"><?= htmlspecialchars($city['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                <?php endif; ?>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <label class="form-label fw-bold">Drop City (To)</label>
-                                <select name="drop_city_id" class="form-select border-2" required>
-                                    <option value="">Select To City</option>
-                                    <?php foreach ($cities as $city): ?>
-                                        <option value="<?= $city['id'] ?>" <?= ($package && $package['drop_city_id'] == $city['id']) ? 'selected' : '' ?>><?= htmlspecialchars($city['name']) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Car Type</label>
-                                <select name="type_id" class="form-select border-2" required>
-                                    <option value="">Select Car Type</option>
-                                    <?php foreach ($carTypes as $type): ?>
-                                        <option value="<?= $type['id'] ?>" <?= ($package && $package['type_id'] == $type['id']) ? 'selected' : '' ?>><?= $type['name'] ?></option>
-                                    <?php endforeach; ?>
-                                </select>
+                                <?php if ($id): ?>
+                                    <select class="form-select border-2" disabled>
+                                        <?php foreach ($cities as $city): ?>
+                                            <option value="<?= $city['id'] ?>" <?= ($drop_city_id == $city['id']) ? 'selected' : '' ?>><?= htmlspecialchars($city['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                <?php else: ?>
+                                    <select name="drop_city_id" class="form-select border-2" required>
+                                        <option value="">Select To City</option>
+                                        <?php foreach ($cities as $city): ?>
+                                            <option value="<?= $city['id'] ?>"><?= htmlspecialchars($city['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                <?php endif; ?>
                             </div>
 
                             <!-- Pricing Section -->
                             <div class="col-12 mt-4">
-                                <h6 class="text-primary fw-bold border-bottom pb-2 mb-0">Pricing Details</h6>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Fixed Route Fare (₹)</label>
-                                <input type="number" name="base_fare" class="form-control border-2" value="<?= $package['base_fare'] ?? '' ?>" placeholder="e.g. 2500" required>
-                                <div class="form-text text-muted">This is the fixed price for this route.</div>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Included KMs <span class="text-muted small">(for deviation)</span></label>
-                                <input type="number" name="min_km" class="form-control border-2" value="<?= $package['min_km'] ?? '' ?>" placeholder="e.g. 250" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Extra KM Price (₹)</label>
-                                <input type="number" name="extra_km_price" class="form-control border-2" value="<?= $package['extra_km_price'] ?? '' ?>" placeholder="e.g. 12" required>
-                            </div>
-                            <div class="col-md-12">
-                                <label class="form-label fw-bold">Display Extra KM Price <span class="text-muted small">(Optional label e.g. "₹12/km")</span></label>
-                                <input type="text" name="display_extra_km_price" class="form-control border-2" value="<?= htmlspecialchars($package['display_extra_km_price'] ?? '') ?>" placeholder="e.g. ₹12/km">
+                                <h6 class="text-primary fw-bold border-bottom pb-2 mb-3">Car Pricing List (Set Fare for multiple car types)</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-striped align-middle">
+                                        <thead class="bg-light">
+                                            <tr>
+                                                <th class="text-center" style="width: 80px;">Enable</th>
+                                                <th>Car Type</th>
+                                                <th>Fixed Fare (₹) <span class="text-danger">*</span></th>
+                                                <th>Included KMs <span class="text-danger">*</span></th>
+                                                <th>Extra KM Price (₹) <span class="text-danger">*</span></th>
+                                                <th>Display Extra KM Price (e.g. ₹12/km)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($carTypes as $type): 
+                                                $typeId = $type['id'];
+                                                $hasPkg = isset($existingPrices[$typeId]);
+                                                $pkgData = $hasPkg ? $existingPrices[$typeId] : null;
+                                            ?>
+                                            <tr class="car-row">
+                                                <td class="text-center">
+                                                    <input type="checkbox" name="prices[<?= $typeId ?>][enabled]" value="1" class="form-check-input car-type-checkbox border-2" style="width: 20px; height: 20px;" <?= $hasPkg ? 'checked' : '' ?>>
+                                                </td>
+                                                <td>
+                                                    <span class="fw-bold text-dark"><?= htmlspecialchars($type['name']) ?></span>
+                                                    <input type="hidden" name="prices[<?= $typeId ?>][type_id]" value="<?= $typeId ?>">
+                                                </td>
+                                                <td>
+                                                    <input type="number" name="prices[<?= $typeId ?>][base_fare]" class="form-control pricing-input border-2" value="<?= $pkgData ? $pkgData['base_fare'] : '' ?>" placeholder="Fare" <?= $hasPkg ? 'required' : 'disabled' ?>>
+                                                </td>
+                                                <td>
+                                                    <input type="number" name="prices[<?= $typeId ?>][min_km]" class="form-control pricing-input border-2" value="<?= $pkgData ? $pkgData['min_km'] : '' ?>" placeholder="Min KMs" <?= $hasPkg ? 'required' : 'disabled' ?>>
+                                                </td>
+                                                <td>
+                                                    <input type="number" name="prices[<?= $typeId ?>][extra_km_price]" class="form-control pricing-input border-2" value="<?= $pkgData ? $pkgData['extra_km_price'] : '' ?>" placeholder="Extra KM price" <?= $hasPkg ? 'required' : 'disabled' ?>>
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="prices[<?= $typeId ?>][display_extra_km_price]" class="form-control pricing-input border-2" value="<?= $pkgData ? htmlspecialchars($pkgData['display_extra_km_price']) : '' ?>" placeholder="e.g. ₹12/km" <?= $hasPkg ? '' : 'disabled' ?>>
+                                                </td>
+                                            </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
 
                             <!-- Inclusions Section -->
                             <div class="col-12 mt-4">
-                                <h6 class="text-primary fw-bold border-bottom pb-2 mb-0">Inclusions &amp; Exclusions</h6>
+                                <h6 class="text-primary fw-bold border-bottom pb-2 mb-0">Inclusions &amp; Exclusions (Applies to all selected cars)</h6>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label small fw-bold">Toll Charges</label>
@@ -176,14 +238,34 @@ $title = $id ? "Edit City-to-City Route Package" : "Add New Route Package";
     });
 
     $(document).ready(function() {
+        // Toggle inputs on checkbox change
+        $(document).on('change', '.car-type-checkbox', function() {
+            const row = $(this).closest('.car-row');
+            const inputs = row.find('.pricing-input');
+            if ($(this).is(':checked')) {
+                inputs.prop('disabled', false);
+                row.find('input[name*="[base_fare]"]').prop('required', true);
+                row.find('input[name*="[min_km]"]').prop('required', true);
+                row.find('input[name*="[extra_km_price]"]').prop('required', true);
+            } else {
+                inputs.prop('disabled', true).prop('required', false);
+            }
+        });
+
         $('#packageForm').on('submit', function(e) {
             e.preventDefault();
             
             // Validate cities
-            const city1 = $('select[name="city_id"]').val();
-            const city2 = $('select[name="drop_city_id"]').val();
-            if (city1 === city2) {
+            const city1 = $('[name="city_id"]').val();
+            const city2 = $('[name="drop_city_id"]').val();
+            if (city1 && city2 && city1 === city2) {
                 Swal.fire('Error', 'Pickup City and Drop City cannot be the same!', 'error');
+                return;
+            }
+
+            // Validate that at least one car type is enabled
+            if ($('.car-type-checkbox:checked').length === 0) {
+                Swal.fire('Error', 'Please select at least one car type and enter its pricing details.', 'error');
                 return;
             }
 

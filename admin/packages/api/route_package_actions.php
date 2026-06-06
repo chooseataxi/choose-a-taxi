@@ -35,79 +35,125 @@ $action = $_POST['action'] ?? '';
 
 if ($action === 'save') {
     $id = $_POST['id'] ?? null;
-    $type_id = $_POST['type_id'] ?? null;
     $city_id = $_POST['city_id'] ?? null;
     $drop_city_id = $_POST['drop_city_id'] ?? null;
-    $base_fare = $_POST['base_fare'] ?? null;
-    $min_km = $_POST['min_km'] ?? null;
-    $extra_km_price = $_POST['extra_km_price'] ?? null;
-    
-    if (!$type_id || !$city_id || !$drop_city_id || !$base_fare || !$min_km || !$extra_km_price) {
-        echo json_encode(['success' => false, 'message' => 'Please fill all required fields.']);
+    $prices = $_POST['prices'] ?? [];
+
+    if (!$city_id || !$drop_city_id) {
+        echo json_encode(['success' => false, 'message' => 'Please select Pickup and Drop cities.']);
         exit;
     }
 
-    // Auto-fetch car type name for vehicle name
-    $typeStmt = $pdo->prepare("SELECT name FROM car_types WHERE id = ?");
-    $typeStmt->execute([$type_id]);
-    $typeRow = $typeStmt->fetch();
-    $name = $typeRow ? $typeRow['name'] : 'Route Package';
-
-    $brand_id = 1; // Default brand as required by schema
-    $trip_type_id = getOneWayId($pdo);
-
-    $params = [
-        'type_id' => $type_id,
-        'brand_id' => $brand_id,
-        'name' => $name,
-        'trip_type_id' => $trip_type_id,
-        'city_id' => $city_id,
-        'drop_city_id' => $drop_city_id,
-        'base_fare' => $base_fare,
-        'min_km' => $min_km,
-        'extra_km_price' => $extra_km_price,
-        'display_extra_km_price' => $_POST['display_extra_km_price'] ?? null,
-        'include_toll' => $_POST['include_toll'] ?? 'Excluded',
-        'include_tax' => $_POST['include_tax'] ?? 'Excluded',
-        'include_driver_allowance' => $_POST['include_driver_allowance'] ?? 'Excluded',
-        'include_night_charges' => $_POST['include_night_charges'] ?? 'Excluded',
-        'include_parking' => $_POST['include_parking'] ?? 'Excluded',
-        'description' => $_POST['description'] ?? null,
-        'terms_conditions' => $_POST['terms_conditions'] ?? null,
-    ];
-
-    if ($id) {
-        $sql = "UPDATE cars SET 
-            type_id = :type_id,
-            brand_id = :brand_id,
-            name = :name,
-            city_id = :city_id,
-            drop_city_id = :drop_city_id,
-            base_fare = :base_fare,
-            min_km = :min_km,
-            extra_km_price = :extra_km_price,
-            display_extra_km_price = :display_extra_km_price,
-            include_toll = :include_toll,
-            include_tax = :include_tax,
-            include_driver_allowance = :include_driver_allowance,
-            include_night_charges = :include_night_charges,
-            include_parking = :include_parking,
-            description = :description,
-            terms_conditions = :terms_conditions
-            WHERE id = :id";
-        $params['id'] = $id;
-        $msg = "Route package updated successfully.";
-    } else {
-        $sql = "INSERT INTO cars (type_id, brand_id, name, trip_type_id, city_id, drop_city_id, base_fare, min_km, extra_km_price, display_extra_km_price, include_toll, include_tax, include_driver_allowance, include_night_charges, include_parking, description, terms_conditions, status)
-                VALUES (:type_id, :brand_id, :name, :trip_type_id, :city_id, :drop_city_id, :base_fare, :min_km, :extra_km_price, :display_extra_km_price, :include_toll, :include_tax, :include_driver_allowance, :include_night_charges, :include_parking, :description, :terms_conditions, 'Active')";
-        $msg = "Route package created successfully.";
+    if ($city_id === $drop_city_id) {
+        echo json_encode(['success' => false, 'message' => 'Pickup City and Drop City cannot be the same.']);
+        exit;
     }
 
+    $brand_id = 1; // Default brand
+    $trip_type_id = getOneWayId($pdo);
+
+    $include_toll = $_POST['include_toll'] ?? 'Excluded';
+    $include_tax = $_POST['include_tax'] ?? 'Excluded';
+    $include_driver_allowance = $_POST['include_driver_allowance'] ?? 'Excluded';
+    $include_night_charges = $_POST['include_night_charges'] ?? 'Excluded';
+    $include_parking = $_POST['include_parking'] ?? 'Excluded';
+    $description = $_POST['description'] ?? null;
+    $terms_conditions = $_POST['terms_conditions'] ?? null;
+
+    // Fetch active car types to cross-reference and get their names
+    $carTypes = $pdo->query("SELECT id, name FROM car_types WHERE status = 'Active'")->fetchAll();
+
+    $pdo->beginTransaction();
     try {
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
+        $savedCount = 0;
+        foreach ($carTypes as $carType) {
+            $type_id = $carType['id'];
+            $name = $carType['name'];
+
+            $pricing = $prices[$type_id] ?? null;
+            $enabled = isset($pricing['enabled']) && $pricing['enabled'] == '1';
+
+            // Check if record already exists for this route and car type
+            $checkStmt = $pdo->prepare("SELECT id FROM cars WHERE city_id = ? AND drop_city_id = ? AND type_id = ? AND trip_type_id = ?");
+            $checkStmt->execute([$city_id, $drop_city_id, $type_id, $trip_type_id]);
+            $existingRow = $checkStmt->fetch();
+
+            if ($enabled) {
+                $base_fare = $pricing['base_fare'] ?? null;
+                $min_km = $pricing['min_km'] ?? null;
+                $extra_km_price = $pricing['extra_km_price'] ?? null;
+                $display_extra_km_price = $pricing['display_extra_km_price'] ?? null;
+
+                if ($base_fare === '' || $min_km === '' || $extra_km_price === '' || $base_fare === null || $min_km === null || $extra_km_price === null) {
+                    // Skip if fields are empty
+                    continue;
+                }
+
+                $params = [
+                    'type_id' => $type_id,
+                    'brand_id' => $brand_id,
+                    'name' => $name,
+                    'trip_type_id' => $trip_type_id,
+                    'city_id' => $city_id,
+                    'drop_city_id' => $drop_city_id,
+                    'base_fare' => $base_fare,
+                    'min_km' => $min_km,
+                    'extra_km_price' => $extra_km_price,
+                    'display_extra_km_price' => $display_extra_km_price,
+                    'include_toll' => $include_toll,
+                    'include_tax' => $include_tax,
+                    'include_driver_allowance' => $include_driver_allowance,
+                    'include_night_charges' => $include_night_charges,
+                    'include_parking' => $include_parking,
+                    'description' => $description,
+                    'terms_conditions' => $terms_conditions,
+                ];
+
+                if ($existingRow) {
+                    $sql = "UPDATE cars SET 
+                        brand_id = :brand_id,
+                        name = :name,
+                        base_fare = :base_fare,
+                        min_km = :min_km,
+                        extra_km_price = :extra_km_price,
+                        display_extra_km_price = :display_extra_km_price,
+                        include_toll = :include_toll,
+                        include_tax = :include_tax,
+                        include_driver_allowance = :include_driver_allowance,
+                        include_night_charges = :include_night_charges,
+                        include_parking = :include_parking,
+                        description = :description,
+                        terms_conditions = :terms_conditions
+                        WHERE id = :id";
+                    $params['id'] = $existingRow['id'];
+                } else {
+                    $sql = "INSERT INTO cars (type_id, brand_id, name, trip_type_id, city_id, drop_city_id, base_fare, min_km, extra_km_price, display_extra_km_price, include_toll, include_tax, include_driver_allowance, include_night_charges, include_parking, description, terms_conditions, status)
+                            VALUES (:type_id, :brand_id, :name, :trip_type_id, :city_id, :drop_city_id, :base_fare, :min_km, :extra_km_price, :display_extra_km_price, :include_toll, :include_tax, :include_driver_allowance, :include_night_charges, :include_parking, :description, :terms_conditions, 'Active')";
+                }
+
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute($params);
+                $savedCount++;
+            } else {
+                // If it is unchecked / disabled, delete the existing package row for this route & car type
+                if ($existingRow) {
+                    $delStmt = $pdo->prepare("DELETE FROM cars WHERE id = ?");
+                    $delStmt->execute([$existingRow['id']]);
+                }
+            }
+        }
+
+        if ($savedCount === 0) {
+            $pdo->rollBack();
+            echo json_encode(['success' => false, 'message' => 'Please fill details for at least one enabled car type.']);
+            exit;
+        }
+
+        $pdo->commit();
+        $msg = $id ? "Route packages updated successfully." : "Route packages created successfully.";
         echo json_encode(['success' => true, 'message' => $msg]);
     } catch (PDOException $e) {
+        $pdo->rollBack();
         echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
     }
 }
