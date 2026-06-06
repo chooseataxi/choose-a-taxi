@@ -212,9 +212,10 @@
     height: 100%;
     width: auto;
     object-fit: contain;
+    object-position: bottom center;
     z-index: 12;
     display: block;
-    transform: none;
+    transform: translateY(5px); /* Ensure visible bottom edge of the image touches the container boundary */
 }
 
 /* Responsive Design Styles */
