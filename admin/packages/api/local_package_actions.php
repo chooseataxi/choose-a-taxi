@@ -50,60 +50,103 @@ try {
     switch ($action) {
         case 'save':
             $id = $_POST['id'] ?? null;
-            $type_id = $_POST['type_id'];
-            $city_id = $_POST['city_id'];
-            $name = $_POST['name'] ?? 'Local Package'; // e.g., 2hrs/40kms
+            $city_id = $_POST['city_id'] ?? null;
+            $name = $_POST['name'] ?? ''; // e.g. 2hrs/40kms
+            $prices = $_POST['prices'] ?? [];
 
-            $brand_id              = 1;
-            $base_fare             = $_POST['base_fare'];
-            $min_km                = $_POST['min_km'] ?? 0;
-            $extra_km_price        = $_POST['extra_km_price'] ?? 0;
-            $display_extra_km_price = trim($_POST['display_extra_km_price'] ?? '');
-            
-            // Reusing existing columns for other features, or defaults
-            $include_toll          = $_POST['include_toll'] ?? 'Excluded';
-            $include_tax           = $_POST['include_tax'] ?? 'Excluded';
-            $include_driver_allowance = $_POST['include_driver_allowance'] ?? 'Excluded';
-            $include_night_charges = $_POST['include_night_charges'] ?? 'Excluded';
-            $include_parking       = $_POST['include_parking'] ?? 'Excluded';
-            
-            $description           = $_POST['description'] ?? '';
-            $terms_conditions      = $_POST['terms_conditions'] ?? '';
-            $status                = $_POST['status'] ?? 'Active';
-
-            if ($id) {
-                $stmt = $pdo->prepare("UPDATE cars SET
-                    type_id = ?, city_id = ?, brand_id = ?, name = ?, base_fare = ?, min_km = ?,
-                    extra_km_price = ?, display_extra_km_price = ?,
-                    include_toll = ?, include_tax = ?,
-                    include_driver_allowance = ?, include_night_charges = ?,
-                    include_parking = ?, description = ?, terms_conditions = ?, status = ?
-                    WHERE id = ? AND trip_type_id = ?");
-                $stmt->execute([
-                    $type_id, $city_id, $brand_id, $name, $base_fare, $min_km,
-                    $extra_km_price, $display_extra_km_price,
-                    $include_toll, $include_tax,
-                    $include_driver_allowance, $include_night_charges,
-                    $include_parking, $description, $terms_conditions, $status,
-                    $id, $localId
-                ]);
-                $message = "Package updated successfully!";
-            } else {
-                $stmt = $pdo->prepare("INSERT INTO cars
-                    (type_id, city_id, brand_id, trip_type_id, name, base_fare, min_km,
-                    extra_km_price, display_extra_km_price, include_toll, include_tax,
-                    include_driver_allowance, include_night_charges,
-                    include_parking, description, terms_conditions, status)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                $stmt->execute([
-                    $type_id, $city_id, $brand_id, $localId, $name, $base_fare, $min_km,
-                    $extra_km_price, $display_extra_km_price, $include_toll, $include_tax,
-                    $include_driver_allowance, $include_night_charges,
-                    $include_parking, $description, $terms_conditions, $status
-                ]);
-                $message = "Package added successfully!";
+            if (!$city_id || empty($name)) {
+                echo json_encode(['success' => false, 'message' => 'Please fill all required fields.']);
+                exit;
             }
-            echo json_encode(['success' => true, 'message' => $message]);
+
+            $brand_id                 = 1;
+            $include_toll             = $_POST['include_toll'] ?? 'Excluded';
+            $include_tax              = $_POST['include_tax'] ?? 'Excluded';
+            $include_driver_allowance = $_POST['include_driver_allowance'] ?? 'Excluded';
+            $include_night_charges    = $_POST['include_night_charges'] ?? 'Excluded';
+            $include_parking          = $_POST['include_parking'] ?? 'Excluded';
+            
+            $description              = $_POST['description'] ?? '';
+            $terms_conditions         = $_POST['terms_conditions'] ?? '';
+            $status                   = $_POST['status'] ?? 'Active';
+
+            // Fetch active car types
+            $carTypes = $pdo->query("SELECT id, name FROM car_types WHERE status = 'Active'")->fetchAll();
+
+            $pdo->beginTransaction();
+            try {
+                $savedCount = 0;
+                foreach ($carTypes as $carType) {
+                    $type_id = $carType['id'];
+
+                    $pricing = $prices[$type_id] ?? null;
+                    $enabled = isset($pricing['enabled']) && $pricing['enabled'] == '1';
+
+                    // Check if record already exists for this city + package name + car type + trip type (Local)
+                    $checkStmt = $pdo->prepare("SELECT id FROM cars WHERE city_id = ? AND name = ? AND type_id = ? AND trip_type_id = ?");
+                    $checkStmt->execute([$city_id, $name, $type_id, $localId]);
+                    $existingRow = $checkStmt->fetch();
+
+                    if ($enabled) {
+                        $base_fare = $pricing['base_fare'] ?? null;
+                        $min_km = $pricing['min_km'] ?? null;
+                        $extra_km_price = $pricing['extra_km_price'] ?? null;
+                        $display_extra_km_price = trim($pricing['display_extra_km_price'] ?? '');
+
+                        if ($base_fare === '' || $min_km === '' || $extra_km_price === '' || $base_fare === null || $min_km === null || $extra_km_price === null) {
+                            continue;
+                        }
+
+                        if ($existingRow) {
+                            $upStmt = $pdo->prepare("UPDATE cars SET
+                                base_fare = ?, min_km = ?, extra_km_price = ?, display_extra_km_price = ?,
+                                include_toll = ?, include_tax = ?, include_driver_allowance = ?,
+                                include_night_charges = ?, include_parking = ?, description = ?,
+                                terms_conditions = ?, status = ?
+                                WHERE id = ?");
+                            $upStmt->execute([
+                                $base_fare, $min_km, $extra_km_price, $display_extra_km_price,
+                                $include_toll, $include_tax, $include_driver_allowance,
+                                $include_night_charges, $include_parking, $description,
+                                $terms_conditions, $status, $existingRow['id']
+                            ]);
+                        } else {
+                            $insStmt = $pdo->prepare("INSERT INTO cars
+                                (type_id, city_id, brand_id, trip_type_id, name, base_fare, min_km,
+                                extra_km_price, display_extra_km_price, include_toll, include_tax,
+                                include_driver_allowance, include_night_charges,
+                                include_parking, description, terms_conditions, status)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                            $insStmt->execute([
+                                $type_id, $city_id, $brand_id, $localId, $name, $base_fare, $min_km,
+                                $extra_km_price, $display_extra_km_price, $include_toll, $include_tax,
+                                $include_driver_allowance, $include_night_charges,
+                                $include_parking, $description, $terms_conditions, $status
+                            ]);
+                        }
+                        $savedCount++;
+                    } else {
+                        // Unchecked: delete package record for this city + name + car type
+                        if ($existingRow) {
+                            $delStmt = $pdo->prepare("DELETE FROM cars WHERE id = ?");
+                            $delStmt->execute([$existingRow['id']]);
+                        }
+                    }
+                }
+
+                if ($savedCount === 0) {
+                    $pdo->rollBack();
+                    echo json_encode(['success' => false, 'message' => 'Please configure pricing for at least one enabled car type.']);
+                    exit;
+                }
+
+                $pdo->commit();
+                $message = $id ? "Packages updated successfully!" : "Packages added successfully!";
+                echo json_encode(['success' => true, 'message' => $message]);
+            } catch (Exception $e) {
+                $pdo->rollBack();
+                echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+            }
             break;
 
         case 'delete':
