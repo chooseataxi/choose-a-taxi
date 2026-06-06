@@ -263,6 +263,288 @@ $cars = array_values($unique_cars);
         transition: 0.3s; margin-top: 15px; width: 100%;
     }
     .btn-update-search:hover { background: #e0ac08; transform: translateY(-2px); }
+
+    /* Search Result Fleet Card Styling */
+    .fleet-horizontal-card {
+        display: flex;
+        background: #ffffff;
+        border-radius: 16px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.03), 0 1px 3px rgba(0,0,0,0.01);
+        margin-bottom: 25px;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+    .fleet-horizontal-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 16px 40px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.02);
+        border-color: rgba(255, 158, 21, 0.3);
+    }
+    
+    /* Left Section: Image */
+    .fleet-card-left {
+        flex: 0 0 280px;
+        background: #f8fafc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
+        border-right: 1px solid rgba(0, 0, 0, 0.04);
+    }
+    .fleet-card-left img {
+        width: 100%;
+        height: auto;
+        max-height: 160px;
+        object-fit: contain;
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .fleet-horizontal-card:hover .fleet-card-left img {
+        transform: scale(1.06);
+    }
+    
+    /* Middle Section: Details */
+    .fleet-card-middle {
+        flex: 1;
+        padding: 24px 30px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .fleet-card-middle h3 {
+        font-size: 20px;
+        font-weight: 800;
+        color: #0f172a;
+        margin: 0 0 15px 0;
+        letter-spacing: -0.5px;
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .fleet-card-middle h3 .badge-car-type {
+        font-size: 11px;
+        font-weight: 700;
+        background: rgba(255, 193, 7, 0.15);
+        color: #c49000;
+        padding: 3px 10px;
+        border-radius: 20px;
+        text-transform: uppercase;
+    }
+
+    /* Details Grid */
+    .details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 16px 20px;
+        margin-bottom: 15px;
+    }
+    .detail-row {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .detail-row label {
+        font-size: 10.5px;
+        font-weight: 700;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0;
+    }
+    .detail-row span, .detail-row div {
+        font-size: 13.5px;
+        font-weight: 700;
+        color: #334155;
+    }
+    
+    /* Inclusion Pill Badges */
+    .inclusion-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-size: 11.5px !important;
+        font-weight: 700 !important;
+        width: fit-content;
+    }
+    .inclusion-badge-included {
+        background-color: #ecfdf5;
+        color: #059669 !important;
+    }
+    .inclusion-badge-excluded {
+        background-color: #fef2f2;
+        color: #dc2626 !important;
+    }
+    .inclusion-badge i {
+        font-size: 10px;
+    }
+
+    /* Cancellation & Trust Markers */
+    .cancellation-note {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #059669;
+        background: #f0fdf4;
+        padding: 6px 12px;
+        border-radius: 8px;
+        width: fit-content;
+        margin-top: 10px;
+    }
+
+    /* Right Section: Price & Action */
+    .fleet-card-right {
+        flex: 0 0 260px;
+        padding: 30px 24px;
+        background: #fafafa;
+        border-left: 1px dashed rgba(0, 0, 0, 0.08);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: stretch;
+        position: relative;
+    }
+    
+    .price-area {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 5px;
+        margin-bottom: 20px;
+    }
+    .price-area-top {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+    .old-price {
+        font-size: 14.5px;
+        color: #94a3b8;
+        text-decoration: line-through;
+        font-weight: 600;
+    }
+    .discount-badge {
+        font-size: 11px;
+        font-weight: 800;
+        background: #e11d48;
+        color: #ffffff;
+        padding: 2px 6px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .current-price {
+        font-size: 32px;
+        font-weight: 900;
+        color: #0f172a;
+        line-height: 1;
+        letter-spacing: -1px;
+    }
+    .price-subtext {
+        font-size: 10.5px;
+        color: #64748b;
+        font-weight: 500;
+        margin-top: 2px;
+    }
+
+    /* Book Button styling */
+    .btn-book-now {
+        background: #ffcc00;
+        color: #0f172a !important;
+        padding: 12px 18px;
+        border-radius: 10px;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-weight: 800;
+        font-size: 15px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 12px rgba(255, 204, 0, 0.2);
+        border: none;
+    }
+    .btn-book-now:hover {
+        background: #e0b400;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(255, 204, 0, 0.35);
+    }
+    .btn-book-now:active {
+        transform: translateY(0);
+    }
+
+    /* Responsive Breakpoints */
+    @media (max-width: 991px) {
+        .fleet-horizontal-card {
+            flex-direction: column;
+        }
+        .fleet-card-left {
+            flex: 0 0 200px;
+            border-right: none;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+            padding: 30px;
+        }
+        .fleet-card-left img {
+            max-height: 180px;
+            width: auto;
+        }
+        .fleet-card-right {
+            flex: unset;
+            border-left: none;
+            border-top: 1px dashed rgba(0, 0, 0, 0.08);
+            padding: 24px;
+            background: #ffffff;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .price-area {
+            align-items: flex-start;
+            margin-bottom: 0;
+        }
+        .price-area-top {
+            justify-content: flex-start;
+            flex-direction: row-reverse;
+        }
+        .btn-book-now {
+            padding: 12px 30px;
+            width: auto;
+        }
+    }
+
+    @media (max-width: 767px) {
+        .fleet-card-middle {
+            padding: 20px;
+        }
+        .details-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px 15px;
+        }
+        .fleet-card-right {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 15px;
+        }
+        .price-area {
+            align-items: center;
+        }
+        .price-area-top {
+            justify-content: center;
+        }
+        .btn-book-now {
+            width: 100%;
+        }
+    }
 </style>
 
 <!-- T&C Modal -->
