@@ -19,27 +19,27 @@ if (isset($_GET['main_tab']) && !empty($_GET['main_tab'])) {
 
 
 if ($is_local_trip) {
-    $trip_type = $_GET['local_trip_type'] ?? $_GET['trip_type'] ?? 'Local / Rental';
-    $pickup    = $_GET['local_pickup'] ?? $_GET['pickup'] ?? '';
-    $drop      = $_GET['airport_drop'] ?? $_GET['drop'] ?? '';
+    $trip_type = !empty($_GET['local_trip_type']) ? $_GET['local_trip_type'] : (!empty($_GET['trip_type']) ? $_GET['trip_type'] : 'Local / Rental');
+    $pickup    = !empty($_GET['local_pickup']) ? $_GET['local_pickup'] : (!empty($_GET['pickup']) ? $_GET['pickup'] : '');
+    $drop      = !empty($_GET['airport_drop']) ? $_GET['airport_drop'] : (!empty($_GET['drop']) ? $_GET['drop'] : '');
     $stops     = [];
-    $date      = $_GET['local_date'] ?? $_GET['date'] ?? '';
-    $time      = $_GET['local_time'] ?? $_GET['time'] ?? '';
+    $date      = !empty($_GET['local_date']) ? $_GET['local_date'] : (!empty($_GET['date']) ? $_GET['date'] : '');
+    $time      = !empty($_GET['local_time']) ? $_GET['local_time'] : (!empty($_GET['time']) ? $_GET['time'] : '');
     $return_date = '';
     $return_time = '';
     
     // City selected from dropdown
     $selected_city_id = !empty($_GET['city']) ? (int)$_GET['city'] : null;
-    $selected_package_name = $_GET['package'] ?? '';
+    $selected_package_name = !empty($_GET['package']) ? $_GET['package'] : '';
 } else {
-    $trip_type   = $_GET['trip_type'] ?? 'One Way';
-    $pickup      = $_GET['pickup'] ?? '';
-    $drop        = $_GET['drop'] ?? '';
-    $stops       = $_GET['stops'] ?? [];
-    $date        = $_GET['date'] ?? '';
-    $time        = $_GET['time'] ?? '';
-    $return_date = $_GET['return_date'] ?? '';
-    $return_time = $_GET['return_time'] ?? '';
+    $trip_type   = !empty($_GET['trip_type']) ? $_GET['trip_type'] : 'One Way';
+    $pickup      = !empty($_GET['pickup']) ? $_GET['pickup'] : '';
+    $drop        = !empty($_GET['drop']) ? $_GET['drop'] : '';
+    $stops       = !empty($_GET['stops']) ? $_GET['stops'] : [];
+    $date        = !empty($_GET['date']) ? $_GET['date'] : '';
+    $time        = !empty($_GET['time']) ? $_GET['time'] : '';
+    $return_date = !empty($_GET['return_date']) ? $_GET['return_date'] : '';
+    $return_time = !empty($_GET['return_time']) ? $_GET['return_time'] : '';
     $selected_city_id = null;
     $selected_package_name = '';
 }
@@ -176,7 +176,7 @@ if ($is_local_trip && !empty($selected_city_id)) {
 
 // 2.7 Log this search to the database for admin analysis
 try {
-    $log_phone = $_GET['local_phone'] ?? $_GET['phone'] ?? '';
+    $log_phone = !empty($_GET['local_phone']) ? $_GET['local_phone'] : (!empty($_GET['phone']) ? $_GET['phone'] : '');
     $log_stops_json = !empty($stops) ? json_encode($stops) : null;
     $log_ip = $_SERVER['REMOTE_ADDR'] ?? '';
 
@@ -688,6 +688,8 @@ $cars = array_values($unique_cars);
         <div class="ts-header-card">
             <form action="search-results.php" method="GET" id="editTripForm">
                 <input type="hidden" name="trip_type" value="<?= htmlspecialchars($trip_type) ?>">
+                <input type="hidden" name="phone" value="<?= htmlspecialchars($_GET['phone'] ?? '') ?>">
+                <input type="hidden" name="local_phone" value="<?= htmlspecialchars($_GET['local_phone'] ?? '') ?>">
                 <?php if ($is_local_trip): ?>
                     <input type="hidden" name="main_tab" value="Local / Airport">
                     <input type="hidden" name="local_trip_type" value="<?= htmlspecialchars($trip_type) ?>">

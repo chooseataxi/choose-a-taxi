@@ -206,7 +206,7 @@ if ($localId) {
                                     <img src="https://flagcdn.com/w20/in.png" srcset="https://flagcdn.com/w40/in.png 2x" width="20" alt="India">
                                     +91 <i class="fas fa-chevron-down" style="font-size: 10px;"></i>
                                 </span>
-                                <input type="tel" name="local_phone" id="local_phone" placeholder="CONTACT NO.">
+                                <input type="tel" name="local_phone" id="local_phone" placeholder="CONTACT NO." required>
                             </div>
                         </div>
 
@@ -417,6 +417,12 @@ if ($localId) {
         document.getElementById('start-time').value = timeStr;
         document.getElementById('local-start-date').value = dateStr;
         document.getElementById('local-start-time').value = timeStr;
+        
+        // Disable required validation for hidden local fields initially
+        document.getElementById('local_pickup_address').required = false;
+        document.getElementById('local_phone').required = false;
+        document.getElementById('local-start-date').required = false;
+        document.getElementById('local-start-time').required = false;
         
         initAutocomplete();
     }
