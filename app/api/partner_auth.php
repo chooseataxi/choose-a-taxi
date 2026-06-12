@@ -1,21 +1,7 @@
 <?php
+ini_set('display_errors', 0);
+error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
 session_start();
-// Load DB using correct relative path
-require_once __DIR__ . '/../../includes/db.php';
-
-// Sync columns for both tables
-foreach (['partners' => 'mobile', 'drivers' => 'phone'] as $table => $phoneCol) {
-    try {
-        $pdo->query("SELECT login_otp FROM $table LIMIT 1");
-    } catch(PDOException $e) {
-        $pdo->exec("ALTER TABLE $table ADD COLUMN login_otp VARCHAR(10) NULL AFTER $phoneCol");
-    }
-    try {
-        $pdo->query("SELECT fcm_token FROM $table LIMIT 1");
-    } catch(PDOException $e) {
-        $pdo->exec("ALTER TABLE $table ADD COLUMN fcm_token TEXT NULL");
-    }
-}
 
 // Ensure CORS headers for mobile app JSON interactions
 header('Content-Type: application/json; charset=utf-8');
@@ -27,6 +13,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
 }
+
+try {
+    // Load DB using correct relative path
+    require_once __DIR__ . '/../../includes/db.php';
+
+    // Sync columns for both tables
+    foreach (['partners' => 'mobile', 'drivers' => 'phone'] as $table => $phoneCol) {
+        try {
+            $pdo->query("SELECT login_otp FROM $table LIMIT 1");
+        } catch(PDOException $e) {
+            try {
+                $pdo->exec("ALTER TABLE $table ADD COLUMN login_otp VARCHAR(10) NULL AFTER $phoneCol");
+            } catch(PDOException $alterEx) {
+                // Ignore alter table error
+            }
+        }
+        try {
+            $pdo->query("SELECT fcm_token FROM $table LIMIT 1");
+        } catch(PDOException $e) {
+            try {
+                $pdo->exec("ALTER TABLE $table ADD COLUMN fcm_token TEXT NULL");
+            } catch(PDOException $alterEx) {
+                // Ignore alter table error
+            }
+        }
+    }
 
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
 
@@ -93,8 +105,7 @@ function sendSms($mobile, $message, $templateId = '') {
     return ['success' => true];
 }
 
-try {
-    switch ($action) {
+switch ($action) {
         case 'login_request':
             $mobile = $_POST['mobile'] ?? '';
             $role = $_POST['role'] ?? 'partner';
@@ -231,25 +242,48 @@ try {
         case 'upload_documents':
             $partner_id = $_POST['partner_id'] ?? 0;
             if (empty($partner_id)) throw new Exception("Partner ID required.");
-            $targetDir = realpath(__DIR__ . '/../../') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'partners' . DIRECTORY_SEPARATOR;
-            if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
+            
+            // Build absolute path to uploads folder using dirname to bypass realpath checks on uncreated folders
+            $targetDir = dirname(dirname(__DIR__)) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'partners' . DIRECTORY_SEPARATOR;
+            if (!is_dir($targetDir)) {
+                if (!@mkdir($targetDir, 0777, true)) {
+                    throw new Exception("Failed to create upload directory. Please check folder permissions on the server.");
+                }
+            }
+            
             $updates = [];
             $params = [];
+            
             if (isset($_FILES['aadhar_front']) && $_FILES['aadhar_front']['error'] == UPLOAD_ERR_OK) {
                 $ext = pathinfo($_FILES['aadhar_front']['name'], PATHINFO_EXTENSION);
                 $name = "adh_f_{$partner_id}_" . time() . ".$ext";
-                if (move_uploaded_file($_FILES['aadhar_front']['tmp_name'], $targetDir . $name)) { $updates[] = "aadhaar_front_link = ?"; $params[] = $name; }
+                if (!@move_uploaded_file($_FILES['aadhar_front']['tmp_name'], $targetDir . $name)) {
+                    throw new Exception("Failed to save Aadhaar Front image. Please verify upload permissions.");
+                }
+                $updates[] = "aadhaar_front_link = ?";
+                $params[] = $name;
             }
+            
             if (isset($_FILES['aadhar_back']) && $_FILES['aadhar_back']['error'] == UPLOAD_ERR_OK) {
                 $ext = pathinfo($_FILES['aadhar_back']['name'], PATHINFO_EXTENSION);
                 $name = "adh_b_{$partner_id}_" . time() . ".$ext";
-                if (move_uploaded_file($_FILES['aadhar_back']['tmp_name'], $targetDir . $name)) { $updates[] = "aadhaar_back_link = ?"; $params[] = $name; }
+                if (!@move_uploaded_file($_FILES['aadhar_back']['tmp_name'], $targetDir . $name)) {
+                    throw new Exception("Failed to save Aadhaar Back image. Please verify upload permissions.");
+                }
+                $updates[] = "aadhaar_back_link = ?";
+                $params[] = $name;
             }
+            
             if (isset($_FILES['selfie']) && $_FILES['selfie']['error'] == UPLOAD_ERR_OK) {
                 $ext = pathinfo($_FILES['selfie']['name'], PATHINFO_EXTENSION);
                 $name = "selfie_{$partner_id}_" . time() . ".$ext";
-                if (move_uploaded_file($_FILES['selfie']['tmp_name'], $targetDir . $name)) { $updates[] = "selfie_link = ?"; $params[] = $name; }
+                if (!@move_uploaded_file($_FILES['selfie']['tmp_name'], $targetDir . $name)) {
+                    throw new Exception("Failed to save Selfie image. Please verify upload permissions.");
+                }
+                $updates[] = "selfie_link = ?";
+                $params[] = $name;
             }
+            
             if (!empty($updates)) {
                 $updates[] = "manual_verification_status = 'Pending'";
                 if (!empty($_POST['full_name'])) { $updates[] = "full_name = ?"; $params[] = $_POST['full_name']; }
@@ -261,7 +295,9 @@ try {
                 $stmt = $pdo->prepare($query);
                 $stmt->execute($params);
                 echo json_encode(['success' => true, 'message' => 'Documents uploaded and pending verification.']);
-            } else { throw new Exception("No valid documents provided or upload failed."); }
+            } else { 
+                throw new Exception("No valid documents provided or upload failed."); 
+            }
             break;
 
         case 'update_fcm_token':
@@ -278,7 +314,7 @@ try {
         default:
             throw new Exception("Invalid API action.");
     }
-} catch (Exception $e) {
+} catch (Throwable $e) {
     $msg = $e->getMessage();
     // Only log actual system/db errors. Do not spam common client validations.
     $skipLog = (
