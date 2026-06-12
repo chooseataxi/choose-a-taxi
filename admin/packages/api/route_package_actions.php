@@ -110,30 +110,49 @@ if ($action === 'save') {
                 ];
 
                 if ($existingRow) {
-                    $sql = "UPDATE cars SET 
-                        brand_id = :brand_id,
-                        name = :name,
-                        base_fare = :base_fare,
-                        min_km = :min_km,
-                        extra_km_price = :extra_km_price,
-                        display_extra_km_price = :display_extra_km_price,
-                        include_toll = :include_toll,
-                        include_tax = :include_tax,
-                        include_driver_allowance = :include_driver_allowance,
-                        include_night_charges = :include_night_charges,
-                        include_parking = :include_parking,
-                        description = :description,
-                        terms_conditions = :terms_conditions
-                        WHERE id = :id";
-                    $params['id'] = $existingRow['id'];
-                } else {
-                    $sql = "INSERT INTO cars (type_id, brand_id, name, trip_type_id, city_id, drop_city_id, base_fare, min_km, extra_km_price, display_extra_km_price, include_toll, include_tax, include_driver_allowance, include_night_charges, include_parking, description, terms_conditions, status)
-                            VALUES (:type_id, :brand_id, :name, :trip_type_id, :city_id, :drop_city_id, :base_fare, :min_km, :extra_km_price, :display_extra_km_price, :include_toll, :include_tax, :include_driver_allowance, :include_night_charges, :include_parking, :description, :terms_conditions, 'Active')";
-                }
-
+                $sql = "UPDATE cars SET 
+                    brand_id = :brand_id,
+                    name = :name,
+                    base_fare = :base_fare,
+                    min_km = :min_km,
+                    extra_km_price = :extra_km_price,
+                    display_extra_km_price = :display_extra_km_price,
+                    include_toll = :include_toll,
+                    include_tax = :include_tax,
+                    include_driver_allowance = :include_driver_allowance,
+                    include_night_charges = :include_night_charges,
+                    include_parking = :include_parking,
+                    description = :description,
+                    terms_conditions = :terms_conditions
+                    WHERE id = :id";
+                
+                $update_params = [
+                    'brand_id' => $brand_id,
+                    'name' => $name,
+                    'base_fare' => $base_fare,
+                    'min_km' => $min_km,
+                    'extra_km_price' => $extra_km_price,
+                    'display_extra_km_price' => $display_extra_km_price,
+                    'include_toll' => $include_toll,
+                    'include_tax' => $include_tax,
+                    'include_driver_allowance' => $include_driver_allowance,
+                    'include_night_charges' => $include_night_charges,
+                    'include_parking' => $include_parking,
+                    'description' => $description,
+                    'terms_conditions' => $terms_conditions,
+                    'id' => $existingRow['id']
+                ];
+                
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute($update_params);
+            } else {
+                $sql = "INSERT INTO cars (type_id, brand_id, name, trip_type_id, city_id, drop_city_id, base_fare, min_km, extra_km_price, display_extra_km_price, include_toll, include_tax, include_driver_allowance, include_night_charges, include_parking, description, terms_conditions, status)
+                        VALUES (:type_id, :brand_id, :name, :trip_type_id, :city_id, :drop_city_id, :base_fare, :min_km, :extra_km_price, :display_extra_km_price, :include_toll, :include_tax, :include_driver_allowance, :include_night_charges, :include_parking, :description, :terms_conditions, 'Active')";
+                
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute($params);
-                $savedCount++;
+            }
+            $savedCount++;
             } else {
                 // If it is unchecked / disabled, delete the existing package row for this route & car type
                 if ($existingRow) {
