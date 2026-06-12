@@ -21,7 +21,8 @@ $menuItems = [
         "menuTitle" => "Bookings",
         "icon" => "fas fa-calendar-check",
         "pages" => [
-            ["title" => "Partner Bookings", "url" => "bookings/partner-bookings.php"]
+            ["title" => "Partner Bookings", "url" => "bookings/partner-bookings.php"],
+            ["title" => "Search Results Logs", "url" => "search-results/index.php"]
         ],
     ],
     [
@@ -91,7 +92,8 @@ $menuItems = [
         "menuTitle" => "Mobile App",
         "icon" => "fas fa-mobile-alt",
         "pages" => [
-            ["title" => "Hero Slides", "url" => "mobile-app/manage-hero.php"]
+            ["title" => "Hero Slides", "url" => "mobile-app/manage-hero.php"],
+            ["title" => "Manage Notices", "url" => "mobile-app/manage-notices.php"]
         ],
     ]
 ];

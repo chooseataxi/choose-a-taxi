@@ -174,6 +174,48 @@ if ($is_local_trip && !empty($selected_city_id)) {
     }
 }
 
+// 2.7 Log this search to the database for admin analysis
+try {
+    $log_phone = $_GET['local_phone'] ?? $_GET['phone'] ?? '';
+    $log_stops_json = !empty($stops) ? json_encode($stops) : null;
+    $log_ip = $_SERVER['REMOTE_ADDR'] ?? '';
+
+    // Convert empty values to null for date/time where appropriate
+    $log_return_date = !empty($return_date) ? $return_date : null;
+    $log_return_time = (!empty($log_return_date) && !empty($return_time)) ? $return_time : null;
+    $log_start_date = !empty($date) ? $date : null;
+    $log_start_time = (!empty($log_start_date) && !empty($time)) ? $time : null;
+
+    $log_stmt = $pdo->prepare("
+        INSERT INTO search_logs (
+            main_tab, trip_type, pickup, drop_location, stops, 
+            start_date, start_time, return_date, return_time, 
+            phone, distance_km, ip_address
+        ) VALUES (
+            ?, ?, ?, ?, ?, 
+            ?, ?, ?, ?, 
+            ?, ?, ?
+        )
+    ");
+    $log_stmt->execute([
+        $main_tab ?: 'Out Station',
+        $trip_type,
+        $pickup,
+        $drop,
+        $log_stops_json,
+        $log_start_date,
+        $log_start_time,
+        $log_return_date,
+        $log_return_time,
+        $log_phone,
+        $total_distance_km,
+        $log_ip
+    ]);
+} catch (Exception $e) {
+    // Fail silently so database log issues do not affect user searches
+    error_log("Failed to log search query: " . $e->getMessage());
+}
+
 // 3. Fetch Available Cars matching the trip type and specific route/city
 $trip_query_param = '%' . $trip_type . '%';
 
