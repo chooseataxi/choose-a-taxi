@@ -9,7 +9,14 @@ require_once 'includes/header.php';
 $main_tab = $_GET['main_tab'] ?? '';
 
 // Check if we are searching for a local trip type
-$is_local_trip = ($main_tab === 'Local / Airport') || isset($_GET['local_trip_type']) || (isset($_GET['trip_type']) && stripos($_GET['trip_type'], 'Local') !== false);
+$is_local_trip = false;
+if (isset($_GET['main_tab']) && !empty($_GET['main_tab'])) {
+    $is_local_trip = ($_GET['main_tab'] === 'Local / Airport');
+} else {
+    // Fallback if main_tab is not provided in GET parameters
+    $is_local_trip = (isset($_GET['local_trip_type']) && !isset($_GET['trip_type'])) || (isset($_GET['trip_type']) && stripos($_GET['trip_type'], 'Local') !== false);
+}
+
 
 if ($is_local_trip) {
     $trip_type = $_GET['local_trip_type'] ?? $_GET['trip_type'] ?? 'Local / Rental';
