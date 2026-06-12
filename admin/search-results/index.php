@@ -212,11 +212,13 @@ try {
                                         </td>
                                         <td>
                                             <?php if (!empty($search['phone'])): ?>
-                                                <a href="tel:<?= htmlspecialchars($search['phone']) ?>" class="btn btn-outline-secondary btn-xs rounded-pill px-2 py-1 small text-decoration-none">
-                                                    <i class="fas fa-phone-alt me-1"></i>+91 <?= htmlspecialchars($search['phone']) ?>
-                                                </a>
+                                                <div class="text-nowrap small">
+                                                    <a href="tel:<?= htmlspecialchars($search['phone']) ?>" class="text-decoration-none text-dark fw-semibold">
+                                                        <i class="fas fa-phone-alt text-muted me-1"></i>+91 <?= htmlspecialchars($search['phone']) ?>
+                                                    </a>
+                                                </div>
                                             <?php else: ?>
-                                                <span class="text-muted small">Not provided</span>
+                                                <span class="text-muted small text-nowrap">Not provided</span>
                                             <?php endif; ?>
                                         </td>
                                         <td class="small text-muted"><?= htmlspecialchars($search['ip_address'] ?: 'N/A') ?></td>
