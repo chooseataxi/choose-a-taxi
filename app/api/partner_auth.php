@@ -245,40 +245,71 @@ switch ($action) {
             
             // Build absolute path to uploads folder using dirname to bypass realpath checks on uncreated folders
             $targetDir = dirname(dirname(__DIR__)) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'partners' . DIRECTORY_SEPARATOR;
+            
+            // Proactively manage directory existence and permissions
             if (!is_dir($targetDir)) {
                 if (!@mkdir($targetDir, 0777, true)) {
-                    throw new Exception("Failed to create upload directory. Please check folder permissions on the server.");
+                    $err = error_get_last();
+                    $details = isset($err['message']) ? " (System error: " . $err['message'] . ")" : "";
+                    throw new Exception("Failed to create upload directory. Please check folder permissions on the server.$details");
                 }
+                @chmod($targetDir, 0777);
+            } else {
+                if (!is_writable($targetDir)) {
+                    @chmod($targetDir, 0777);
+                }
+            }
+
+            // Verify writability again after trying to fix permissions
+            if (!is_writable($targetDir)) {
+                $err = error_get_last();
+                $details = isset($err['message']) ? " (System error: " . $err['message'] . ")" : "";
+                throw new Exception("Upload directory is not writable. Please verify upload permissions for the 'uploads/partners' directory on the server.$details Tip: Run 'chmod -R 777 uploads/partners' or ensure correct ownership.");
             }
             
             $updates = [];
             $params = [];
             
             if (isset($_FILES['aadhar_front']) && $_FILES['aadhar_front']['error'] == UPLOAD_ERR_OK) {
-                $ext = pathinfo($_FILES['aadhar_front']['name'], PATHINFO_EXTENSION);
+                $ext = strtolower(pathinfo($_FILES['aadhar_front']['name'], PATHINFO_EXTENSION));
+                if (empty($ext) || !preg_match('/^[a-z0-9]+$/', $ext)) {
+                    $ext = 'jpg';
+                }
                 $name = "adh_f_{$partner_id}_" . time() . ".$ext";
                 if (!@move_uploaded_file($_FILES['aadhar_front']['tmp_name'], $targetDir . $name)) {
-                    throw new Exception("Failed to save Aadhaar Front image. Please verify upload permissions.");
+                    $err = error_get_last();
+                    $details = isset($err['message']) ? " (System error: " . $err['message'] . ")" : "";
+                    throw new Exception("Failed to save Aadhaar Front image. Please verify upload permissions.$details");
                 }
                 $updates[] = "aadhaar_front_link = ?";
                 $params[] = $name;
             }
             
             if (isset($_FILES['aadhar_back']) && $_FILES['aadhar_back']['error'] == UPLOAD_ERR_OK) {
-                $ext = pathinfo($_FILES['aadhar_back']['name'], PATHINFO_EXTENSION);
+                $ext = strtolower(pathinfo($_FILES['aadhar_back']['name'], PATHINFO_EXTENSION));
+                if (empty($ext) || !preg_match('/^[a-z0-9]+$/', $ext)) {
+                    $ext = 'jpg';
+                }
                 $name = "adh_b_{$partner_id}_" . time() . ".$ext";
                 if (!@move_uploaded_file($_FILES['aadhar_back']['tmp_name'], $targetDir . $name)) {
-                    throw new Exception("Failed to save Aadhaar Back image. Please verify upload permissions.");
+                    $err = error_get_last();
+                    $details = isset($err['message']) ? " (System error: " . $err['message'] . ")" : "";
+                    throw new Exception("Failed to save Aadhaar Back image. Please verify upload permissions.$details");
                 }
                 $updates[] = "aadhaar_back_link = ?";
                 $params[] = $name;
             }
             
             if (isset($_FILES['selfie']) && $_FILES['selfie']['error'] == UPLOAD_ERR_OK) {
-                $ext = pathinfo($_FILES['selfie']['name'], PATHINFO_EXTENSION);
+                $ext = strtolower(pathinfo($_FILES['selfie']['name'], PATHINFO_EXTENSION));
+                if (empty($ext) || !preg_match('/^[a-z0-9]+$/', $ext)) {
+                    $ext = 'jpg';
+                }
                 $name = "selfie_{$partner_id}_" . time() . ".$ext";
                 if (!@move_uploaded_file($_FILES['selfie']['tmp_name'], $targetDir . $name)) {
-                    throw new Exception("Failed to save Selfie image. Please verify upload permissions.");
+                    $err = error_get_last();
+                    $details = isset($err['message']) ? " (System error: " . $err['message'] . ")" : "";
+                    throw new Exception("Failed to save Selfie image. Please verify upload permissions.$details");
                 }
                 $updates[] = "selfie_link = ?";
                 $params[] = $name;
