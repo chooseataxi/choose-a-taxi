@@ -16,9 +16,31 @@ header("Access-Control-Allow-Headers: Content-Type, Authorization");
 $action = $_REQUEST['action'] ?? '';
 $partner_id = $_REQUEST['partner_id'] ?? '';
 
-if (empty($partner_id) && $action !== 'options') {
-    echo json_encode(["status" => "error", "message" => "partner_id is required"]);
-    exit;
+// Support JSON body for partner_id & action
+$rawInput = file_get_contents("php://input");
+$jsonData = json_decode($rawInput, true);
+if (is_array($jsonData)) {
+    if (empty($action) && isset($jsonData['action'])) {
+        $action = $jsonData['action'];
+    }
+    if (empty($partner_id) && isset($jsonData['partner_id'])) {
+        $partner_id = $jsonData['partner_id'];
+    }
+}
+
+if ($action !== 'options') {
+    if (empty($partner_id) || !is_numeric($partner_id) || intval($partner_id) <= 0) {
+        $valStr = is_null($partner_id) ? 'null' : (is_string($partner_id) ? "'$partner_id'" : var_export($partner_id, true));
+        echo json_encode(["status" => "error", "message" => "A valid partner_id is required. Received: " . $valStr]);
+        exit;
+    }
+    // Check if partner exists in the database
+    $checkPartner = $pdo->prepare("SELECT id FROM partners WHERE id = ?");
+    $checkPartner->execute([$partner_id]);
+    if (!$checkPartner->fetch()) {
+        echo json_encode(["status" => "error", "message" => "Partner account not found for ID: " . $partner_id . ". Please log out and log in again."]);
+        exit;
+    }
 }
 
 function getRazorpayConfig($pdo) {

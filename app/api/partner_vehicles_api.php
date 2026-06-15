@@ -49,19 +49,32 @@ try {
 $action = $_REQUEST['action'] ?? '';
 $partner_id = $_REQUEST['partner_id'] ?? '';
 
-// Support JSON body for partner_id (e.g. for update_car_type)
+// Support JSON body for partner_id & action
 $rawInput = file_get_contents("php://input");
 $jsonData = json_decode($rawInput, true);
 
-if (empty($partner_id)) {
-    if (isset($jsonData['partner_id'])) {
+if (is_array($jsonData)) {
+    if (empty($action) && isset($jsonData['action'])) {
+        $action = $jsonData['action'];
+    }
+    if (empty($partner_id) && isset($jsonData['partner_id'])) {
         $partner_id = $jsonData['partner_id'];
     }
 }
 
-if (empty($partner_id) && !in_array($action, ['lookup_rc', 'options', 'get_car_types'])) {
-    echo json_encode(['status' => 'error', 'message' => 'partner_id required']);
-    exit;
+if (!in_array($action, ['options', 'get_car_types'])) {
+    if (empty($partner_id) || !is_numeric($partner_id) || intval($partner_id) <= 0) {
+        $valStr = is_null($partner_id) ? 'null' : (is_string($partner_id) ? "'$partner_id'" : var_export($partner_id, true));
+        echo json_encode(['status' => 'error', 'message' => 'A valid partner_id is required. Received: ' . $valStr]);
+        exit;
+    }
+    // Check if partner exists in the database
+    $checkPartner = $pdo->prepare("SELECT id FROM partners WHERE id = ?");
+    $checkPartner->execute([$partner_id]);
+    if (!$checkPartner->fetch()) {
+        echo json_encode(['status' => 'error', 'message' => 'Partner account not found for ID: ' . $partner_id . '. Please log out and log in again.']);
+        exit;
+    }
 }
 
 // Removed redundant local updateWallet definition as it is now provided by wallet_helper.php
