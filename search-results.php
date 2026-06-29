@@ -151,6 +151,11 @@ if (!$is_local_trip) {
 
     // Final sanity check
     if ($total_distance_km < 1) $total_distance_km = 1;
+} elseif ($trip_type === 'Airport Transfer') {
+    // Airport Transfer is a real A→B trip - calculate distance between pickup and drop
+    $total_distance_km = getDistanceBetweenPoints($pickup, $drop, $api_key);
+    $total_distance_km = ceil($total_distance_km * 1.15);
+    if ($total_distance_km < 1) $total_distance_km = 1;
 } else {
     $total_distance_km = 0;
 }
