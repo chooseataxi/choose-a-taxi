@@ -43,7 +43,7 @@ try {
 
             $brand_id              = 1;
             $base_fare             = $_POST['base_fare'];
-            $min_km                = $_POST['min_km'];
+            $min_km                = 0;
             $extra_km_price        = $_POST['extra_km_price'];
             $display_extra_km_price = trim($_POST['display_extra_km_price'] ?? '');
             $include_toll          = $_POST['include_toll'];

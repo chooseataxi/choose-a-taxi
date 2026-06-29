@@ -52,10 +52,7 @@ $title = $id ? "Edit One Way Package" : "Add New One Way Package";
                                 <label class="form-label fw-bold">Base Fare (₹)</label>
                                 <input type="number" name="base_fare" class="form-control border-2" value="<?= $package['base_fare'] ?? '' ?>" placeholder="e.g. 2500" required>
                             </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Included KMs <span class="text-muted small">(used in price calc)</span></label>
-                                <input type="number" name="min_km" class="form-control border-2" value="<?= $package['min_km'] ?? '' ?>" placeholder="e.g. 250" required>
-                            </div>
+
                             <div class="col-md-4">
                                 <label class="form-label fw-bold">Extra KM Price (₹) <span class="text-muted small">(actual calc)</span></label>
                                 <input type="number" name="extra_km_price" class="form-control border-2" value="<?= $package['extra_km_price'] ?? '' ?>" placeholder="e.g. 12" required>

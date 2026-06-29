@@ -38,7 +38,6 @@ $packages = $stmt->fetchAll();
                                     <th width="50">#</th>
                                     <th>Vehicle/Package</th>
                                     <th>Base Fare</th>
-                                    <th>Min KM</th>
                                     <th>Extra Km</th>
                                     <th>Inclusions</th>
                                     <th>Status</th>
@@ -65,7 +64,6 @@ $packages = $stmt->fetchAll();
                                         </div>
                                     </td>
                                     <td class="fw-bold text-success">₹<?= number_format($pkg['base_fare'], 0) ?></td>
-                                    <td><?= $pkg['min_km'] ?> KM</td>
                                     <td>₹<?= $pkg['extra_km_price'] ?>/KM</td>
                                     <td>
                                         <div class="inclusion-icons d-flex gap-2">

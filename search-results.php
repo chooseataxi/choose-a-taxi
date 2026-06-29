@@ -837,12 +837,8 @@ $cars = array_values($unique_cars);
                     }
                     $display_distance_note = "";
                 } else {
-                    // One Way uses flat minimum
+                    // One Way / Airport Transfer / Other: exact base fare, no min km threshold
                     $final_price = $base_fare;
-                    if ($dist_float > $min_km) {
-                        $extra_km     = $dist_float - $min_km;
-                        $final_price += ($extra_km * $extra_km_price);
-                    }
                     $display_distance_note = "";
                 }
 
