@@ -40,11 +40,11 @@ header("Content-Type: application/json; charset=UTF-8");
  */
 
 // ─── Version Configuration ────────────────────────────────────────────────────
-$latest_version_code = 26;
-$latest_version_name = "1.6.2";
+$latest_version_code = 24;
+$latest_version_name = "1.6.1";
 
 // Any version code BELOW this will be force-updated
-$min_required_version = 25;
+$min_required_version = 24;
 
 // ─── Google Pay Compliance Warning ───────────────────────────────────────────
 // Show this warning to all partners via in-app alert
