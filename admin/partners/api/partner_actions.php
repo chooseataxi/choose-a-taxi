@@ -54,8 +54,64 @@ try {
                 throw new Exception("Another partner already uses this mobile number.");
             }
 
-            $stmt = $pdo->prepare("UPDATE partners SET full_name = ?, mobile = ?, email = ?, status = ?, manual_verification_status = ? WHERE id = ?");
-            $stmt->execute([$name, $mobile, $email, $status, $verification_status, $id]);
+            // Handle profile image upload
+            $selfieLink = null;
+            $updateSelfie = false;
+
+            if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
+                $file = $_FILES['profile_image'];
+
+                // Validate file type
+                $allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+                if (!in_array($file['type'], $allowedTypes, true)) {
+                    throw new Exception('Invalid image format. Only JPG, PNG & WebP are allowed.');
+                }
+
+                // Validate file size (2MB max)
+                if ($file['size'] > 2 * 1024 * 1024) {
+                    throw new Exception('Image is too large. Maximum size is 2MB.');
+                }
+
+                // Define upload directory
+                $uploadDir = __DIR__ . '/../../../uploads/partners/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0755, true);
+                }
+
+                // Generate unique filename
+                $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+                $safeExt = in_array(strtolower($ext), ['jpg', 'jpeg', 'png', 'webp'], true) ? strtolower($ext) : 'jpg';
+                $newFilename = 'partner_' . $id . '_' . time() . '.' . $safeExt;
+                $destPath = $uploadDir . $newFilename;
+
+                // Move uploaded file
+                if (!move_uploaded_file($file['tmp_name'], $destPath)) {
+                    throw new Exception('Failed to save uploaded image. Please check directory permissions.');
+                }
+
+                // Delete old selfie file if exists
+                $stmtOld = $pdo->prepare("SELECT selfie_link FROM partners WHERE id = ?");
+                $stmtOld->execute([$id]);
+                $oldRow = $stmtOld->fetch();
+                if (!empty($oldRow['selfie_link'])) {
+                    $oldFilePath = $uploadDir . $oldRow['selfie_link'];
+                    if (file_exists($oldFilePath)) {
+                        @unlink($oldFilePath);
+                    }
+                }
+
+                $selfieLink = $newFilename;
+                $updateSelfie = true;
+            }
+
+            // Build update query dynamically
+            if ($updateSelfie) {
+                $stmt = $pdo->prepare("UPDATE partners SET full_name = ?, mobile = ?, email = ?, status = ?, manual_verification_status = ?, selfie_link = ? WHERE id = ?");
+                $stmt->execute([$name, $mobile, $email, $status, $verification_status, $selfieLink, $id]);
+            } else {
+                $stmt = $pdo->prepare("UPDATE partners SET full_name = ?, mobile = ?, email = ?, status = ?, manual_verification_status = ? WHERE id = ?");
+                $stmt->execute([$name, $mobile, $email, $status, $verification_status, $id]);
+            }
 
             echo json_encode(['success' => true, 'message' => 'Partner updated successfully!']);
             break;

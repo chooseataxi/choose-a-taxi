@@ -45,22 +45,46 @@ $page_title = "Edit & Verify Partner";
                         <div class="position-relative d-inline-block">
                             <div class="rounded-circle shadow border border-4 border-white overflow-hidden mb-2" style="width: 100px; height: 100px; background: #fff;">
                                 <?php if (!empty($partner['selfie_link'])): ?>
-                                    <img src="../../uploads/partners/<?= $partner['selfie_link'] ?>" style="width:100%; height:100%; object-fit:cover;">
+                                    <img src="../../uploads/partners/<?= $partner['selfie_link'] ?>?t=<?= time() ?>" style="width:100%; height:100%; object-fit:cover;">
                                 <?php else: ?>
                                     <div class="h-100 d-flex align-items-center justify-content-center bg-gray-200">
                                         <i class="fas fa-user fa-3x text-muted"></i>
                                     </div>
-                                <?php endif; ?>
+                                    <?php endif; ?>
                             </div>
                         </div>
                         <h5 class="fw-bold mb-0 text-dark"><?= htmlspecialchars($partner['full_name'] ?? 'Incomplete Profile') ?></h5>
                         <p class="text-muted small mb-0"><i class="fas fa-id-badge me-1"></i> ID: #<?= $partner['id'] ?></p>
                     </div>
                     <div class="card-body p-4">
-                        <form id="editPartnerForm">
+                        <form id="editPartnerForm" enctype="multipart/form-data">
                             <input type="hidden" name="action" value="update">
                             <input type="hidden" name="id" value="<?= $partner['id'] ?>">
-                            
+
+                            <!-- Profile Image Upload -->
+                            <div class="mb-4 text-center">
+                                <label class="form-label fw-bold small text-muted d-block">Profile Photo</label>
+                                <div class="position-relative d-inline-block">
+                                    <div class="rounded-circle shadow border border-3 border-white overflow-hidden" style="width: 110px; height: 110px; background: #f8f9fa; cursor: pointer;" id="profileImagePreview" onclick="document.getElementById('profileImageInput').click();">
+                                        <?php if (!empty($partner['selfie_link'])): ?>
+                                            <img src="../../uploads/partners/<?= $partner['selfie_link'] ?>?t=<?= time() ?>" style="width:100%; height:100%; object-fit:cover;" id="previewImg">
+                                        <?php else: ?>
+                                            <div class="h-100 d-flex align-items-center justify-content-center" id="previewPlaceholder">
+                                                <i class="fas fa-user fa-3x text-muted"></i>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                    <button type="button" class="btn btn-primary btn-sm rounded-circle position-absolute bottom-0 end-0 shadow" style="width: 32px; height: 32px; padding: 0;" onclick="document.getElementById('profileImageInput').click();" title="Change Photo">
+                                        <i class="fas fa-camera"></i>
+                                    </button>
+                                    <input type="file" name="profile_image" id="profileImageInput" accept="image/jpeg,image/png,image/webp" style="display:none;">
+                                </div>
+                                <div class="mt-2">
+                                    <small class="text-muted">Click photo or camera icon to change. JPG, PNG or WebP. Max 2MB.</small>
+                                </div>
+                                <div id="fileNameDisplay" class="small text-success fw-bold mt-1" style="display:none;"></div>
+                            </div>
+
                             <div class="row g-3">
                                 <div class="col-md-12">
                                     <label class="form-label fw-bold small text-muted">Full Legal Name *</label>
@@ -179,13 +203,51 @@ $page_title = "Edit & Verify Partner";
 
 <script>
 $(document).ready(function() {
+    // Profile image preview on file selection
+    $('#profileImageInput').on('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Validate file size (2MB max)
+        if (file.size > 2 * 1024 * 1024) {
+            Swal.fire('File Too Large', 'Image must be less than 2MB. Please choose a smaller file.', 'warning');
+            $(this).val('');
+            return;
+        }
+
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            Swal.fire('Invalid Format', 'Only JPG, PNG & WebP images are allowed.', 'warning');
+            $(this).val('');
+            return;
+        }
+
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            const previewContainer = $('#profileImagePreview');
+            // Replace content with image
+            previewContainer.html('<img src="' + ev.target.result + '" style="width:100%; height:100%; object-fit:cover;">');
+        };
+        reader.readAsDataURL(file);
+
+        // Show file name
+        $('#fileNameDisplay').text('Selected: ' + file.name).show();
+    });
+
+    // Submit form with FormData (supports file upload)
     $('#editPartnerForm').on('submit', function(e) {
         e.preventDefault();
-        
+
+        var formData = new FormData(this);
+
         $.ajax({
             url: 'api/partner_actions.php',
             type: 'POST',
-            data: $(this).serialize(),
+            data: formData,
+            contentType: false,
+            processData: false,
             beforeSend: function() {
                 Swal.fire({ title: 'Saving...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
             },
@@ -197,6 +259,9 @@ $(document).ready(function() {
                 } else {
                     Swal.fire('Error', res.message, 'error');
                 }
+            },
+            error: function(xhr) {
+                Swal.fire('Server Error', 'An unexpected error occurred. Please try again.', 'error');
             }
         });
     });
