@@ -445,40 +445,144 @@ $page_title = "Partner Details - " . ($partner['full_name'] ?? 'N/A');
 
 <!-- Add Vehicle Modal -->
 <div class="modal fade" id="addVehicleModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content border-0 rounded-4 shadow">
             <div class="modal-header border-bottom-0 pb-0">
                 <h5 class="modal-title fw-bold"><i class="fas fa-car me-2 text-primary"></i>Add Vehicle</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form id="addVehicleForm">
+            <form id="addVehicleForm" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="add">
                 <input type="hidden" name="partner_id" value="<?= $partner['id'] ?>">
+                <input type="hidden" name="raw_rc_data" id="raw_rc_data" value="{}">
+
                 <div class="modal-body py-4">
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted text-uppercase">RC Number <span class="text-danger">*</span></label>
-                        <input type="text" name="rc_number" class="form-control" placeholder="e.g. HR55BC1321" required>
+                    <!-- RC Lookup Row -->
+                    <div class="card bg-light border-0 rounded-4 p-3 mb-4">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-8">
+                                <label class="form-label small fw-bold text-muted text-uppercase">RC Number <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="text" name="rc_number" id="rc_number_input" class="form-control" placeholder="e.g. HR55BC1321" required>
+                                    <button type="button" class="btn btn-primary" id="lookupRcBtn">
+                                        <i class="fas fa-search me-1"></i> Lookup RC
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted d-block">Enter RC number and click "Lookup RC" to auto-fill vehicle details from Surepass.</small>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted text-uppercase">Model <span class="text-danger">*</span></label>
-                        <input type="text" name="maker_model" class="form-control" placeholder="e.g. INNOVA CRYSTA 2.4G" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted text-uppercase">Color</label>
-                        <input type="text" name="color" class="form-control" placeholder="e.g. White">
-                    </div>
-                    <div class="mb-0">
-                        <label class="form-label small fw-bold text-muted text-uppercase">Status</label>
-                        <select name="status" class="form-select">
-                            <option value="Active">Active</option>
-                            <option value="Inactive">Inactive</option>
-                            <option value="Pending">Pending</option>
-                        </select>
+
+                    <!-- Vehicle Details (collapsible after RC lookup) -->
+                    <div id="vehicleDetailsFields" style="display: none;">
+                        <h6 class="fw-bold text-primary mb-3"><i class="fas fa-list me-2"></i>Vehicle Details</h6>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-muted">Owner Name</label>
+                                <input type="text" name="owner_name" id="f_owner_name" class="form-control" readonly>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-muted">Manufacturer</label>
+                                <input type="text" name="maker_description" id="f_maker_description" class="form-control" readonly>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-muted">Model <span class="text-danger">*</span></label>
+                                <input type="text" name="maker_model" id="f_maker_model" class="form-control">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold text-muted">Body Type</label>
+                                <input type="text" name="body_type" id="f_body_type" class="form-control" readonly>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold text-muted">Fuel Type</label>
+                                <input type="text" name="fuel_type" id="f_fuel_type" class="form-control" readonly>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold text-muted">Color</label>
+                                <input type="text" name="color" id="f_color" class="form-control">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold text-muted">Seat Capacity</label>
+                                <input type="text" name="seat_capacity" id="f_seat_capacity" class="form-control" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Vehicle Category</label>
+                                <input type="text" name="vehicle_category_desc" id="f_vehicle_category_desc" class="form-control" readonly>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold text-muted">Registration Date</label>
+                                <input type="text" name="registration_date" id="f_registration_date" class="form-control" readonly>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold text-muted">Norms Type</label>
+                                <input type="text" name="norms_type" id="f_norms_type" class="form-control" readonly>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+                        <h6 class="fw-bold text-primary mb-3"><i class="fas fa-shield-alt me-2"></i>Insurance & Documents</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Insurance Company</label>
+                                <input type="text" name="insurance_company" id="f_insurance_company" class="form-control" readonly>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold text-muted">Policy Number</label>
+                                <input type="text" name="insurance_policy_number" id="f_insurance_policy_number" class="form-control" readonly>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold text-muted">Insurance Valid Upto</label>
+                                <input type="text" name="insurance_upto" id="f_insurance_upto" class="form-control" readonly>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-muted">Fitness Valid Upto</label>
+                                <input type="text" name="fit_up_to" id="f_fit_up_to" class="form-control" readonly>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-muted">Permit Type</label>
+                                <input type="text" name="permit_type" id="f_permit_type" class="form-control" readonly>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-muted">Permit Valid Upto</label>
+                                <input type="text" name="permit_valid_upto" id="f_permit_valid_upto" class="form-control" readonly>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-muted">RC Status</label>
+                                <input type="text" name="rc_status" id="f_rc_status" class="form-control" readonly>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+                        <h6 class="fw-bold text-primary mb-3"><i class="fas fa-images me-2"></i>Vehicle Images (Optional)</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Front Image</label>
+                                <input type="file" name="front_image" class="form-control" accept="image/jpeg,image/png,image/webp">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Back Image</label>
+                                <input type="file" name="back_image" class="form-control" accept="image/jpeg,image/png,image/webp">
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+                        <h6 class="fw-bold text-primary mb-3"><i class="fas fa-toggle-on me-2"></i>Status</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <select name="status" class="form-select">
+                                    <option value="Active">Active</option>
+                                    <option value="Inactive">Inactive</option>
+                                    <option value="Pending">Pending</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer border-top-0 pt-0">
                     <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4" id="addVehicleBtn">Add Vehicle</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4" id="addVehicleBtn" style="display: none;">Add Vehicle</button>
                 </div>
             </form>
         </div>
@@ -552,21 +656,85 @@ $(document).ready(function() {
         })
     });
 
-    // Add Vehicle Form Submission
+    // RC Lookup
+    $('#lookupRcBtn').click(function() {
+        const rc = $('#rc_number_input').val().trim();
+        if (!rc) {
+            Swal.fire('Error', 'Please enter an RC number first.', 'error');
+            return;
+        }
+
+        const btn = $(this);
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Looking up...');
+
+        $.post('api/vehicle_actions.php', { action: 'lookup_rc', rc_number: rc }, function(res) {
+            btn.prop('disabled', false).html('<i class="fas fa-search me-1"></i> Lookup RC');
+            if (res.success) {
+                fillVehicleForm(res.data);
+                Swal.fire('Success', 'RC details fetched successfully!', 'success');
+            } else {
+                Swal.fire('Error', res.message, 'error');
+            }
+        });
+    });
+
+    function fillVehicleForm(data) {
+        $('#f_owner_name').val(data.owner_name || '');
+        $('#f_maker_description').val(data.maker_description || '');
+        $('#f_maker_model').val(data.maker_model || '');
+        $('#f_body_type').val(data.body_type || '');
+        $('#f_fuel_type').val(data.fuel_type || '');
+        $('#f_color').val(data.color || '');
+        $('#f_seat_capacity').val(data.seat_capacity || '');
+        $('#f_vehicle_category_desc').val(data.vehicle_category_desc || '');
+        $('#f_registration_date').val(data.registration_date || '');
+        $('#f_insurance_company').val(data.insurance_company || '');
+        $('#f_insurance_policy_number').val(data.insurance_policy_number || '');
+        $('#f_insurance_upto').val(data.insurance_upto || '');
+        $('#f_fit_up_to').val(data.fit_up_to || '');
+        $('#f_norms_type').val(data.norms_type || '');
+        $('#f_rc_status').val(data.rc_status || '');
+        $('#f_permit_type').val(data.permit_type || '');
+        $('#f_permit_valid_upto').val(data.permit_valid_upto || '');
+
+        // Store raw RC data for submission
+        $('#raw_rc_data').val(JSON.stringify(data));
+
+        // Show vehicle details and submit button
+        $('#vehicleDetailsFields').slideDown();
+        $('#addVehicleBtn').show();
+    }
+
+    // Add Vehicle Form Submission (with file uploads)
     $('#addVehicleForm').submit(function(e) {
         e.preventDefault();
         const btn = $('#addVehicleBtn');
         btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Adding...');
 
-        $.post('api/vehicle_actions.php', $(this).serialize(), function(res) {
-            if (res.success) {
-                $('#addVehicleModal').modal('hide');
-                Swal.fire('Added!', res.message, 'success').then(() => location.reload());
-            } else {
-                Swal.fire('Error', res.message, 'error');
-                btn.prop('disabled', false).html('Add Vehicle');
+        $.ajax({
+            url: 'api/vehicle_actions.php',
+            type: 'POST',
+            data: new FormData(this),
+            contentType: false,
+            processData: false,
+            success: function(res) {
+                if (res.success) {
+                    $('#addVehicleModal').modal('hide');
+                    Swal.fire('Added!', res.message, 'success').then(() => location.reload());
+                } else {
+                    Swal.fire('Error', res.message, 'error');
+                    btn.prop('disabled', false).html('Add Vehicle');
+                }
             }
         });
+    });
+
+    // Reset form when modal is closed
+    $('#addVehicleModal').on('hidden.bs.modal', function() {
+        $('#addVehicleForm')[0].reset();
+        $('#vehicleDetailsFields').hide();
+        $('#addVehicleBtn').hide();
+        $('#raw_rc_data').val('{}');
     });
 
     // Delete Vehicle
