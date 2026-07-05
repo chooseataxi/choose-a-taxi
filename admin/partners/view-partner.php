@@ -263,7 +263,12 @@ $page_title = "Partner Details - " . ($partner['full_name'] ?? 'N/A');
                         <div class="card shadow-sm border-0 rounded-4 overflow-hidden h-100">
                             <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0 fw-bold"><i class="fas fa-car me-2 text-primary"></i>Registered Vehicles (<?= count($vehicles) ?>)</h6>
-                                <span class="badge bg-light text-primary border rounded-pill">Total: <?= count($vehicles) ?></span>
+                                <div>
+                                    <button class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm me-1" data-bs-toggle="modal" data-bs-target="#addVehicleModal">
+                                        <i class="fas fa-plus me-1"></i> Add Vehicle
+                                    </button>
+                                    <span class="badge bg-light text-primary border rounded-pill">Total: <?= count($vehicles) ?></span>
+                                </div>
                             </div>
                             <div class="card-body p-0">
                                 <div class="list-group list-group-flush" style="max-height: 250px; overflow-y: auto;">
@@ -287,9 +292,14 @@ $page_title = "Partner Details - " . ($partner['full_name'] ?? 'N/A');
                                                         <div class="h6 mb-0 fw-bold small"><?= htmlspecialchars($vh['maker_model']) ?></div>
                                                         <div class="text-muted text-xs"><?= htmlspecialchars($vh['rc_number']) ?></div>
                                                     </div>
-                                                    <div class="text-end">
-                                                        <div class="small fw-bold text-dark"><?= htmlspecialchars($vh['color'] ?: 'N/A') ?></div>
-                                                        <span class="badge bg-<?= $vh['status'] === 'Active' ? 'success' : 'secondary' ?>-light text-<?= $vh['status'] === 'Active' ? 'success' : 'secondary' ?> py-1 px-2" style="font-size: 9px;"><?= $vh['status'] ?></span>
+                                                    <div class="text-end d-flex align-items-center gap-2">
+                                                        <div>
+                                                            <div class="small fw-bold text-dark"><?= htmlspecialchars($vh['color'] ?: 'N/A') ?></div>
+                                                            <span class="badge bg-<?= $vh['status'] === 'Active' ? 'success' : 'secondary' ?>-light text-<?= $vh['status'] === 'Active' ? 'success' : 'secondary' ?> py-1 px-2" style="font-size: 9px;"><?= $vh['status'] ?></span>
+                                                        </div>
+                                                        <button class="btn btn-outline-danger btn-xs rounded-circle delete-vehicle-btn" data-id="<?= $vh['id'] ?>" data-vehicle="<?= htmlspecialchars($vh['maker_model'].' - '.$vh['rc_number']) ?>" title="Remove Vehicle" style="width: 28px; height: 28px; padding: 0;">
+                                                            <i class="fas fa-times" style="font-size: 11px;"></i>
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -433,6 +443,48 @@ $page_title = "Partner Details - " . ($partner['full_name'] ?? 'N/A');
     </div>
 </div>
 
+<!-- Add Vehicle Modal -->
+<div class="modal fade" id="addVehicleModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold"><i class="fas fa-car me-2 text-primary"></i>Add Vehicle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addVehicleForm">
+                <input type="hidden" name="action" value="add">
+                <input type="hidden" name="partner_id" value="<?= $partner['id'] ?>">
+                <div class="modal-body py-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">RC Number <span class="text-danger">*</span></label>
+                        <input type="text" name="rc_number" class="form-control" placeholder="e.g. HR55BC1321" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Model <span class="text-danger">*</span></label>
+                        <input type="text" name="maker_model" class="form-control" placeholder="e.g. INNOVA CRYSTA 2.4G" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Color</label>
+                        <input type="text" name="color" class="form-control" placeholder="e.g. White">
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                            <option value="Pending">Pending</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4" id="addVehicleBtn">Add Vehicle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 function setWalletAction(type) {
     $('#walletType').val(type);
@@ -498,6 +550,47 @@ $(document).ready(function() {
                 });
             }
         })
+    });
+
+    // Add Vehicle Form Submission
+    $('#addVehicleForm').submit(function(e) {
+        e.preventDefault();
+        const btn = $('#addVehicleBtn');
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Adding...');
+
+        $.post('api/vehicle_actions.php', $(this).serialize(), function(res) {
+            if (res.success) {
+                $('#addVehicleModal').modal('hide');
+                Swal.fire('Added!', res.message, 'success').then(() => location.reload());
+            } else {
+                Swal.fire('Error', res.message, 'error');
+                btn.prop('disabled', false).html('Add Vehicle');
+            }
+        });
+    });
+
+    // Delete Vehicle
+    $(document).on('click', '.delete-vehicle-btn', function() {
+        const id = $(this).data('id');
+        const vehicle = $(this).data('vehicle');
+        Swal.fire({
+            title: 'Remove this vehicle?',
+            text: `Remove "${vehicle}" from this partner?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Yes, remove it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.post('api/vehicle_actions.php', { action: 'delete', id: id }, function(res) {
+                    if (res.success) {
+                        Swal.fire('Removed!', res.message, 'success').then(() => location.reload());
+                    } else {
+                        Swal.fire('Error', res.message, 'error');
+                    }
+                });
+            }
+        });
     });
 });
 </script>
