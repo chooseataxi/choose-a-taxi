@@ -87,16 +87,15 @@ function sendSms($mobile, $message, $templateId = '') {
     $err = curl_error($curl);
     curl_close($curl);
 
-    // Logging
-    $log_file = realpath(__DIR__ . '/../../') . '/tmp/sms_log.txt';
-    $log_dir = dirname($log_file);
+    $log_dir = rtrim(realpath(__DIR__ . '/../../'), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'tmp';
+    $log_file = $log_dir . DIRECTORY_SEPARATOR . 'sms_log.txt';
     if (!is_dir($log_dir)) {
-        @mkdir($log_dir, 0777, true);
+        @mkdir($log_dir, 0755, true);
     }
-    if (is_writable($log_dir) && (!file_exists($log_file) || is_writable($log_file))) {
+    if (is_dir($log_dir) && is_writable($log_dir)) {
         @file_put_contents($log_file, "[" . date('Y-m-d H:i:s') . "] API URL: $apiUrl\nHTTP: $http_code\nResp: $response\nErr: $err\n-----\n", FILE_APPEND);
     } else {
-        error_log("SMS log file not writable: $log_file. SMS details: mobiles=$mobile, http=$http_code");
+        error_log("SMS log directory not writable: $log_dir. SMS details: mobiles=$mobile, http=$http_code");
     }
 
     if ($err || $http_code !== 200) {
@@ -243,29 +242,23 @@ switch ($action) {
             $partner_id = $_POST['partner_id'] ?? 0;
             if (empty($partner_id)) throw new Exception("Partner ID required.");
             
-            // Build absolute path to uploads folder using dirname to bypass realpath checks on uncreated folders
-            $targetDir = dirname(dirname(__DIR__)) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'partners' . DIRECTORY_SEPARATOR;
-            
-            // Proactively manage directory existence and permissions
-            if (!is_dir($targetDir)) {
-                if (!@mkdir($targetDir, 0777, true)) {
-                    $err = error_get_last();
-                    $details = isset($err['message']) ? " (System error: " . $err['message'] . ")" : "";
-                    throw new Exception("Failed to create upload directory. Please check folder permissions on the server.$details");
-                }
-                @chmod($targetDir, 0777);
-            } else {
-                if (!is_writable($targetDir)) {
-                    @chmod($targetDir, 0777);
-                }
-            }
+    $baseDir = rtrim(realpath(__DIR__ . '/../../'), DIRECTORY_SEPARATOR);
+    $targetDir = $baseDir . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'partners' . DIRECTORY_SEPARATOR;
 
-            // Verify writability again after trying to fix permissions
-            if (!is_writable($targetDir)) {
-                $err = error_get_last();
-                $details = isset($err['message']) ? " (System error: " . $err['message'] . ")" : "";
-                throw new Exception("Upload directory is not writable. Please verify upload permissions for the 'uploads/partners' directory on the server.$details Tip: Run 'chmod -R 777 uploads/partners' or ensure correct ownership.");
-            }
+    if (!is_dir($targetDir)) {
+        if (!@mkdir($targetDir, 0755, true)) {
+            $err = error_get_last();
+            $details = isset($err['message']) ? " (System error: " . $err['message'] . ")" : "";
+            throw new Exception("Failed to create upload directory. Please check folder permissions on the server.$details");
+        }
+    }
+
+    if (!is_writable($targetDir)) {
+        @chmod($targetDir, 0755);
+        if (!is_writable($targetDir)) {
+            throw new Exception("Upload directory is not writable. Please verify permissions for 'uploads/partners'.");
+        }
+    }
             
             $updates = [];
             $params = [];

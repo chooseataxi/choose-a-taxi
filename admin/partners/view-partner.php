@@ -122,6 +122,16 @@ $page_title = "Partner Details - " . ($partner['full_name'] ?? 'N/A');
                                         <i class="fas <?= $partner['status'] === 'Active' ? 'fa-toggle-on' : 'fa-toggle-off' ?> me-1"></i> <?= $partner['status'] ?>
                                     </div>
                                 </div>
+                                <div class="mb-3">
+                                    <label class="small text-muted text-uppercase fw-bold mb-0 d-block"><i class="fas fa-map-marker-alt me-1 text-muted"></i>City</label>
+                                    <div class="fw-semibold text-dark">
+                                        <?php if (!empty($partner['city'])): ?>
+                                            <?= htmlspecialchars($partner['city']) ?>
+                                        <?php else: ?>
+                                            <span class="text-muted fw-normal"><em>Not provided</em></span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
                                 <div class="mb-0">
                                     <label class="small text-muted text-uppercase fw-bold mb-0 d-block">Registered On</label>
                                     <div class="fw-semibold text-dark"><?= date('d M Y, h:i A', strtotime($partner['created_at'] ?? 'now')) ?></div>

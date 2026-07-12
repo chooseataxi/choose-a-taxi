@@ -457,6 +457,7 @@ if ($action === 'get_bookings') {
 // ACTION: get_market_bookings  — all open bookings for main dashboard
 // ──────────────────────────────────────────────────────────────────────────────
 if ($action === 'get_market_bookings') {
+    $now = date('Y-m-d H:i:s');
     try {
         // Auto-expire open bookings that are past their start time
         // Using %h:%i %p for `10:00 PM` format. If it's `22:00` format, %H:%i is used.
@@ -509,7 +510,6 @@ if ($action === 'get_market_bookings') {
             if (isset($b['commission']))
                 $b['commission'] = (float) $b['commission'];
         }
-        $now = date('Y-m-d H:i:s');
         echo json_encode(["status" => "success", "bookings" => $bookings, "server_time" => $now]);
     } catch (PDOException $e) {
         echo json_encode(["status" => "error", "message" => "DB Error: " . $e->getMessage()]);
