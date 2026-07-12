@@ -115,7 +115,6 @@ $title = $id ? "Edit City-to-City Route Package" : "Add New Route Package";
                                                 <th class="text-center" style="width: 80px;">Enable</th>
                                                 <th>Car Type</th>
                                                 <th>Fixed Fare (₹) <span class="text-danger">*</span></th>
-                                                <th>Included KMs <span class="text-danger">*</span></th>
                                                 <th>Extra KM Price (₹) <span class="text-danger">*</span></th>
                                                 <th>Display Extra KM Price (e.g. ₹12/km)</th>
                                             </tr>
@@ -136,9 +135,6 @@ $title = $id ? "Edit City-to-City Route Package" : "Add New Route Package";
                                                 </td>
                                                 <td>
                                                     <input type="number" name="prices[<?= $typeId ?>][base_fare]" class="form-control pricing-input border-2" value="<?= $pkgData ? $pkgData['base_fare'] : '' ?>" placeholder="Fare" <?= $hasPkg ? 'required' : 'disabled' ?>>
-                                                </td>
-                                                <td>
-                                                    <input type="number" name="prices[<?= $typeId ?>][min_km]" class="form-control pricing-input border-2" value="<?= $pkgData ? $pkgData['min_km'] : '' ?>" placeholder="Min KMs" <?= $hasPkg ? 'required' : 'disabled' ?>>
                                                 </td>
                                                 <td>
                                                     <input type="number" name="prices[<?= $typeId ?>][extra_km_price]" class="form-control pricing-input border-2" value="<?= $pkgData ? $pkgData['extra_km_price'] : '' ?>" placeholder="Extra KM price" <?= $hasPkg ? 'required' : 'disabled' ?>>
@@ -245,7 +241,6 @@ $title = $id ? "Edit City-to-City Route Package" : "Add New Route Package";
             if ($(this).is(':checked')) {
                 inputs.prop('disabled', false);
                 row.find('input[name*="[base_fare]"]').prop('required', true);
-                row.find('input[name*="[min_km]"]').prop('required', true);
                 row.find('input[name*="[extra_km_price]"]').prop('required', true);
             } else {
                 inputs.prop('disabled', true).prop('required', false);

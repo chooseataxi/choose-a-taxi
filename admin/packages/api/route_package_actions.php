@@ -80,11 +80,10 @@ if ($action === 'save') {
 
             if ($enabled) {
                 $base_fare = $pricing['base_fare'] ?? null;
-                $min_km = $pricing['min_km'] ?? null;
                 $extra_km_price = $pricing['extra_km_price'] ?? null;
                 $display_extra_km_price = $pricing['display_extra_km_price'] ?? null;
 
-                if ($base_fare === '' || $min_km === '' || $extra_km_price === '' || $base_fare === null || $min_km === null || $extra_km_price === null) {
+                if ($base_fare === '' || $extra_km_price === '' || $base_fare === null || $extra_km_price === null) {
                     // Skip if fields are empty
                     continue;
                 }
@@ -97,7 +96,6 @@ if ($action === 'save') {
                     'city_id' => $city_id,
                     'drop_city_id' => $drop_city_id,
                     'base_fare' => $base_fare,
-                    'min_km' => $min_km,
                     'extra_km_price' => $extra_km_price,
                     'display_extra_km_price' => $display_extra_km_price,
                     'include_toll' => $include_toll,
@@ -114,7 +112,6 @@ if ($action === 'save') {
                     brand_id = :brand_id,
                     name = :name,
                     base_fare = :base_fare,
-                    min_km = :min_km,
                     extra_km_price = :extra_km_price,
                     display_extra_km_price = :display_extra_km_price,
                     include_toll = :include_toll,
@@ -130,7 +127,6 @@ if ($action === 'save') {
                     'brand_id' => $brand_id,
                     'name' => $name,
                     'base_fare' => $base_fare,
-                    'min_km' => $min_km,
                     'extra_km_price' => $extra_km_price,
                     'display_extra_km_price' => $display_extra_km_price,
                     'include_toll' => $include_toll,
@@ -146,8 +142,8 @@ if ($action === 'save') {
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute($update_params);
             } else {
-                $sql = "INSERT INTO cars (type_id, brand_id, name, trip_type_id, city_id, drop_city_id, base_fare, min_km, extra_km_price, display_extra_km_price, include_toll, include_tax, include_driver_allowance, include_night_charges, include_parking, description, terms_conditions, status)
-                        VALUES (:type_id, :brand_id, :name, :trip_type_id, :city_id, :drop_city_id, :base_fare, :min_km, :extra_km_price, :display_extra_km_price, :include_toll, :include_tax, :include_driver_allowance, :include_night_charges, :include_parking, :description, :terms_conditions, 'Active')";
+                $sql = "INSERT INTO cars (type_id, brand_id, name, trip_type_id, city_id, drop_city_id, base_fare, extra_km_price, display_extra_km_price, include_toll, include_tax, include_driver_allowance, include_night_charges, include_parking, description, terms_conditions, status)
+                        VALUES (:type_id, :brand_id, :name, :trip_type_id, :city_id, :drop_city_id, :base_fare, :extra_km_price, :display_extra_km_price, :include_toll, :include_tax, :include_driver_allowance, :include_night_charges, :include_parking, :description, :terms_conditions, 'Active')";
                 
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute($params);
