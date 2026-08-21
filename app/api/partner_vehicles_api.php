@@ -124,7 +124,7 @@ if ($action === 'lookup_rc') {
     }
 
     // ── Call Surepass RC Full API (token from .env → $_ENV, with fallback like partner_auth.php) ──
-    $surepassToken = $_ENV['SUREPASS_TOKEN'] ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3OTcxODcxNCwianRpIjoiYjI2OTU0YjEtODE3OS00MWRkLTg2ZGMtNmYxZTgzNzdmNDE4IiwidHlwZSI6ImFjY2VzcyIsImlkZW50aXR5IjoiZGV2LnJvaGl0XzAzNDVAc3VyZXBhc3MuaW8iLCJuYmYiOjE3Nzk3MTg3MTQsImV4cCI6MjA5NTA3ODcxNCwiZW1haWwiOiJyb2hpdF8wMzQ1QHN1cmVwYXNzLmlvIiwidGVuYW50X2lkIjoibWFpbiIsInVzZXJfY2xhaW1zIjp7InNjb3BlcyI6WyJ1c2VyIl19fQ.8ZYs7N7vRhAD50h5x7WDMYcMWu2ctZTjUst833FclMA';
+    $surepassToken = $_ENV['SUREPASS_TOKEN'] ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc4NzMxNjU3NCwianRpIjoiM2I1NTNhMGEtNjIyZi00MTc2LWJmMGMtNTc0N2JiNjYzMDBmIiwidHlwZSI6ImFjY2VzcyIsImlkZW50aXR5IjoiZGV2LnJvaGl0XzAzNDVAc3VyZXBhc3MuaW8iLCJuYmYiOjE3ODczMTY1NzQsImV4cCI6MTk3NzIyMzc3NCwiZW1haWwiOiJyb2hpdF8wMzQ1QHN1cmVwYXNzLmlvIiwidGVuYW50X2lkIjoibWFpbiIsInVzZXJfY2xhaW1zIjp7InNjb3BlcyI6WyJ1c2VyIl19fQ.DXSKppU5pwOEVxtZMSbfQiNmkfJib9JJ7OnO6skhOXE';
     $surepassUrl   = rtrim($_ENV['SUREPASS_BASE_URL'] ?? 'https://kyc-api.surepass.app/api/v1', '/') . '/rc/rc-v2';
 
     $ch = curl_init($surepassUrl);
