@@ -62,6 +62,8 @@
                         <li><a href="index.php#price-list"><i class="fas fa-chevron-right"></i> Price List</a></li>
                         <li><a href="index.php#fleet"><i class="fas fa-chevron-right"></i> Premium Fleet</a></li>
                         <li><a href="partner-registration.php"><i class="fas fa-chevron-right"></i> Partner Registration</a></li>
+                        <li><a href="privacy-policy.php"><i class="fas fa-chevron-right"></i> Privacy Policy</a></li>
+                        <li><a href="terms-and-conditions.php"><i class="fas fa-chevron-right"></i> Terms & Conditions</a></li>
                     </ul>
                 </div>
 

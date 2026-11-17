@@ -1,1 +1,18 @@
 ErrorDocument 404 /404.php
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+
+# Allow direct file and folder requests
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Clean URL Rewrites for Legal Policies (Play Store requirement)
+RewriteRule ^privacy-policy/?$ privacy-policy.php [L,QSA]
+RewriteRule ^privacy/?$ privacy-policy.php [L,QSA]
+RewriteRule ^terms-and-conditions/?$ terms-and-conditions.php [L,QSA]
+RewriteRule ^terms-conditions/?$ terms-and-conditions.php [L,QSA]
+RewriteRule ^terms/?$ terms-and-conditions.php [L,QSA]
+</IfModule>
